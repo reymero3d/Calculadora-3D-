@@ -484,11 +484,15 @@
           delete t.products;
           delete t.profiles;
           state = { ...state, ...t };
+          // Validar que el producto activo siga existiendo
+          if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
+            state.activeProductId = null;
+          }
         }
       } catch {}
     }
     function savePiece() {
-      const { profiles, products, activeProfileId, refsOpen, ...rest } = state;
+      const { profiles, products, refsOpen, ...rest } = state;
       localStorage.setItem(PIECE_KEY, JSON.stringify(rest));
     }
 
@@ -547,6 +551,9 @@
       document.getElementById("insumos").value = state.insumos || "";
       document.getElementById("quantity").value = state.quantity || 1;
       document.getElementById("customMult").value = state.profitMultiplier;
+      const _activePr = state.products.find(p => p.id === state.activeProductId);
+      const _psl = document.getElementById("productSelectLabel");
+      if (_psl) _psl.textContent = _activePr ? (_activePr.name || "Sin nombre") : "-- Nuevo producto --";
       document.getElementById("consumptionW").disabled = state.printerModel !== "custom" && PRINTERS.find(x=>x.id===state.printerModel)?.watts !== null;
     }
 
