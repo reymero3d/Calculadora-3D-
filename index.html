@@ -479,12 +479,16 @@
         const e = localStorage.getItem(PIECE_KEY);
         if (e) {
           const t = JSON.parse(e);
+          // Los productos y perfiles se persisten en sus propias claves;
+          // no deben sobrescribirse con snapshots viejos guardados en la pieza.
+          delete t.products;
+          delete t.profiles;
           state = { ...state, ...t };
         }
       } catch {}
     }
     function savePiece() {
-      const { profiles, activeProfileId, refsOpen, ...rest } = state;
+      const { profiles, products, activeProfileId, refsOpen, ...rest } = state;
       localStorage.setItem(PIECE_KEY, JSON.stringify(rest));
     }
 
@@ -784,6 +788,7 @@
           pr.data = { ...data };
           pr.name = pr.name || (state.productName || "Producto");
           saveProducts();
+          savePiece();
           refreshProductMenu();
           toast("Producto guardado");
         }
@@ -795,6 +800,7 @@
         state.products.push({ id, name, data: { ...data } });
         state.activeProductId = id;
         saveProducts();
+        savePiece();
         refreshProductMenu();
         document.getElementById("productSelectLabel").textContent = name;
         toast("Producto guardado");
