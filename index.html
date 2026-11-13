@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Calculadora 3D · Reymero3d</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    :root {
+      --bg: #f2eee7;
+      --surface: #fbf8f3;
+      --surface-2: #ece7de;
+      --border: #d9d2c5;
+      --text: #26221d;
+      --muted: #6b6359;
+      --muted-2: #a09688;
+      --accent: #b91c1c;
+      --accent-dark: #991b1b;
+      --accent-light: #f5d6d6;
+      --accent-glow: rgba(185,28,28,0.22);
+      --amber: #a16207;
+      --amber-light: #f5e6c8;
+      --shadow: 0 1px 0 rgba(38,34,29,0.04);
+      --shadow-lg: 0 1px 2px rgba(38,34,29,0.06), 0 12px 32px rgba(38,34,29,0.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Inter", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { min-height: 100vh; background-image: radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size: 24px 24px; }
+
+    .app { max-width: 1240px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+
+    /* Header */
+    .hero {
+      background: #1c1917; color: #fbf8f3; padding: 2.5rem 2.25rem 2.25rem; margin: 1.5rem -1.5rem 0; position: relative; overflow: hidden;
+      border-bottom: 3px solid var(--accent);
+    }
+    .hero::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(251,248,243,0.04) 39px, rgba(251,248,243,0.04) 40px); }
+    .hero-content { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+    .hero h1 { margin: 0; font-family: "Fraunces", serif; font-size: 2.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+    .hero p { margin: .5rem 0 0; opacity: .75; font-size: 1rem; max-width: 520px; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: .4rem; background: var(--accent); color: #fff;
+      padding: .3rem .7rem; border-radius: 2px; font-size: .7rem; font-weight: 700; margin-top: .85rem; text-transform: uppercase; letter-spacing: .08em;
+      font-family: "JetBrains Mono", monospace;
+    }
+    .hero-meta { font-family: "JetBrains Mono", monospace; font-size: .75rem; opacity: .6; text-align: right; line-height: 1.6; }
+
+    .grid { display: grid; grid-template-columns: 1fr 400px; gap: 2rem; margin-top: 2rem; }
+    @media (max-width: 1024px) { .grid { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border); border-radius: 4px;
+      padding: 1.5rem; box-shadow: var(--shadow);
+    }
+    .card-title { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.25rem; margin: 0 0 1.1rem; display: flex; align-items: center; gap: .6rem; padding-bottom: .6rem; border-bottom: 1px solid var(--border); }
+    .card-title .dot { width: 10px; height: 10px; background: var(--accent); }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 640px) { .row { grid-template-columns: 1fr; } }
+
+    .field { display: flex; flex-direction: column; gap: .35rem; }
+    .label { font-size: .7rem; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; font-family: "JetBrains Mono", monospace; }
+    .hint { font-size: .72rem; color: var(--muted-2); font-style: italic; }
+
+    input, select {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px;
+      padding: .6rem .8rem; color: var(--text); width: 100%; outline: none;
+      transition: border-color .15s, background .15s; font-family: inherit; font-size: .95rem;
+    }
+    input[type="number"] { font-family: "JetBrains Mono", monospace; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input:focus, select:focus { border-color: var(--accent); background: #fff; }
+    input:disabled { opacity: .5; cursor: not-allowed; background: var(--surface-2); }
+
+    .select-btn {
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px;
+      padding: .6rem .8rem; color: var(--text); width: 100%; cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; font-size: .9rem; font-weight: 500;
+      transition: border-color .15s; font-family: inherit;
+    }
+    .select-btn:hover { border-color: var(--accent); }
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 4px); left: 0; right: 0; z-index: 20;
+      background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px;
+      max-height: 280px; overflow-y: auto; display: none; box-shadow: var(--shadow-lg); padding: .25rem;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-menu .opt {
+      padding: .5rem .65rem; cursor: pointer; font-size: .85rem; border-radius: 2px; font-weight: 500;
+    }
+    .dropdown-menu .opt:hover { background: var(--accent-light); color: var(--accent-dark); }
+    .dropdown-menu .opt.active { background: var(--accent); color: #fff; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+      border-radius: 3px; font-weight: 600; font-size: .85rem; padding: .6rem 1rem;
+      cursor: pointer; transition: all .15s; border: 1.5px solid transparent; font-family: inherit; text-transform: uppercase; letter-spacing: .04em;
+    }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+    .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-full { width: 100%; }
+    .btn-pdf { background: #1c1917; color: #fff; border-color: #1c1917; }
+    .btn-pdf:hover { background: #000; }
+
+    .mult-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: .4rem; }
+    @media (max-width: 640px) { .mult-grid { grid-template-columns: repeat(3, 1fr); } }
+    .mult-btn {
+      padding: .55rem; border-radius: 3px; font-weight: 700; font-size: .85rem;
+      border: 1.5px solid var(--border); background: var(--surface); color: var(--text);
+      cursor: pointer; transition: all .15s; font-family: "JetBrains Mono", monospace;
+    }
+    .mult-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .mult-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+    .results { background: var(--surface); border: 2px solid var(--accent); }
+    .result-line { display: flex; justify-content: space-between; align-items: center; padding: .4rem 0; border-bottom: 1px dashed var(--border); }
+    .result-line:last-child { border-bottom: none; }
+    .result-label { font-size: .8rem; color: var(--muted); font-weight: 500; }
+    .result-value { font-size: .85rem; color: var(--text); font-weight: 600; font-family: "JetBrains Mono", monospace; }
+    .result-total { background: var(--accent); color: #fff; border-radius: 3px; padding: 1rem 1.1rem; }
+    .result-total .big { font-size: 1.9rem; font-weight: 800; color: #fff; font-family: "JetBrains Mono", monospace; letter-spacing: -0.02em; }
+    .result-total .uppercase-label { color: rgba(255,255,255,0.8); }
+    .result-ml { background: var(--amber-light); border: 1.5px solid var(--amber); border-radius: 3px; padding: 1rem 1.1rem; }
+    .result-ml .big { font-size: 1.5rem; font-weight: 800; color: var(--amber); font-family: "JetBrains Mono", monospace; letter-spacing: -0.02em; }
+    .result-ml .uppercase-label { color: var(--amber); }
+    .uppercase-label { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; margin-bottom: .3rem; font-family: "JetBrains Mono", monospace; }
+
+    .refs { border-top: 1.5px dashed var(--border); padding-top: .8rem; margin-top: .8rem; }
+    .refs-toggle { display: flex; align-items: center; gap: .35rem; font-size: .75rem; font-weight: 600; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; font-family: "JetBrains Mono", monospace; text-transform: uppercase; letter-spacing: .06em; }
+    .refs-content { font-size: .8rem; color: var(--muted); line-height: 1.7; margin-top: .6rem; font-family: "JetBrains Mono", monospace; overflow: hidden; transition: max-height .3s, opacity .3s; }
+    .refs-content.collapsed { max-height: 0; opacity: 0; margin-top: 0; }
+
+    .profile-bar { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; margin-bottom: .85rem; }
+
+    .toast {
+      position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1c1917; color: #fbf8f3;
+      padding: .8rem 1.2rem; border-radius: 3px; font-size: .85rem; font-weight: 500;
+      box-shadow: var(--shadow-lg); transform: translateY(120%); transition: transform .25s; z-index: 50; font-family: "JetBrains Mono", monospace;
+    }
+    .toast.show { transform: translateY(0); }
+
+    .bottom-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; background: #1c1917; color: #fbf8f3; border-top: 2px solid var(--accent);
+      padding: .8rem 1.25rem; display: flex; justify-content: space-between; z-index: 40;
+    }
+    @media (min-width: 1024px) { .bottom-bar { display: none; } }
+    .bottom-bar .big { font-size: 1.25rem; font-weight: 800; color: var(--accent); font-family: "JetBrains Mono", monospace; }
+
+    .sticky-side { position: sticky; top: 1rem; align-self: start; }
+
+    .header-row { display: flex; justify-content: space-between; align-items: center; gap: .75rem; flex-wrap: wrap; margin-bottom: .5rem; }
+    .space-y-6 > * + * { margin-top: 1.5rem; }
+
+    /* section numbers */
+    .section-num { font-family: "JetBrains Mono", monospace; font-size: .7rem; color: var(--accent); font-weight: 700; }
+
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-content">
+        <div>
+          <h1>Calculadora de costos 3D</h1>
+          <p>Calculá el costo real de tus impresiones y el precio sugerido de venta.</p>
+          <div class="hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Reymero3d · Presupuestos al instante
+          </div>
+        </div>
+        <div class="hero-meta">
+          v2.0 · edición 2026<br>
+          Hecho para makers<br>
+          ARS · USD · EUR · +7
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- Left column -->
+      <div style="display:flex;flex-direction:column;gap:1.5rem;">
+        <!-- Productos -->
+        <div class="card">
+          <div class="header-row">
+            <h3 class="card-title" style="margin:0;"><span class="dot"></span>Productos</h3>
+            <button class="btn btn-ghost" id="newProductBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Nuevo
+            </button>
+          </div>
+          <div class="profile-bar">
+            <div class="dropdown" style="flex:1;min-width:180px;">
+              <button class="select-btn" id="productSelectBtn"><span id="productSelectLabel">-- Nuevo producto --</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu" id="productMenu"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" id="saveProductBtn" style="margin-top:.5rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+            Guardar producto
+          </button>
+        </div>
+        <!-- Perfil -->
+        <div class="card">
+          <div class="header-row">
+            <h3 class="card-title" style="margin:0;"><span class="dot"></span>Perfil</h3>
+            <button class="btn btn-ghost" id="newProfileBtn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              Nuevo
+            </button>
+          </div>
+          <div class="profile-bar">
+            <div class="dropdown" style="flex:1;min-width:180px;">
+              <button class="select-btn" id="profileSelectBtn"><span id="profileSelectLabel">-- Nuevo perfil --</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu" id="profileMenu"></div>
+            </div>
+            <div class="dropdown" style="flex:1;min-width:180px;">
+              <button class="select-btn" id="currencySelectBtn"><span id="currencySelectLabel">Pesos argentinos (ARS)</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+              </button>
+              <div class="dropdown-menu" id="currencyMenu"></div>
+            </div>
+          </div>
+          <button class="btn btn-primary btn-full" id="saveProfileBtn" style="margin-top:.5rem;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
+            Guardar perfil
+          </button>
+        </div>
+
+        <!-- Gastos fijos -->
+        <div class="card">
+          <h3 class="card-title"><span class="dot"></span>Gastos fijos</h3>
+          <div class="row">
+            <div class="field">
+              <label class="label">Precio del filamento (AR$/kg)</label>
+              <input type="number" id="priceKg" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Precio del kWh (AR$)</label>
+              <input type="number" id="priceKwh" step="any" inputmode="decimal">
+            </div>
+            <div class="field" style="grid-column: 1 / -1;">
+              <label class="label">Modelo de impresora</label>
+              <span class="hint">Elegí tu modelo y autocompletamos el consumo (W). Si no está en la lista, dejá "Otro / Personalizado".</span>
+              <div class="dropdown">
+                <button class="select-btn" id="printerSelectBtn"><span id="printerSelectLabel">Otro / Personalizado</span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div class="dropdown-menu" id="printerMenu"></div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Consumo de la impresora (W)</label>
+              <span class="hint">Consumo promedio durante un print (no peak). Si no lo sabés, ~100W es un buen valor default.</span>
+              <input type="number" id="consumptionW" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Vida útil de la máquina (horas)</label>
+              <input type="number" id="machineLifespanHours" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Costo de repuestos (AR$)</label>
+              <input type="number" id="repairCosts" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Margen de error (%)</label>
+              <input type="number" id="errorMarginPercent" step="any" inputmode="decimal">
+            </div>
+          </div>
+        </div>
+
+        <!-- Pieza -->
+        <div class="card">
+          <h3 class="card-title"><span class="dot"></span>Pieza</h3>
+          <div class="row">
+            <div class="field" style="grid-column: 1 / -1;">
+              <label class="label">Nombre del producto (para el cliente)</label>
+              <input type="text" id="productName" placeholder="Ej: Llavero personalizado">
+            </div>
+            <div class="field">
+              <label class="label">Cantidad de colores</label>
+              <input type="number" id="colors" step="1" min="1" inputmode="numeric">
+            </div>
+            <div class="field">
+              <label class="label">Horas de impresión</label>
+              <input type="number" id="hours" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Minutos adicionales</label>
+              <input type="number" id="minutes" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Gramos de filamento</label>
+              <input type="number" id="grams" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Insumos extra (AR$)</label>
+              <input type="number" id="insumos" step="any" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label class="label">Cantidad de productos</label>
+              <span class="hint">Unidades que quiere el cliente.</span>
+              <input type="number" id="quantity" step="1" min="1" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="sticky-side">
+        <div style="display:flex;flex-direction:column;gap:1.5rem;">
+          <!-- Margen de ganancia -->
+          <div class="card">
+            <h3 class="card-title"><span class="dot"></span>Margen de ganancia</h3>
+            <div>
+              <span class="label" style="display:block;margin-bottom:.6rem;">Multiplicador</span>
+              <div class="mult-grid" id="multGrid"></div>
+            </div>
+            <div class="field" style="margin-top:.85rem;">
+              <label class="label">Personalizado</label>
+              <span class="hint">Si necesitás otro valor, ingresalo acá (ej: 2.8).</span>
+              <input type="number" id="customMult" step="any" inputmode="decimal">
+            </div>
+            <div class="refs">
+              <button class="refs-toggle" id="refsToggle">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+                Referencias
+              </button>
+              <div class="refs-content" id="refsContent">
+                <p>• ×2.0 → Alto volumen / descuento</p>
+                <p>• ×2.5 → Volumen medio</p>
+                <p>• ×3.0 → Mayorista</p>
+                <p>• ×3.5 → Intermedio</p>
+                <p>• ×4.0 → Minorista</p>
+                <p>• ×5.0 → Llaveros / piezas chicas</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resultados -->
+          <div class="card results">
+            <h3 class="card-title"><span class="dot"></span>Resultados</h3>
+            <div class="result-line"><span class="result-label">Precio material</span><span class="result-value" id="rMaterial">AR$ 0,00</span></div>
+            <div class="result-line"><span class="result-label">Precio luz</span><span class="result-value" id="rLuz">AR$ 0,00</span></div>
+            <div class="result-line"><span class="result-label">Desgaste máquina</span><span class="result-value" id="rDesgaste">AR$ 0,00</span></div>
+            <div class="result-line"><span class="result-label">Margen de error</span><span class="result-value" id="rError">AR$ 0,00</span></div>
+            <div style="border-top:1.5px dashed var(--border);padding-top:.75rem;margin-top:.5rem;">
+              <div class="result-line"><span class="result-label" style="font-weight:600;color:var(--text);">Costo total (sin insumos)</span><span class="result-value" style="font-weight:700;" id="rCosto">AR$ 0,00</span></div>
+              <div class="result-line"><span class="result-label">Insumos (+30%)</span><span class="result-value" id="rInsumos">AR$ 0,00</span></div>
+            </div>
+            <div style="border-top:1.5px dashed var(--border);padding-top:.85rem;margin-top:.6rem;display:flex;flex-direction:column;gap:.85rem;">
+              <div class="result-total">
+                <p class="uppercase-label">Total a cobrar</p>
+                <p class="big" id="rTotal">AR$ 0,00</p>
+              </div>
+              <div class="result-ml">
+                <p class="uppercase-label">Precio MercadoLibre</p>
+                <p class="big" id="rML">AR$ 0,00</p>
+              </div>
+              <button class="btn btn-pdf btn-full" id="pdfClientBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" x2="12" y1="18" y2="12"/><line x1="9" x2="15" y1="15" y2="15"/></svg>
+                Generar PDF para cliente
+              </button>
+              <button class="btn btn-outline btn-full" id="saveProductBottomBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22V12"/><path d="M16 17h6"/><path d="M19 14v6"/><path d="M21 10.535V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.729l7 4a2 2 0 0 0 2 .001l1.675-.955"/><path d="M3.29 7 12 12l8.71-5"/><path d="m7.5 4.27 8.997 5.148"/></svg>
+                Guardar como producto
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar">
+    <div><p class="label">Total a cobrar</p><p class="big" id="bTotal">AR$ 0,00</p></div>
+    <div style="text-align:right;"><p class="label">MercadoLibre</p><p style="font-size:.875rem;font-weight:700;color:#b45309;" id="bML">AR$ 0,00</p></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const CURRENCIES = {
+      ARS: { symbol: "AR$", name: "Pesos argentinos (ARS)", priceKg: 25000, priceKwh: 140, repairCosts: 150000 },
+      USD: { symbol: "US$", name: "Dólares (USD)", priceKg: 25, priceKwh: 0.14, repairCosts: 150 },
+      EUR: { symbol: "€", name: "Euros (EUR)", priceKg: 23, priceKwh: 0.25, repairCosts: 140 },
+      MXN: { symbol: "MX$", name: "Pesos mexicanos (MXN)", priceKg: 450, priceKwh: 2.5, repairCosts: 3000 },
+      COP: { symbol: "COP$", name: "Pesos colombianos (COP)", priceKg: 90000, priceKwh: 700, repairCosts: 600000 },
+      CLP: { symbol: "CLP$", name: "Pesos chilenos (CLP)", priceKg: 25000, priceKwh: 170, repairCosts: 150000 },
+      PEN: { symbol: "S/", name: "Soles (PEN)", priceKg: 80, priceKwh: 0.7, repairCosts: 500 },
+      UYU: { symbol: "$U", name: "Pesos uruguayos (UYU)", priceKg: 900, priceKwh: 7, repairCosts: 6000 },
+      DOP: { symbol: "RD$", name: "Pesos dominicanos (DOP)", priceKg: 1500, priceKwh: 10, repairCosts: 9000 },
+      PYG: { symbol: "₲", name: "Guaraníes (PYG)", priceKg: 180000, priceKwh: 1000, repairCosts: 1100000 },
+    };
+
+    const PRINTERS = [
+      { id: "bambu-a1", label: "Bambu Lab A1", watts: 95 },
+      { id: "bambu-a1-mini", label: "Bambu Lab A1 Mini", watts: 45 },
+      { id: "bambu-a2l", label: "Bambu Lab A2L", watts: 150 },
+      { id: "bambu-p1p", label: "Bambu Lab P1P", watts: 80 },
+      { id: "bambu-p1s", label: "Bambu Lab P1S", watts: 100 },
+      { id: "bambu-x1c", label: "Bambu Lab X1 Carbon", watts: 120 },
+      { id: "bambu-p2s", label: "Bambu Lab P2S", watts: 130 },
+      { id: "bambu-h2s", label: "Bambu Lab H2S", watts: 210 },
+      { id: "bambu-h2d", label: "Bambu Lab H2D", watts: 210 },
+      { id: "bambu-h2c", label: "Bambu Lab H2C", watts: 210 },
+      { id: "prusa-mk3s", label: "Prusa MK3S+", watts: 80 },
+      { id: "prusa-mk4", label: "Prusa MK4", watts: 100 },
+      { id: "ender-3-v2", label: "Creality Ender 3 V2", watts: 110 },
+      { id: "ender-3-s1", label: "Creality Ender 3 S1", watts: 120 },
+      { id: "creality-k1", label: "Creality K1", watts: 100 },
+      { id: "creality-k1c", label: "Creality K1C", watts: 100 },
+      { id: "creality-k1-max", label: "Creality K1 Max", watts: 200 },
+      { id: "creality-k2", label: "Creality K2", watts: 150 },
+      { id: "creality-k2-pro", label: "Creality K2 Pro", watts: 180 },
+      { id: "creality-k2-plus", label: "Creality K2 Plus", watts: 220 },
+      { id: "anycubic-kobra-2", label: "Anycubic Kobra 2", watts: 75 },
+      { id: "anycubic-vyper", label: "Anycubic Vyper", watts: 80 },
+      { id: "snapmaker-u1", label: "SnapMaker U1", watts: 130 },
+      { id: "elegoo-saturn-3", label: "Elegoo Saturn 3 (resina)", watts: 75 },
+      { id: "elegoo-saturn-4", label: "Elegoo Saturn 4 (resina)", watts: 75 },
+      { id: "voron-24-350", label: "Voron 2.4 (350mm DIY)", watts: 225 },
+      { id: "custom", label: "Otro / Personalizado", watts: null },
+    ];
+
+    const MULTS = [2, 2.5, 3, 3.5, 4, 5];
+
+    let state = {
+      profileName: "",
+      profiles: loadProfiles(),
+      activeProfileId: null,
+      products: loadProducts(),
+      activeProductId: null,
+      currency: "ARS",
+      priceKg: 25000,
+      priceKwh: 140,
+      printerModel: "custom",
+      consumptionW: 120,
+      machineLifespanHours: 4320,
+      repairCosts: 150000,
+      errorMarginPercent: 5,
+      productName: "",
+      colors: 1,
+      hours: 0,
+      minutes: 0,
+      grams: 0,
+      insumos: 0,
+      quantity: 1,
+      profitMultiplier: 4,
+      refsOpen: true,
+    };
+
+    function loadProfiles() {
+      try { return JSON.parse(localStorage.getItem("reymero-calc-profiles") || "[]"); } catch { return []; }
+    }
+    function saveProfiles() { localStorage.setItem("reymero-calc-profiles", JSON.stringify(state.profiles)); }
+    function loadProducts() {
+      try { return JSON.parse(localStorage.getItem("reymero-calc-products") || "[]"); } catch { return []; }
+    }
+    function saveProducts() { localStorage.setItem("reymero-calc-products", JSON.stringify(state.products)); }
+
+    const PIECE_KEY = "reymero-calc-piece";
+    function loadPiece() {
+      try {
+        const e = localStorage.getItem(PIECE_KEY);
+        if (e) {
+          const t = JSON.parse(e);
+          state = { ...state, ...t };
+        }
+      } catch {}
+    }
+    function savePiece() {
+      const { profiles, activeProfileId, refsOpen, ...rest } = state;
+      localStorage.setItem(PIECE_KEY, JSON.stringify(rest));
+    }
+
+    function M(e) { const n = Number(e); return Number.isFinite(n) ? Math.min(Math.max(0, n), 1e9) : 0; }
+    function fmt(n) {
+      const sym = CURRENCIES[state.currency].symbol;
+      const r = (Number.isFinite(n) ? n : 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return `${sym} ${r}`;
+    }
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2000);
+    }
+
+    function applyCurrency(code, updateCosts = true) {
+      state.currency = code;
+      document.getElementById("currencySelectLabel").textContent = CURRENCIES[code].name;
+      if (updateCosts) {
+        state.priceKg = CURRENCIES[code].priceKg;
+        state.priceKwh = CURRENCIES[code].priceKwh;
+        state.repairCosts = CURRENCIES[code].repairCosts;
+      }
+      syncInputs();
+      recalc();
+    }
+
+    function applyPrinter(id) {
+      state.printerModel = id;
+      const p = PRINTERS.find(x => x.id === id);
+      document.getElementById("printerSelectLabel").textContent = p ? p.label : "Otro / Personalizado";
+      const input = document.getElementById("consumptionW");
+      if (p && p.watts !== null) {
+        state.consumptionW = p.watts;
+        input.disabled = true;
+      } else {
+        input.disabled = false;
+      }
+      syncInputs();
+      recalc();
+    }
+
+    function syncInputs() {
+      document.getElementById("priceKg").value = state.priceKg;
+      document.getElementById("priceKwh").value = state.priceKwh;
+      document.getElementById("consumptionW").value = state.consumptionW;
+      document.getElementById("machineLifespanHours").value = state.machineLifespanHours;
+      document.getElementById("repairCosts").value = state.repairCosts;
+      document.getElementById("errorMarginPercent").value = state.errorMarginPercent;
+      document.getElementById("productName").value = state.productName || "";
+      document.getElementById("colors").value = state.colors || 1;
+      document.getElementById("hours").value = state.hours || "";
+      document.getElementById("minutes").value = state.minutes || "";
+      document.getElementById("grams").value = state.grams || "";
+      document.getElementById("insumos").value = state.insumos || "";
+      document.getElementById("quantity").value = state.quantity || 1;
+      document.getElementById("customMult").value = state.profitMultiplier;
+      document.getElementById("consumptionW").disabled = state.printerModel !== "custom" && PRINTERS.find(x=>x.id===state.printerModel)?.watts !== null;
+    }
+
+    function bindInputs() {
+      const map = {
+        priceKg: "priceKg", priceKwh: "priceKwh", consumptionW: "consumptionW",
+        machineLifespanHours: "machineLifespanHours", repairCosts: "repairCosts",
+        errorMarginPercent: "errorMarginPercent", hours: "hours", minutes: "minutes",
+        grams: "grams", insumos: "insumos", quantity: "quantity",
+      };
+      Object.keys(map).forEach(id => {
+        document.getElementById(id).addEventListener("input", (e) => {
+          state[map[id]] = e.target.value === "" ? 0 : Number(e.target.value);
+          if (id === "consumptionW") state.printerModel = "custom";
+          recalc();
+          savePiece();
+        });
+      });
+      document.getElementById("productName").addEventListener("input", (e) => {
+        state.productName = e.target.value;
+        savePiece();
+      });
+      document.getElementById("colors").addEventListener("input", (e) => {
+        state.colors = e.target.value === "" ? 1 : Math.max(1, Number(e.target.value));
+        savePiece();
+      });
+      document.getElementById("customMult").addEventListener("input", (e) => {
+        const v = e.target.value === "" ? state.profitMultiplier : Number(e.target.value);
+        if (Number.isFinite(v)) state.profitMultiplier = v;
+        document.querySelectorAll(".mult-btn").forEach(b => {
+          b.classList.toggle("active", Number(b.dataset.val) === state.profitMultiplier);
+        });
+        recalc();
+        savePiece();
+      });
+    }
+
+    function renderMultButtons() {
+      const grid = document.getElementById("multGrid");
+      grid.innerHTML = "";
+      MULTS.forEach(m => {
+        const btn = document.createElement("button");
+        btn.className = "mult-btn" + (m === state.profitMultiplier ? " active" : "");
+        btn.textContent = "×" + m;
+        btn.dataset.val = m;
+        btn.addEventListener("click", () => {
+          state.profitMultiplier = m;
+          document.getElementById("customMult").value = m;
+          document.querySelectorAll(".mult-btn").forEach(b => b.classList.toggle("active", Number(b.dataset.val) === m));
+          recalc();
+          savePiece();
+        });
+        grid.appendChild(btn);
+      });
+    }
+
+    function recalc() {
+      const priceKg = M(state.priceKg);
+      const priceKwh = M(state.priceKwh);
+      const consumptionW = M(state.consumptionW);
+      const lifespan = M(state.machineLifespanHours);
+      const repair = M(state.repairCosts);
+      const errPct = M(state.errorMarginPercent);
+      const hours = M(state.hours);
+      const minutes = M(state.minutes);
+      const grams = M(state.grams);
+      const insumos = M(state.insumos);
+      const mult = M(state.profitMultiplier) || 1;
+      const qty = Math.max(1, M(state.quantity) || 1);
+
+      const p = hours + minutes / 60;
+      const b = (grams / 1000) * priceKg * qty;
+      const x = (consumptionW / 1000) * p * priceKwh * qty;
+      const h = (lifespan > 0 ? repair / lifespan : 0) * p * qty;
+      const g = (errPct / 100) * (b + x + h);
+      const f = b + x + h + g;
+      const y = 1.3 * insumos * qty;
+      const v = f * mult + y;
+      const j = f * (mult + 0.8) + y;
+
+      document.getElementById("rMaterial").textContent = fmt(b);
+      document.getElementById("rLuz").textContent = fmt(x);
+      document.getElementById("rDesgaste").textContent = fmt(h);
+      document.getElementById("rError").textContent = fmt(g);
+      document.getElementById("rCosto").textContent = fmt(f);
+      document.getElementById("rInsumos").textContent = fmt(y);
+      document.getElementById("rTotal").textContent = fmt(v);
+      document.getElementById("rML").textContent = fmt(j);
+      document.getElementById("bTotal").textContent = fmt(v);
+      document.getElementById("bML").textContent = fmt(j);
+
+      savePiece();
+    }
+
+    function refreshProfileMenu() {
+      const menu = document.getElementById("profileMenu");
+      menu.innerHTML = "";
+      const newItem = document.createElement("div");
+      newItem.className = "opt";
+      newItem.textContent = "-- Nuevo perfil --";
+      newItem.addEventListener("click", () => {
+        state.activeProfileId = null;
+        document.getElementById("profileSelectLabel").textContent = "-- Nuevo perfil --";
+        const c = CURRENCIES[state.currency];
+        state.priceKg = c.priceKg; state.priceKwh = c.priceKwh; state.repairCosts = c.repairCosts;
+        state.printerModel = "custom"; state.consumptionW = 120; state.machineLifespanHours = 4320;
+        state.errorMarginPercent = 5; state.profileName = "";
+        applyPrinter("custom");
+        syncInputs();
+        recalc();
+        menu.classList.remove("open");
+      });
+      menu.appendChild(newItem);
+      state.profiles.forEach(pr => {
+        const div = document.createElement("div");
+        div.className = "opt";
+        div.textContent = pr.name || "Sin nombre";
+        div.addEventListener("click", () => {
+          state.activeProfileId = pr.id;
+          document.getElementById("profileSelectLabel").textContent = pr.name || "Sin nombre";
+          Object.assign(state, pr.data);
+          applyCurrency(state.currency, false);
+          applyPrinter(state.printerModel);
+          syncInputs();
+          recalc();
+          menu.classList.remove("open");
+        });
+        menu.appendChild(div);
+      });
+    }
+
+    document.getElementById("newProfileBtn").addEventListener("click", () => {
+      const name = prompt("Nombre del perfil:");
+      if (!name) return;
+      const id = "p_" + Date.now();
+      const { profiles, activeProfileId, refsOpen, ...data } = state;
+      state.profiles.push({ id, name, data: { ...data } });
+      state.activeProfileId = id;
+      state.profileName = name;
+      saveProfiles();
+      refreshProfileMenu();
+      document.getElementById("profileSelectLabel").textContent = name;
+      toast("Perfil creado");
+    });
+
+    document.getElementById("saveProfileBtn").addEventListener("click", () => {
+      if (state.activeProfileId) {
+        const pr = state.profiles.find(p => p.id === state.activeProfileId);
+        if (pr) {
+          const { profiles, activeProfileId, refsOpen, ...data } = state;
+          pr.data = { ...data };
+          pr.name = pr.name || "Perfil";
+          saveProfiles();
+          toast("Perfil guardado");
+        }
+      } else {
+        const name = prompt("Nombre del perfil:", state.profileName || "");
+        if (!name) return;
+        const id = "p_" + Date.now();
+        const { profiles, activeProfileId, refsOpen, ...data } = state;
+        state.profiles.push({ id, name, data: { ...data } });
+        state.activeProfileId = id;
+        state.profileName = name;
+        saveProfiles();
+        refreshProfileMenu();
+        document.getElementById("profileSelectLabel").textContent = name;
+        toast("Perfil guardado");
+      }
+    });
+
+    function productData() {
+      return {
+        productName: state.productName,
+        colors: state.colors,
+        hours: state.hours,
+        minutes: state.minutes,
+        grams: state.grams,
+        insumos: state.insumos,
+        quantity: state.quantity,
+        profitMultiplier: state.profitMultiplier,
+        currency: state.currency,
+      };
+    }
+
+    function refreshProductMenu() {
+      const menu = document.getElementById("productMenu");
+      menu.innerHTML = "";
+      const newItem = document.createElement("div");
+      newItem.className = "opt";
+      newItem.textContent = "-- Nuevo producto --";
+      newItem.addEventListener("click", () => {
+        state.activeProductId = null;
+        document.getElementById("productSelectLabel").textContent = "-- Nuevo producto --";
+        state.productName = "";
+        state.colors = 1;
+        state.hours = 0;
+        state.minutes = 0;
+        state.grams = 0;
+        state.insumos = 0;
+        state.quantity = 1;
+        state.profitMultiplier = 4;
+        syncInputs();
+        recalc();
+        savePiece();
+        menu.classList.remove("open");
+      });
+      menu.appendChild(newItem);
+      state.products.forEach(pr => {
+        const div = document.createElement("div");
+        div.className = "opt";
+        div.textContent = pr.name || "Sin nombre";
+        div.addEventListener("click", () => {
+          state.activeProductId = pr.id;
+          document.getElementById("productSelectLabel").textContent = pr.name || "Sin nombre";
+          const d = pr.data || {};
+          state.productName = d.productName || "";
+          state.colors = d.colors || 1;
+          state.hours = d.hours || 0;
+          state.minutes = d.minutes || 0;
+          state.grams = d.grams || 0;
+          state.insumos = d.insumos || 0;
+          state.quantity = d.quantity || 1;
+          state.profitMultiplier = (d.profitMultiplier !== undefined ? d.profitMultiplier : state.profitMultiplier);
+          if (d.currency && CURRENCIES[d.currency]) { state.currency = d.currency; applyCurrency(state.currency, false); }
+          syncInputs();
+          recalc();
+          savePiece();
+          menu.classList.remove("open");
+        });
+        menu.appendChild(div);
+      });
+    }
+
+    function saveProduct() {
+      const data = productData();
+      if (state.activeProductId) {
+        const pr = state.products.find(p => p.id === state.activeProductId);
+        if (pr) {
+          pr.data = { ...data };
+          pr.name = pr.name || (state.productName || "Producto");
+          saveProducts();
+          refreshProductMenu();
+          toast("Producto guardado");
+        }
+      } else {
+        let name = (state.productName || "").trim();
+        if (!name) name = prompt("Nombre del producto:", "");
+        if (!name) return;
+        const id = "prod_" + Date.now();
+        state.products.push({ id, name, data: { ...data } });
+        state.activeProductId = id;
+        saveProducts();
+        refreshProductMenu();
+        document.getElementById("productSelectLabel").textContent = name;
+        toast("Producto guardado");
+      }
+    }
+
+    document.getElementById("newProductBtn").addEventListener("click", () => {
+      state.activeProductId = null;
+      document.getElementById("productSelectLabel").textContent = "-- Nuevo producto --";
+      state.productName = "";
+      state.colors = 1;
+      state.hours = 0;
+      state.minutes = 0;
+      state.grams = 0;
+      state.insumos = 0;
+      state.quantity = 1;
+      syncInputs();
+      recalc();
+      savePiece();
+      toast("Nuevo producto");
+    });
+
+    document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
+    document.getElementById("saveProductBottomBtn").addEventListener("click", saveProduct);
+
+    function setupProductDropdown() {
+      const btn = document.getElementById("productSelectBtn");
+      const menu = document.getElementById("productMenu");
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu.open").forEach(m => { if (m !== menu) m.classList.remove("open"); });
+        menu.classList.toggle("open");
+        refreshProductMenu();
+      });
+      document.addEventListener("click", () => menu.classList.remove("open"));
+      menu.addEventListener("click", e => e.stopPropagation());
+    }
+
+    function setupCurrencyDropdown() {
+      const btn = document.getElementById("currencySelectBtn");
+      const menu = document.getElementById("currencyMenu");
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu.open").forEach(m => { if (m !== menu) m.classList.remove("open"); });
+        menu.classList.toggle("open");
+        menu.innerHTML = "";
+        Object.keys(CURRENCIES).forEach(code => {
+          const div = document.createElement("div");
+          div.className = "opt" + (code === state.currency ? " active" : "");
+          div.textContent = CURRENCIES[code].name;
+          div.addEventListener("click", () => {
+            applyCurrency(code, true);
+            menu.classList.remove("open");
+          });
+          menu.appendChild(div);
+        });
+      });
+      document.addEventListener("click", () => menu.classList.remove("open"));
+      menu.addEventListener("click", e => e.stopPropagation());
+    }
+
+    function setupPrinterDropdown() {
+      const btn = document.getElementById("printerSelectBtn");
+      const menu = document.getElementById("printerMenu");
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu.open").forEach(m => { if (m !== menu) m.classList.remove("open"); });
+        menu.classList.toggle("open");
+        menu.innerHTML = "";
+        PRINTERS.forEach(pr => {
+          const div = document.createElement("div");
+          div.className = "opt" + (pr.id === state.printerModel ? " active" : "");
+          div.textContent = pr.label + (pr.watts !== null ? ` (${pr.watts}W)` : "");
+          div.addEventListener("click", () => {
+            applyPrinter(pr.id);
+            menu.classList.remove("open");
+          });
+          menu.appendChild(div);
+        });
+      });
+      document.addEventListener("click", () => menu.classList.remove("open"));
+      menu.addEventListener("click", e => e.stopPropagation());
+    }
+
+    function setupProfileDropdown() {
+      const btn = document.getElementById("profileSelectBtn");
+      const menu = document.getElementById("profileMenu");
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        document.querySelectorAll(".dropdown-menu.open").forEach(m => { if (m !== menu) m.classList.remove("open"); });
+        menu.classList.toggle("open");
+        refreshProfileMenu();
+      });
+      document.addEventListener("click", () => menu.classList.remove("open"));
+      menu.addEventListener("click", e => e.stopPropagation());
+    }
+
+    document.getElementById("refsToggle").addEventListener("click", () => {
+      state.refsOpen = !state.refsOpen;
+      const c = document.getElementById("refsContent");
+      c.classList.toggle("collapsed", !state.refsOpen);
+      const svg = document.querySelector("#refsToggle svg");
+      svg.style.transform = state.refsOpen ? "rotate(180deg)" : "rotate(0)";
+      savePiece();
+    });
+
+    // (saveProduct wiring moved to the Productos section)
+
+    // ---------- PDF para cliente ----------
+    function generateClientPdf() {
+      if (typeof window.jspdf === "undefined") {
+        toast("jsPDF no cargó. Revisá tu conexión.");
+        return;
+      }
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const sym = CURRENCIES[state.currency].symbol;
+      const name = (state.productName || "Pieza impresa en 3D").trim();
+      const priceKg = M(state.priceKg), priceKwh = M(state.priceKwh), consumptionW = M(state.consumptionW);
+      const lifespan = M(state.machineLifespanHours), repair = M(state.repairCosts), errPct = M(state.errorMarginPercent);
+      const hours = M(state.hours), minutes = M(state.minutes), grams = M(state.grams), insumos = M(state.insumos);
+      const qty = Math.max(1, M(state.quantity) || 1);
+      const mult = M(state.profitMultiplier) || 1;
+      const p = hours + minutes / 60;
+      const b = (grams / 1000) * priceKg * qty;
+      const x = (consumptionW / 1000) * p * priceKwh * qty;
+      const h = (lifespan > 0 ? repair / lifespan : 0) * p * qty;
+      const g = (errPct / 100) * (b + x + h);
+      const f = b + x + h + g;
+      const y = 1.3 * insumos * qty;
+      const v = f * mult + y;
+      const numFmt = (n) => (Number.isFinite(n) ? n : 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const colors = M(state.colors) || 1;
+
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentW = pageW - margin * 2;
+      let yc = 0;
+
+      // Banda superior teal
+      doc.setFillColor(13, 148, 136);
+      doc.rect(0, 0, pageW, 34, "F");
+      doc.setFillColor(15, 118, 110);
+      doc.rect(0, 30, pageW, 4, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Reymero3d", margin, 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(204, 251, 241);
+      doc.text("Impresión 3D · Presupuesto", margin, 20);
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }), pageW - margin, 13, { align: "right" });
+      doc.text("Tel: 1167994767", pageW - margin, 20, { align: "right" });
+
+      yc = 46;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(26);
+      doc.setTextColor(15, 23, 42);
+      doc.text("PRESUPUESTO", margin, yc);
+      yc += 6;
+      doc.setDrawColor(13, 148, 136);
+      doc.setLineWidth(1.2);
+      doc.line(margin, yc, margin + 40, yc);
+      doc.setLineWidth(0.2);
+      yc += 10;
+
+      // Tarjeta de producto
+      doc.setFillColor(248, 250, 252);
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(margin, yc, contentW, 26, 3, 3, "FD");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text("PRODUCTO", margin + 6, yc + 7);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(14);
+      doc.setTextColor(15, 23, 42);
+      doc.text(name, margin + 6, yc + 17);
+      yc += 32;
+
+      // Detalles
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(15, 23, 42);
+      doc.text("Detalles", margin, yc);
+      yc += 6;
+      const details = [];
+      details.push(["Cantidad", String(qty)]);
+      details.push(["Colores", String(colors)]);
+      if (grams > 0) details.push(["Peso de material", grams + " g"]);
+      if (p > 0) details.push(["Tiempo de impresión", Math.floor(p) + " h " + Math.round((p % 1) * 60) + " min"]);
+      details.forEach(([k, val], i) => {
+        if (i % 2 === 0) {
+          doc.setFillColor(248, 250, 252);
+          doc.rect(margin, yc - 4.5, contentW, 7, "F");
+        }
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(10);
+        doc.setTextColor(100, 116, 139);
+        doc.text(k, margin + 4, yc);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(15, 23, 42);
+        doc.text(val, pageW - margin - 4, yc, { align: "right" });
+        yc += 7;
+      });
+      yc += 4;
+
+      // Bloque de precio
+      doc.setFillColor(13, 148, 136);
+      doc.roundedRect(margin, yc, contentW, 34, 4, 4, "F");
+      doc.setFillColor(15, 118, 110);
+      doc.roundedRect(margin, yc, contentW, 4, 4, 4, "F");
+      doc.rect(margin, yc + 2, contentW, 2, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(204, 251, 241);
+      doc.text("PRECIO FINAL", margin + 8, yc + 11);
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text(sym + " " + numFmt(v), margin + 8, yc + 26);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(204, 251, 241);
+      doc.text("Incluye material, mano de obra y acabado", pageW - margin - 8, yc + 26, { align: "right" });
+      yc += 42;
+
+      // Sección de contacto con fondo oscuro
+      doc.setFillColor(15, 23, 42);
+      doc.roundedRect(margin, yc, contentW, 30, 3, 3, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Reymero3d", margin + 8, yc + 9);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(148, 163, 184);
+      doc.text("Impresión 3D personalizada", margin + 8, yc + 15);
+      doc.setTextColor(45, 212, 191);
+      doc.setFont("helvetica", "bold");
+      doc.text("Tel", margin + 8, yc + 23);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(226, 232, 240);
+      doc.text("1167994767", margin + 18, yc + 23);
+      doc.setTextColor(45, 212, 191);
+      doc.setFont("helvetica", "bold");
+      doc.text("IG", margin + contentW / 2, yc + 23);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(226, 232, 240);
+      doc.text("@Reymero3D", margin + contentW / 2 + 10, yc + 23);
+      yc += 38;
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(100, 116, 139);
+      doc.text("Presupuesto válido por 7 días. Consultar por otros colores y cantidades.", margin, yc);
+      yc += 5;
+      doc.text("Gracias por tu consulta. ¡Esperamos tu pedido!", margin, yc);
+
+      doc.setDrawColor(226, 232, 240);
+      doc.line(margin, pageH - 12, pageW - margin, pageH - 12);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("Reymero3d · Impresión 3D · Tel 1167994767 · @Reymero3D", pageW / 2, pageH - 7, { align: "center" });
+
+      doc.save("presupuesto-" + name.replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".pdf");
+      toast("PDF generado");
+    }
+
+    document.getElementById("pdfClientBtn").addEventListener("click", generateClientPdf);
+
+    // ---------- Init ----------
+    loadPiece();
+    if (!CURRENCIES[state.currency]) state.currency = "ARS";
+    applyCurrency(state.currency, false);
+    applyPrinter(state.printerModel || "custom");
+    syncInputs();
+    renderMultButtons();
+    document.querySelectorAll(".mult-btn").forEach(b => {
+      b.classList.toggle("active", Number(b.dataset.val) === state.profitMultiplier);
+    });
+    if (!MULTS.includes(state.profitMultiplier)) {
+      document.querySelectorAll(".mult-btn").forEach(b => b.classList.remove("active"));
+    }
+    document.getElementById("refsContent").classList.toggle("collapsed", !state.refsOpen);
+    document.querySelector("#refsToggle svg").style.transform = state.refsOpen ? "rotate(180deg)" : "rotate(0)";
+
+    setupCurrencyDropdown();
+    setupPrinterDropdown();
+    setupProfileDropdown();
+    setupProductDropdown();
+    bindInputs();
+    refreshProfileMenu();
+    refreshProductMenu();
+
+    recalc();
+  </script>
+</body>
+</html>
