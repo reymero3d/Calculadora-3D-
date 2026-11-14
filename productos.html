@@ -219,12 +219,17 @@
       doc.setFont("helvetica", "normal");
       doc.setFontSize(10);
       doc.setTextColor(107, 99, 89);
-      if (d.productName) { doc.text("Producto: " + d.productName, margin, y); y += 5; }
-      if (d.grams) { doc.text("Peso de material: " + d.grams + " g", margin, y); y += 5; }
+      if (d.productName) { doc.text(d.productName, margin, y); y += 5; }
+      const qty = d.quantity || 1;
+      const colors = d.colors || 1;
+      const grams = d.grams || 0;
       const hours = d.hours || 0;
       const minutes = d.minutes || 0;
-      if (hours || minutes) { doc.text("Tiempo de impresión: " + hours + " h " + minutes + " min", margin, y); y += 5; }
-      if (d.profitMultiplier) { doc.text("Multiplicador: ×" + d.profitMultiplier, margin, y); y += 5; }
+      doc.text("Cantidad: " + qty, margin, y); y += 5;
+      doc.text("Colores: " + colors, margin, y); y += 5;
+      if (grams > 0) { doc.text("Peso de material: " + grams + " g", margin, y); y += 5; }
+      const tiempo = hours + (minutes || 0) / 60;
+      if (tiempo > 0) { doc.text("Tiempo de impresión: " + hours + " h " + (minutes || 0) + " min", margin, y); y += 5; }
       y += 4;
 
       doc.setFillColor(185, 28, 28);
