@@ -320,15 +320,6 @@
               <span class="hint">Unidades que quiere el cliente.</span>
               <input type="number" id="quantity" step="1" min="1" inputmode="numeric">
             </div>
-            <div class="field" style="margin-top:1rem;">
-              <label class="label">Foto del producto (opcional)</label>
-              <span class="hint">Para reconocerlo más rápido. Se guarda en tu navegador.</span>
-              <input type="file" id="productImageInput" accept="image/*" style="padding:.4rem;">
-              <div id="productImagePreview" style="margin-top:.5rem;display:none;">
-                <img id="productImageImg" src="" alt="Producto" style="max-width:100%;max-height:160px;border-radius:3px;border:1px solid var(--border);">
-                <button type="button" class="btn btn-ghost" id="removeImageBtn" style="margin-top:.4rem;padding:.3rem .6rem;font-size:.7rem;">Quitar foto</button>
-              </div>
-            </div>
             <div class="card" style="margin-top:1rem;background:var(--surface-2);">
               <p class="uppercase-label" style="margin-bottom:.4rem;">Precio rápido</p>
               <div style="display:flex;justify-content:space-between;align-items:center;">
@@ -478,7 +469,6 @@
       repairCosts: 150000,
       errorMarginPercent: 5,
       productName: "",
-      productImage: "",
       colors: 1,
       hours: 0,
       minutes: 0,
@@ -579,12 +569,6 @@
       const _activePr = state.products.find(p => p.id === state.activeProductId);
       const _psl = document.getElementById("productSelectLabel");
       if (_psl) _psl.textContent = _activePr ? (_activePr.name || "Sin nombre") : "-- Nuevo producto --";
-      const imgPreview = document.getElementById("productImagePreview");
-      const imgEl = document.getElementById("productImageImg");
-      if (imgPreview && imgEl) {
-        if (state.productImage) { imgEl.src = state.productImage; imgPreview.style.display = "block"; }
-        else { imgPreview.style.display = "none"; }
-      }
       document.getElementById("consumptionW").disabled = state.printerModel !== "custom" && PRINTERS.find(x=>x.id===state.printerModel)?.watts !== null;
     }
 
@@ -1145,44 +1129,6 @@
     setupProfileDropdown();
     setupProductDropdown();
     bindInputs();
-
-    // Foto del producto
-    const imgInput = document.getElementById("productImageInput");
-    if (imgInput) {
-      imgInput.addEventListener("change", (e) => {
-        const file = e.target.files && e.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-          // Redimensionar a miniatura para no exceder localStorage
-          const img = new Image();
-          img.onload = () => {
-            const canvas = document.createElement("canvas");
-            const maxW = 240;
-            const scale = Math.min(1, maxW / img.width);
-            canvas.width = Math.round(img.width * scale);
-            canvas.height = Math.round(img.height * scale);
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            state.productImage = canvas.toDataURL("image/jpeg", 0.7);
-            syncInputs();
-            savePiece();
-            toast("Foto agregada");
-          };
-          img.src = ev.target.result;
-        };
-        reader.readAsDataURL(file);
-      });
-    }
-    const removeImgBtn = document.getElementById("removeImageBtn");
-    if (removeImgBtn) {
-      removeImgBtn.addEventListener("click", () => {
-        state.productImage = "";
-        syncInputs();
-        savePiece();
-        toast("Foto quitada");
-      });
-    }
 
     refreshProfileMenu();
     refreshProductMenu();

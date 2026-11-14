@@ -116,6 +116,33 @@
     <div class="empty" id="emptyMsg" style="display:none;">Todavía no guardaste productos. Calculá uno en la pestaña Costos 3D y guardalo.</div>
   </div>
 
+  <!-- Modal de edición -->
+  <div id="editModal" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);align-items:center;justify-content:center;padding:1rem;">
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:1.5rem;max-width:480px;width:100%;max-height:90vh;overflow:auto;">
+      <h3 class="card-title" style="margin-top:0;"><span class="dot"></span>Editar producto</h3>
+      <div class="field" style="margin-bottom:.75rem;"><label class="label">Nombre</label><input type="text" id="editName"></div>
+      <div class="field" style="margin-bottom:.75rem;"><label class="label">Nombre del producto (cliente)</label><input type="text" id="editProductName"></div>
+      <div class="row" style="margin-bottom:.75rem;">
+        <div class="field"><label class="label">Gramos</label><input type="number" id="editGrams" step="any"></div>
+        <div class="field"><label class="label">Horas</label><input type="number" id="editHours" step="any"></div>
+      </div>
+      <div class="row" style="margin-bottom:.75rem;">
+        <div class="field"><label class="label">Minutos</label><input type="number" id="editMinutes" step="any"></div>
+        <div class="field"><label class="label">Precio (rawPrice)</label><input type="number" id="editPrice" step="any"></div>
+      </div>
+      <div class="field" style="margin-bottom:.75rem;"><label class="label">Moneda</label>
+        <select id="editCurrency">
+          <option value="ARS">ARS</option><option value="USD">USD</option><option value="EUR">EUR</option><option value="MXN">MXN</option><option value="BRL">BRL</option>
+        </select>
+      </div>
+      <div class="field" style="margin-bottom:.75rem;"><label class="label">Multiplicador</label><input type="number" id="editMult" step="any"></div>
+      <div style="display:flex;gap:.5rem;margin-top:1rem;">
+        <button class="btn btn-primary" id="editSaveBtn" style="flex:1;">Guardar</button>
+        <button class="btn btn-ghost" id="editCancelBtn" style="flex:1;">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <div class="bottom-bar">
     <div><p class="label">Productos</p><p class="big" id="bCount">0</p></div>
     <div style="text-align:right;"><p class="label">Valor total</p><p style="font-size:.875rem;font-weight:700;color:#b45309;" id="bTotal">AR$ 0,00</p></div>
@@ -142,6 +169,46 @@
 
     let products = loadProducts();
     let searchTerm = "";
+    let editingIndex = -1;
+
+    function openEdit(idx) {
+      editingIndex = idx;
+      const p = products[idx];
+      const d = p.data || {};
+      $("editName").value = p.name || "";
+      $("editProductName").value = d.productName || "";
+      $("editGrams").value = d.grams || 0;
+      $("editHours").value = d.hours || 0;
+      $("editMinutes").value = d.minutes || 0;
+      $("editPrice").value = d.rawPrice || 0;
+      $("editCurrency").value = d.currency || "ARS";
+      $("editMult").value = d.profitMultiplier || 0;
+      $("editModal").style.display = "flex";
+    }
+    function closeEdit() {
+      editingIndex = -1;
+      $("editModal").style.display = "none";
+    }
+    $("editCancelBtn").addEventListener("click", closeEdit);
+    $("editModal").addEventListener("click", (e) => { if (e.target === $("editModal")) closeEdit(); });
+    $("editSaveBtn").addEventListener("click", () => {
+      if (editingIndex < 0) return;
+      const p = products[editingIndex];
+      if (!p) return;
+      p.name = $("editName").value.trim() || p.name;
+      p.data = p.data || {};
+      p.data.productName = $("editProductName").value.trim();
+      p.data.grams = M($("editGrams").value);
+      p.data.hours = M($("editHours").value);
+      p.data.minutes = M($("editMinutes").value);
+      p.data.rawPrice = M($("editPrice").value);
+      p.data.currency = $("editCurrency").value;
+      p.data.profitMultiplier = M($("editMult").value);
+      saveProducts(products);
+      closeEdit();
+      render();
+      toast("Producto actualizado");
+    });
 
     function fmtPrice(p) {
       const d = p.data || {};
@@ -163,7 +230,6 @@
         $("emptyMsg").style.display = "none";
         catalog.innerHTML = filtered.map((p, i) => {
           const d = p.data || {};
-          const img = d.productImage || p.productImage || "";
           const sale = d.rawPrice || 0;
           const code = d.currency || "ARS";
           const grams = d.grams || 0;
@@ -173,9 +239,6 @@
           const timeStr = (hours || minutes) ? (hours + "h " + minutes + "min") : "";
           return `
             <div class="prod-card">
-              <div class="img">
-                ${img ? `<img src="${img}" alt="${escapeHtml(p.name)}">` : `<span class="placeholder">Sin foto</span>`}
-              </div>
               <div class="body">
                 <h3 class="name">${escapeHtml(p.name || "Sin nombre")}</h3>
                 <div class="meta">${escapeHtml(d.productName || "")}</div>
@@ -183,6 +246,7 @@
                 ${mult ? `<div class="meta">Multiplicador ×${mult}</div>` : ""}
                 <div class="price">${money(sale, code)}</div>
                 <div class="actions">
+                  <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
                   <button class="btn btn-ghost" data-del="${i}" style="flex:1;">Quitar</button>
                 </div>
               </div>
@@ -192,14 +256,21 @@
           btn.addEventListener("click", () => {
             const idx = Number(btn.dataset.del);
             if (!confirm("¿Eliminar este producto?")) return;
-            // find original index
-            const name = filtered[idx].name;
             const realIdx = products.findIndex(p => p === filtered[idx]);
             if (realIdx >= 0) products.splice(realIdx, 1);
             saveProducts(products);
-            // also update piece activeProductId if needed
             render();
             toast("Producto eliminado");
+          });
+        });
+        catalog.querySelectorAll("[data-edit]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.edit);
+            const p = filtered[idx];
+            if (!p) return;
+            const realIdx = products.findIndex(x => x === p);
+            if (realIdx < 0) return;
+            openEdit(realIdx);
           });
         });
       }
