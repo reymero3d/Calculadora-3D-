@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     :root {
@@ -169,6 +170,88 @@
     function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
     function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+    function generateSellPdf(p) {
+      if (typeof window.jspdf === "undefined") { toast("jsPDF no cargó."); return; }
+      const { jsPDF } = window.jspdf;
+      const d = p.data || {};
+      const code = d.currency || "ARS";
+      const sym = SYM[code] || "$";
+      const price = M(d.rawPrice) || 0;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      const margin = 16;
+      const contentW = pageW - margin * 2;
+      let y = 16;
+
+      doc.setFillColor(185, 28, 28);
+      doc.rect(0, 0, pageW, 30, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Reymero3d", margin, 12);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(255, 220, 220);
+      doc.text("Presupuesto de producto", margin, 19);
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }), pageW - margin, 12, { align: "right" });
+      y = 38;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(20);
+      doc.setTextColor(38, 34, 29);
+      doc.text(p.name || "Producto", margin, y);
+      y += 8;
+
+      // Foto del producto
+      const img = d.productImage || "";
+      if (img) {
+        try {
+          doc.addImage(img, "JPEG", margin, y, 60, 60);
+          y += 64;
+        } catch (e) {
+          // si falla el formato, ignorar
+        }
+      }
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(10);
+      doc.setTextColor(107, 99, 89);
+      if (d.productName) { doc.text("Producto: " + d.productName, margin, y); y += 5; }
+      if (d.grams) { doc.text("Peso de material: " + d.grams + " g", margin, y); y += 5; }
+      const hours = d.hours || 0;
+      const minutes = d.minutes || 0;
+      if (hours || minutes) { doc.text("Tiempo de impresión: " + hours + " h " + minutes + " min", margin, y); y += 5; }
+      if (d.profitMultiplier) { doc.text("Multiplicador: ×" + d.profitMultiplier, margin, y); y += 5; }
+      y += 4;
+
+      doc.setFillColor(185, 28, 28);
+      doc.roundedRect(margin, y, contentW, 28, 3, 3, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text("PRECIO FINAL", margin + 8, y + 9);
+      doc.setFontSize(20);
+      doc.text(sym + " " + (Number.isFinite(price) ? price.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"), margin + 8, y + 21);
+      y += 34;
+
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(9);
+      doc.setTextColor(107, 99, 89);
+      doc.text("Presupuesto sujeto a confirmación. Válido por 7 días.", margin, y);
+      y += 6;
+      doc.text("Gracias por tu consulta.", margin, y);
+
+      doc.setFontSize(8);
+      doc.setTextColor(148, 163, 184);
+      doc.text("Reymero3d · Impresión 3D personalizada · Tel 1167994767", pageW / 2, pageH - 8, { align: "center" });
+
+      doc.save("presupuesto-" + (p.name || "producto").replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".pdf");
+      toast("PDF generado");
+    }
+
     function loadProducts() {
       try { return JSON.parse(localStorage.getItem("reymero-calc-products") || "[]"); } catch { return []; }
     }
@@ -318,6 +401,7 @@
                 <div class="price">${money(sale, code)}</div>
                 <div class="actions">
                   <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
+                  <button class="btn btn-primary" data-sell="${i}" style="flex:1;">Vender</button>
                   <button class="btn btn-ghost" data-del="${i}" style="flex:1;">Quitar</button>
                 </div>
               </div>
@@ -332,6 +416,14 @@
             saveProducts(products);
             render();
             toast("Producto eliminado");
+          });
+        });
+        catalog.querySelectorAll("[data-sell]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.sell);
+            const p = filtered[idx];
+            if (!p) return;
+            generateSellPdf(p);
           });
         });
         catalog.querySelectorAll("[data-edit]").forEach(btn => {
