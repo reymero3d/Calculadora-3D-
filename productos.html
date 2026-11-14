@@ -136,6 +136,14 @@
         </select>
       </div>
       <div class="field" style="margin-bottom:.75rem;"><label class="label">Multiplicador</label><input type="number" id="editMult" step="any"></div>
+      <div class="field" style="margin-bottom:.75rem;">
+        <label class="label">Foto del producto (opcional)</label>
+        <input type="file" id="editImageInput" accept="image/*" style="padding:.4rem;">
+        <div id="editImagePreview" style="margin-top:.5rem;display:none;">
+          <img id="editImageImg" src="" alt="Producto" style="max-width:100%;max-height:160px;border-radius:3px;border:1px solid var(--border);">
+          <button type="button" class="btn btn-ghost" id="editRemoveImageBtn" style="margin-top:.4rem;padding:.3rem .6rem;font-size:.7rem;">Quitar foto</button>
+        </div>
+      </div>
       <div style="display:flex;gap:.5rem;margin-top:1rem;">
         <button class="btn btn-primary" id="editSaveBtn" style="flex:1;">Guardar</button>
         <button class="btn btn-ghost" id="editCancelBtn" style="flex:1;">Cancelar</button>
@@ -170,9 +178,13 @@
     let products = loadProducts();
     let searchTerm = "";
     let editingIndex = -1;
+    let pendingImage = null; // null = no change, "" = removed, string = new image
 
     function openEdit(idx) {
       editingIndex = idx;
+      pendingImage = null;
+      const imgInput = $("editImageInput");
+      if (imgInput) imgInput.value = "";
       const p = products[idx];
       const d = p.data || {};
       $("editName").value = p.name || "";
@@ -183,14 +195,57 @@
       $("editPrice").value = d.rawPrice || 0;
       $("editCurrency").value = d.currency || "ARS";
       $("editMult").value = d.profitMultiplier || 0;
+      const imgPreview = $("editImagePreview");
+      const imgEl = $("editImageImg");
+      if (d.productImage) { imgEl.src = d.productImage; imgPreview.style.display = "block"; }
+      else { imgPreview.style.display = "none"; }
       $("editModal").style.display = "flex";
     }
     function closeEdit() {
       editingIndex = -1;
+      pendingImage = null;
       $("editModal").style.display = "none";
     }
     $("editCancelBtn").addEventListener("click", closeEdit);
     $("editModal").addEventListener("click", (e) => { if (e.target === $("editModal")) closeEdit(); });
+
+    const editImgInput = $("editImageInput");
+    if (editImgInput) {
+      editImgInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const maxW = 320;
+            const scale = Math.min(1, maxW / img.width);
+            canvas.width = Math.round(img.width * scale);
+            canvas.height = Math.round(img.height * scale);
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            pendingImage = canvas.toDataURL("image/jpeg", 0.75);
+            const imgEl = $("editImageImg");
+            const preview = $("editImagePreview");
+            imgEl.src = pendingImage;
+            preview.style.display = "block";
+          };
+          img.src = ev.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+    const editRemoveImgBtn = $("editRemoveImageBtn");
+    if (editRemoveImgBtn) {
+      editRemoveImgBtn.addEventListener("click", () => {
+        pendingImage = "";
+        const imgEl = $("editImageImg");
+        const preview = $("editImagePreview");
+        imgEl.src = "";
+        preview.style.display = "none";
+      });
+    }
     $("editSaveBtn").addEventListener("click", () => {
       if (editingIndex < 0) return;
       const p = products[editingIndex];
@@ -204,7 +259,12 @@
       p.data.rawPrice = M($("editPrice").value);
       p.data.currency = $("editCurrency").value;
       p.data.profitMultiplier = M($("editMult").value);
+      if (pendingImage !== null) {
+        if (pendingImage === "") p.data.productImage = "";
+        else p.data.productImage = pendingImage;
+      }
       saveProducts(products);
+      pendingImage = null;
       closeEdit();
       render();
       toast("Producto actualizado");
@@ -230,6 +290,7 @@
         $("emptyMsg").style.display = "none";
         catalog.innerHTML = filtered.map((p, i) => {
           const d = p.data || {};
+          const img = d.productImage || "";
           const sale = d.rawPrice || 0;
           const code = d.currency || "ARS";
           const grams = d.grams || 0;
@@ -239,6 +300,9 @@
           const timeStr = (hours || minutes) ? (hours + "h " + minutes + "min") : "";
           return `
             <div class="prod-card">
+              <div class="img" style="background:var(--surface-2);height:180px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+                ${img ? `<img src="${img}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;">` : `<span class="placeholder" style="color:var(--muted-2);font-size:.8rem;font-style:italic;">Sin foto</span>`}
+              </div>
               <div class="body">
                 <h3 class="name">${escapeHtml(p.name || "Sin nombre")}</h3>
                 <div class="meta">${escapeHtml(d.productName || "")}</div>
