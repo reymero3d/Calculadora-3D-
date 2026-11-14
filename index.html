@@ -788,6 +788,10 @@
     }
 
     function saveProduct() {
+      // Si el producto activo ya no existe, tratar como nuevo
+      if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
+        state.activeProductId = null;
+      }
       const data = productData();
       if (state.activeProductId) {
         const pr = state.products.find(p => p.id === state.activeProductId);
