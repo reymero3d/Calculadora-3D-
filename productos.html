@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Productos · Reymero3d</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
+    :root {
+      --bg: #f2eee7; --surface: #fbf8f3; --surface-2: #ece7de; --border: #d9d2c5;
+      --text: #26221d; --muted: #6b6359; --muted-2: #a09688;
+      --accent: #b91c1c; --accent-dark: #991b1b; --accent-light: #f5d6d6;
+      --amber: #a16207; --amber-light: #f5e6c8;
+      --shadow: 0 1px 0 rgba(38,34,29,0.04);
+      --shadow-lg: 0 1px 2px rgba(38,34,29,0.06), 0 12px 32px rgba(38,34,29,0.08);
+    }
+    body.dark {
+      --bg: #1a1816; --surface: #26221d; --surface-2: #332e27; --border: #4a4238;
+      --text: #f2eee7; --muted: #b8a99a; --muted-2: #8a7e70;
+      --accent-light: #3a1f1f; --amber-light: #3a2e1a;
+    }
+    body.dark { background-image: radial-gradient(circle at 1px 1px, rgba(251,248,243,0.05) 1px, transparent 0); }
+    body.dark .hero { background: #0f0d0b; }
+    body.dark .bottom-bar { background: #0f0d0b; }
+    body.dark input, body.dark select, body.dark textarea { background: var(--surface); color: var(--text); border-color: var(--border); }
+    body.dark .card { box-shadow: none; }
+    body.dark .toast { background: #0f0d0b; }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: "Inter", "Segoe UI", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+    body { min-height: 100vh; background-image: radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size: 24px 24px; }
+    .app { max-width: 1240px; margin: 0 auto; padding: 0 1.5rem 6rem; }
+    .hero { background: #1c1917; color: #fbf8f3; padding: 2.5rem 2.25rem 2.25rem; margin: 1.5rem -1.5rem 0; position: relative; overflow: hidden; border-bottom: 3px solid var(--accent); }
+    .hero::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(251,248,243,0.04) 39px, rgba(251,248,243,0.04) 40px); }
+    .hero-content { position: relative; z-index: 1; display: flex; align-items: flex-end; justify-content: space-between; gap: 2rem; flex-wrap: wrap; }
+    .hero h1 { margin: 0; font-family: "Fraunces", serif; font-size: 2.6rem; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+    .hero p { margin: .5rem 0 0; opacity: .75; font-size: 1rem; max-width: 520px; }
+    .hero-badge { display: inline-flex; align-items: center; gap: .4rem; background: var(--accent); color: #fff; padding: .3rem .7rem; border-radius: 2px; font-size: .7rem; font-weight: 700; margin-top: .85rem; text-transform: uppercase; letter-spacing: .08em; font-family: "JetBrains Mono", monospace; }
+    .hero-meta { font-family: "JetBrains Mono", monospace; font-size: .75rem; opacity: .6; text-align: right; line-height: 1.6; }
+    .hero-nav { display: flex; gap: .5rem; margin-top: 1rem; flex-wrap: wrap; }
+    .hero-nav a, .hero-nav button {
+      color: #fbf8f3; text-decoration: none; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
+      padding: .35rem .7rem; border: 1px solid rgba(251,248,243,0.3); border-radius: 2px; font-family: "JetBrains Mono", monospace;
+      background: transparent; cursor: pointer;
+    }
+    .hero-nav a:hover, .hero-nav button:hover { background: var(--accent); border-color: var(--accent); }
+    .hero-nav a.active, .hero-nav button.active { background: var(--accent); border-color: var(--accent); }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1.5rem; box-shadow: var(--shadow); margin-top: 2rem; }
+    .card-title { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.25rem; margin: 0 0 1.1rem; display: flex; align-items: center; gap: .6rem; padding-bottom: .6rem; border-bottom: 1px solid var(--border); }
+    .card-title .dot { width: 10px; height: 10px; background: var(--accent); }
+    .catalog { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; margin-top: 1.5rem; }
+    .prod-card { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column; }
+    .prod-card .img { background: var(--surface-2); height: 180px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .prod-card .img img { width: 100%; height: 100%; object-fit: cover; }
+    .prod-card .img .placeholder { color: var(--muted-2); font-size: .8rem; font-style: italic; }
+    .prod-card .body { padding: 1rem; flex: 1; display: flex; flex-direction: column; gap: .4rem; }
+    .prod-card .name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.1rem; margin: 0; }
+    .prod-card .meta { font-size: .72rem; color: var(--muted); }
+    .prod-card .price { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 1.4rem; color: var(--accent); margin-top: .4rem; }
+    .prod-card .actions { display: flex; gap: .4rem; margin-top: .6rem; }
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 3px; font-weight: 600; font-size: .8rem; padding: .5rem .8rem; cursor: pointer; transition: all .15s; border: 1.5px solid transparent; font-family: inherit; text-transform: uppercase; letter-spacing: .04em; }
+    .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+    .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+    .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+    .btn-full { width: 100%; }
+    .empty { text-align: center; padding: 3rem 1rem; color: var(--muted); font-style: italic; }
+    .toast { position: fixed; bottom: 1.5rem; right: 1.5rem; background: #1c1917; color: #fbf8f3; padding: .8rem 1.2rem; border-radius: 3px; font-size: .85rem; font-weight: 500; box-shadow: var(--shadow-lg); transform: translateY(120%); transition: transform .25s; z-index: 50; font-family: "JetBrains Mono", monospace; }
+    .toast.show { transform: translateY(0); }
+    .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #1c1917; color: #fbf8f3; border-top: 2px solid var(--accent); padding: .8rem 1.25rem; display: flex; justify-content: space-between; z-index: 40; }
+    @media (min-width: 1024px) { .bottom-bar { display: none; } }
+    .search-bar { display: flex; gap: .5rem; margin-top: 1.5rem; }
+    .search-bar input { flex: 1; }
+    .stats { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
+    .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .6rem 1rem; font-size: .8rem; }
+    .stat b { font-family: "JetBrains Mono", monospace; color: var(--accent); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-content">
+        <div>
+          <h1>Catálogo de productos</h1>
+          <p>Todos los productos que fuiste guardando, con sus precios calculados.</p>
+          <div class="hero-badge">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            Reymero3d · Tu catálogo
+          </div>
+          <div class="hero-nav">
+            <a href="index.html">Costos 3D</a>
+            <a href="productos.html" class="active">Productos</a>
+            <a href="presupuestos.html">Presupuestos</a>
+            <button id="themeToggle" style="color:#fbf8f3;background:transparent;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;cursor:pointer;">☾ Oscuro</button>
+          </div>
+        </div>
+        <div class="hero-meta">
+          v2.0 · edición 2026<br>
+          Hecho para makers
+        </div>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Buscar producto...">
+      <button class="btn btn-ghost" id="clearAllBtn">Limpiar todo</button>
+    </div>
+
+    <div class="catalog" id="catalog"></div>
+    <div class="empty" id="emptyMsg" style="display:none;">Todavía no guardaste productos. Calculá uno en la pestaña Costos 3D y guardalo.</div>
+  </div>
+
+  <div class="bottom-bar">
+    <div><p class="label">Productos</p><p class="big" id="bCount">0</p></div>
+    <div style="text-align:right;"><p class="label">Valor total</p><p style="font-size:.875rem;font-weight:700;color:#b45309;" id="bTotal">AR$ 0,00</p></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const SYM = { ARS: "$", USD: "US$", EUR: "€", MXN: "MX$", BRL: "R$" };
+    function money(n, code) {
+      const sym = SYM[code] || "$";
+      const r = (Number.isFinite(n) ? n : 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      return sym + " " + r;
+    }
+    function M(v){ const n=Number(v); return Number.isFinite(n)?n:0; }
+    function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
+    function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+    function loadProducts() {
+      try { return JSON.parse(localStorage.getItem("reymero-calc-products") || "[]"); } catch { return []; }
+    }
+    function saveProducts(p) { localStorage.setItem("reymero-calc-products", JSON.stringify(p)); }
+
+    let products = loadProducts();
+    let searchTerm = "";
+
+    function fmtPrice(p) {
+      const d = p.data || {};
+      const sale = d.rawPrice || 0;
+      const code = d.currency || "ARS";
+      return money(sale, code);
+    }
+
+    function render() {
+      const filtered = products.filter(p => !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || ((p.data&&p.data.productName)||"").toLowerCase().includes(searchTerm.toLowerCase()));
+      const catalog = $("catalog");
+      if (filtered.length === 0) {
+        catalog.innerHTML = "";
+        $("emptyMsg").style.display = products.length === 0 ? "block" : "none";
+        if (products.length > 0 && filtered.length === 0) {
+          catalog.innerHTML = '<p class="empty">No se encontraron productos.</p>';
+        }
+      } else {
+        $("emptyMsg").style.display = "none";
+        catalog.innerHTML = filtered.map((p, i) => {
+          const d = p.data || {};
+          const img = d.productImage || p.productImage || "";
+          const sale = d.rawPrice || 0;
+          const code = d.currency || "ARS";
+          const grams = d.grams || 0;
+          const hours = d.hours || 0;
+          const minutes = d.minutes || 0;
+          const mult = d.profitMultiplier || 0;
+          const timeStr = (hours || minutes) ? (hours + "h " + minutes + "min") : "";
+          return `
+            <div class="prod-card">
+              <div class="img">
+                ${img ? `<img src="${img}" alt="${escapeHtml(p.name)}">` : `<span class="placeholder">Sin foto</span>`}
+              </div>
+              <div class="body">
+                <h3 class="name">${escapeHtml(p.name || "Sin nombre")}</h3>
+                <div class="meta">${escapeHtml(d.productName || "")}</div>
+                ${grams ? `<div class="meta">${grams} g · ${timeStr}</div>` : ""}
+                ${mult ? `<div class="meta">Multiplicador ×${mult}</div>` : ""}
+                <div class="price">${money(sale, code)}</div>
+                <div class="actions">
+                  <button class="btn btn-ghost" data-del="${i}" style="flex:1;">Quitar</button>
+                </div>
+              </div>
+            </div>`;
+        }).join("");
+        catalog.querySelectorAll("[data-del]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.del);
+            if (!confirm("¿Eliminar este producto?")) return;
+            // find original index
+            const name = filtered[idx].name;
+            const realIdx = products.findIndex(p => p === filtered[idx]);
+            if (realIdx >= 0) products.splice(realIdx, 1);
+            saveProducts(products);
+            // also update piece activeProductId if needed
+            render();
+            toast("Producto eliminado");
+          });
+        });
+      }
+
+      // stats
+      const totalValue = products.reduce((s, p) => s + (M((p.data||{}).rawPrice) || 0), 0);
+      const codes = [...new Set(products.map(p => (p.data||{}).currency || "ARS"))];
+      const code = codes.length === 1 ? codes[0] : "ARS";
+      $("stats").innerHTML = `
+        <div class="stat"><b>${products.length}</b> productos</div>
+        <div class="stat">Valor total: <b>${money(totalValue, code)}</b></div>
+      `;
+      $("bCount").textContent = products.length;
+      $("bTotal").textContent = money(totalValue, code);
+    }
+
+    $("searchInput").addEventListener("input", (e) => {
+      searchTerm = e.target.value;
+      render();
+    });
+    $("clearAllBtn").addEventListener("click", () => {
+      if (!products.length) { toast("No hay productos"); return; }
+      if (!confirm("¿Eliminar todos los productos guardados?")) return;
+      products = [];
+      saveProducts(products);
+      render();
+      toast("Catálogo limpiado");
+    });
+
+    // Dark mode
+    let theme = localStorage.getItem("reymero-theme") || "light";
+    function applyTheme() {
+      document.body.classList.toggle("dark", theme === "dark");
+      const btn = document.getElementById("themeToggle");
+      if (btn) btn.textContent = theme === "dark" ? "☀ Claro" : "☾ Oscuro";
+    }
+    applyTheme();
+    const themeBtn = document.getElementById("themeToggle");
+    if (themeBtn) themeBtn.addEventListener("click", () => {
+      theme = theme === "dark" ? "light" : "dark";
+      localStorage.setItem("reymero-theme", theme);
+      applyTheme();
+    });
+
+    render();
+  </script>
+</body>
+</html>
