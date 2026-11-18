@@ -299,6 +299,9 @@
             <span class="hint">También podés pegar con Ctrl+V en cualquier parte de la página.</span>
             <textarea id="jsonInput" rows="5" placeholder='{"name": "...", "grams": 0, "hours": 0, "minutes": 0}'></textarea>
           </div>
+          <div id="importImagePreview" style="display:none;margin-top:.5rem;text-align:center;">
+            <img id="importImageImg" src="" alt="Foto" style="max-width:100%;max-height:140px;border-radius:4px;border:1px solid var(--border);">
+          </div>
           <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
             <button class="btn btn-primary" id="importJsonBtn">Importar JSON</button>
             <button class="btn btn-ghost" id="pasteClipboardBtn">Pegar desde portapapeles</button>
@@ -500,6 +503,9 @@
       quantity: 1,
       profitMultiplier: 4,
       refsOpen: true,
+      productImage: "",
+      rawPrice: 0,
+      lastCalculatedTotal: 0,
     };
 
     function loadProfiles() {
@@ -683,6 +689,8 @@
       document.getElementById("bTotal").textContent = fmt(v);
       document.getElementById("bML").textContent = fmt(j);
 
+      state.lastCalculatedTotal = v;
+
       const qt = document.getElementById("quickTotal");
       const qm = document.getElementById("quickML");
       if (qt) qt.textContent = fmt(v);
@@ -778,6 +786,8 @@
         quantity: state.quantity,
         profitMultiplier: state.profitMultiplier,
         currency: state.currency,
+        productImage: state.productImage || "",
+        rawPrice: M(state.lastCalculatedTotal) || 0,
       };
     }
 
@@ -797,6 +807,7 @@
         state.grams = 0;
         state.insumos = 0;
         state.quantity = 1;
+        state.productImage = "";
         state.profitMultiplier = 4;
         syncInputs();
         recalc();
@@ -819,7 +830,7 @@
           state.grams = d.grams || 0;
           state.insumos = d.insumos || 0;
           state.quantity = d.quantity || 1;
-          state.profitMultiplier = (d.profitMultiplier !== undefined ? d.profitMultiplier : state.profitMultiplier);
+          state.productImage = d.productImage || state.productImage || "";
           if (d.currency && CURRENCIES[d.currency]) { state.currency = d.currency; applyCurrency(state.currency, false); }
           syncInputs();
           recalc();
@@ -871,6 +882,7 @@
       state.grams = 0;
       state.insumos = 0;
       state.quantity = 1;
+      state.productImage = "";
       syncInputs();
       recalc();
       savePiece();
@@ -1134,8 +1146,46 @@
     // ---------- Importar JSON (MakerWorld) ----------
     let lastImportedJson = null;
 
+    async function imageToDataUrl(url) {
+      if (!url) return "";
+      if (url.startsWith("data:")) return url;
+      try {
+        const res = await fetch(url, { mode: "cors" });
+        if (res.ok) {
+          const blob = await res.blob();
+          const dataUrl = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = reject;
+            r.readAsDataURL(blob);
+          });
+          if (dataUrl) return dataUrl;
+        }
+      } catch (e) {}
+      try {
+        return await new Promise((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = "anonymous";
+          img.onload = () => {
+            try {
+              const canvas = document.createElement("canvas");
+              const maxW = 480;
+              const scale = Math.min(1, maxW / (img.width || 1));
+              canvas.width = Math.max(1, Math.round((img.width || 1) * scale));
+              canvas.height = Math.max(1, Math.round((img.height || 1) * scale));
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+              resolve(canvas.toDataURL("image/jpeg", 0.75));
+            } catch (e) { reject(e); }
+          };
+          img.onerror = reject;
+          img.src = url;
+        });
+      } catch (e) {}
+      return url;
+    }
+
     function normalizeImportData(raw) {
-      if (!raw) return null;
       let d = raw;
       if (Array.isArray(d)) d = d[0] || {};
       if (d && typeof d.data === "object" && d.data !== null && !d.grams && !d.hours && !d.minutes && !d.name && !d.title && !d.weight) {
@@ -1218,6 +1268,7 @@
       if (imp.colors !== undefined) state.colors = imp.colors;
       if (imp.quantity !== undefined) state.quantity = imp.quantity;
       if (imp.insumos !== undefined) state.insumos = imp.insumos;
+      if (imp.image) state.productImage = imp.image;
       syncInputs();
       recalc();
       savePiece();
@@ -1271,6 +1322,25 @@
         if (wrap) wrap.style.display = "none";
         applyImportedData(imp, null);
       }
+      if (imp.image) {
+        state.productImage = imp.image;
+        const previewWrap = document.getElementById("importImagePreview");
+        const previewImg = document.getElementById("importImageImg");
+        if (previewWrap && previewImg) { previewImg.src = imp.image; previewWrap.style.display = ""; }
+        imageToDataUrl(imp.image).then((dataUrl) => {
+          if (dataUrl && dataUrl !== imp.image) {
+            state.productImage = dataUrl;
+            if (previewImg) previewImg.src = dataUrl;
+            savePiece();
+            toast("Foto importada");
+          }
+        }).catch(() => {});
+      } else {
+        const previewWrap = document.getElementById("importImagePreview");
+        if (previewWrap) previewWrap.style.display = "none";
+      }
+      savePiece();
+
       if (status) status.textContent = "Datos importados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m";
       toast("Datos importados");
       return true;
