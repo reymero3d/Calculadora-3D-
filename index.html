@@ -76,6 +76,8 @@
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
     input:focus, select:focus { border-color: var(--accent); background: #fff; }
+    textarea { background: var(--surface); border: 1.5px solid var(--border); border-radius: 3px; padding: .6rem .8rem; color: var(--text); width: 100%; outline: none; font-family: "JetBrains Mono", monospace; font-size: .85rem; resize: vertical; }
+    textarea:focus { border-color: var(--accent); background: #fff; }
     input:disabled { opacity: .5; cursor: not-allowed; background: var(--surface-2); }
 
     .select-btn {
@@ -285,6 +287,27 @@
               <input type="number" id="errorMarginPercent" step="any" inputmode="decimal">
             </div>
           </div>
+        </div>
+
+        <!-- Importar JSON (MakerWorld) -->
+        <div class="card">
+          <div class="header-row">
+            <h3 class="card-title" style="margin:0;"><span class="dot"></span>Importar datos (JSON)</h3>
+          </div>
+          <div class="field">
+            <label class="label">Pegá el JSON copiado de la extensión de MakerWorld</label>
+            <span class="hint">También podés pegar con Ctrl+V en cualquier parte de la página.</span>
+            <textarea id="jsonInput" rows="5" placeholder='{"name": "...", "grams": 0, "hours": 0, "minutes": 0}'></textarea>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="importJsonBtn">Importar JSON</button>
+            <button class="btn btn-ghost" id="pasteClipboardBtn">Pegar desde portapapeles</button>
+          </div>
+          <div id="importProfileWrap" style="margin-top:.75rem;display:none;">
+            <label class="label">Perfil de impresión (del JSON)</label>
+            <select id="importProfileSelect" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:3px;background:var(--surface);color:var(--text);font-size:.9rem;"></select>
+          </div>
+          <p class="hint" id="importStatus" style="margin-top:.5rem;"></p>
         </div>
 
         <!-- Pieza -->
@@ -1108,6 +1131,151 @@
 
     document.getElementById("pdfClientBtn").addEventListener("click", generateClientPdf);
 
+    // ---------- Importar JSON (MakerWorld) ----------
+    let lastImportedJson = null;
+
+    function normalizeImportData(raw) {
+      if (!raw) return null;
+      let d = raw;
+      if (Array.isArray(d)) d = d[0] || {};
+      if (d && typeof d.data === "object" && d.data !== null && !d.grams && !d.hours && !d.minutes && !d.name && !d.title && !d.weight) {
+        d = d.data;
+      }
+      const name = d.name || d.title || d.productName || d.modelName || d.designTitle || d.model || "";
+      let grams = d.grams ?? d.weight ?? d.peso ?? d.materialGrams ?? d.weightG ?? d.weightGrams;
+      if (grams === undefined || grams === null) grams = 0;
+      let hours = d.hours ?? d.horas;
+      let minutes = d.minutes ?? d.minutos;
+      const sec = d.timeSeconds ?? d.prediction ?? d.duration ?? d.printTime ?? d.timeInSeconds;
+      if ((hours === undefined || minutes === undefined) && typeof sec === "number") {
+        hours = Math.floor(sec / 3600);
+        minutes = Math.floor((sec % 3600) / 60);
+      }
+      if (typeof d.time === "string" && (hours === undefined || minutes === undefined)) {
+        const m = d.time.match(/(\d+)\s*h(?:\s*(\d+)\s*m)?/i);
+        if (m) { hours = parseInt(m[1]); minutes = m[2] ? parseInt(m[2]) : 0; }
+      }
+      if (hours === undefined || hours === null) hours = 0;
+      if (minutes === undefined || minutes === null) minutes = 0;
+      const colors = d.colors ?? d.colores;
+      const quantity = d.quantity ?? d.cantidad ?? d.qty;
+      const insumos = d.insumos ?? d.extras ?? d.extraCosts;
+      return {
+        name: String(name || ""),
+        grams: Number(grams) || 0,
+        hours: Number(hours) || 0,
+        minutes: Number(minutes) || 0,
+        colors: colors !== undefined && colors !== null ? (Number(colors) || 1) : undefined,
+        quantity: quantity !== undefined && quantity !== null ? (Number(quantity) || 1) : undefined,
+        insumos: insumos !== undefined && insumos !== null ? (Number(insumos) || 0) : undefined,
+        image: d.image || d.coverUrl || d.cover || d.coverPortrait || "",
+        url: d.url || d.link || "",
+        allInstances: (d.debug && d.debug.allInstances) || d.allInstances || d.profiles || d.instances || null,
+        raw: d,
+      };
+    }
+
+    function profileTime(prof) {
+      let hours = 0, minutes = 0;
+      if (!prof) return { hours, minutes };
+      if (typeof prof.prediction === "number" && prof.prediction > 0) {
+        hours = Math.floor(prof.prediction / 3600);
+        minutes = Math.floor((prof.prediction % 3600) / 60);
+        return { hours, minutes };
+      }
+      const ext = prof.extentionData || prof.extention || {};
+      for (const key of Object.keys(ext)) {
+        if (/time|hour|minute|duration/i.test(key)) {
+          const val = ext[key];
+          if (typeof val === "number") {
+            if (val > 3600) { hours = Math.floor(val / 3600); minutes = Math.floor((val % 3600) / 60); }
+            else if (val > 60) { hours = Math.floor(val / 60); minutes = val % 60; }
+            return { hours, minutes };
+          } else if (typeof val === "string") {
+            const m = val.match(/(\d+)\s*h(?:\s*(\d+)\s*m)?/i);
+            if (m) { hours = parseInt(m[1]); minutes = m[2] ? parseInt(m[2]) : 0; return { hours, minutes }; }
+          }
+        }
+      }
+      return { hours, minutes };
+    }
+
+    function applyImportedData(imp, profileIndex) {
+      if (!imp) return false;
+      let grams = imp.grams, hours = imp.hours, minutes = imp.minutes;
+      if (imp.allInstances && Array.isArray(imp.allInstances) && profileIndex !== undefined && profileIndex !== null) {
+        const prof = imp.allInstances[profileIndex];
+        if (prof) {
+          if (prof.weight !== undefined && prof.weight !== null) grams = Number(prof.weight) || grams;
+          const t = profileTime(prof);
+          if (t.hours || t.minutes) { hours = t.hours; minutes = t.minutes; }
+        }
+      }
+      state.productName = imp.name || state.productName;
+      state.grams = grams;
+      state.hours = hours;
+      state.minutes = minutes;
+      if (imp.colors !== undefined) state.colors = imp.colors;
+      if (imp.quantity !== undefined) state.quantity = imp.quantity;
+      if (imp.insumos !== undefined) state.insumos = imp.insumos;
+      syncInputs();
+      recalc();
+      savePiece();
+      return true;
+    }
+
+    function tryImportJson(text) {
+      const status = document.getElementById("importStatus");
+      let parsed;
+      try {
+        parsed = JSON.parse(text);
+      } catch (e) {
+        if (status) status.textContent = "JSON inválido: " + e.message;
+        toast("JSON inválido");
+        return false;
+      }
+      const imp = normalizeImportData(parsed);
+      if (!imp) { if (status) status.textContent = "No se pudieron extraer datos."; return false; }
+      lastImportedJson = imp;
+      const wrap = document.getElementById("importProfileWrap");
+      const sel = document.getElementById("importProfileSelect");
+      if (wrap && sel && imp.allInstances && Array.isArray(imp.allInstances) && imp.allInstances.length > 1) {
+        sel.innerHTML = "";
+        imp.allInstances.forEach((p, i) => {
+          const opt = document.createElement("option");
+          opt.value = i;
+          const marker = p.isA1 ? " (A1)" : "";
+          opt.textContent = (p.title || ("Perfil " + (i + 1))) + " - " + (p.weight ?? "?") + "g" + marker;
+          sel.appendChild(opt);
+        });
+        let chosenIdx = 0;
+        const chosenTitle = parsed && parsed.debug && parsed.debug.chosen && parsed.debug.chosen.title;
+        if (chosenTitle) {
+          const idx = imp.allInstances.findIndex(p => p.title === chosenTitle);
+          if (idx >= 0) chosenIdx = idx;
+        }
+        sel.value = chosenIdx;
+        wrap.style.display = "";
+        applyImportedData(imp, chosenIdx);
+        if (!sel.dataset.bound) {
+          sel.dataset.bound = "1";
+          sel.addEventListener("change", () => {
+            if (lastImportedJson) {
+              applyImportedData(lastImportedJson, parseInt(sel.value));
+              const st = document.getElementById("importStatus");
+              if (st) st.textContent = "Perfil aplicado: " + (lastImportedJson.allInstances[parseInt(sel.value)]?.title || "");
+            }
+          });
+        }
+      } else {
+        if (wrap) wrap.style.display = "none";
+        applyImportedData(imp, null);
+      }
+      if (status) status.textContent = "Datos importados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m";
+      toast("Datos importados");
+      return true;
+    }
+
     // ---------- Init ----------
     loadPiece();
     if (!CURRENCIES[state.currency]) state.currency = "ARS";
@@ -1129,6 +1297,74 @@
     setupProfileDropdown();
     setupProductDropdown();
     bindInputs();
+
+    const importBtn = document.getElementById("importJsonBtn");
+    if (importBtn) importBtn.addEventListener("click", () => tryImportJson(document.getElementById("jsonInput").value));
+    const jsonInput = document.getElementById("jsonInput");
+    if (jsonInput) {
+      jsonInput.addEventListener("input", () => {
+        const v = jsonInput.value.trim();
+        if (v.startsWith("{") && v.endsWith("}")) {
+          try { JSON.parse(v); tryImportJson(v); } catch (e) {}
+        }
+      });
+    }
+    const pasteBtn = document.getElementById("pasteClipboardBtn");
+    if (pasteBtn) pasteBtn.addEventListener("click", async () => {
+      try {
+        const text = await navigator.clipboard.readText();
+        document.getElementById("jsonInput").value = text;
+        tryImportJson(text);
+      } catch (e) {
+        toast("No se pudo leer el portapapeles");
+      }
+    });
+
+    // Pegar JSON con Ctrl+V fuera de campos
+    document.addEventListener("paste", (e) => {
+      const tag = (e.target && e.target.tagName) || "";
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      const cd = e.clipboardData || window.clipboardData;
+      const text = cd ? cd.getData("text") : "";
+      if (text && text.trim().startsWith("{")) {
+        e.preventDefault();
+        document.getElementById("jsonInput").value = text;
+        tryImportJson(text);
+      }
+    });
+
+    // Importar desde parámetros de URL
+    try {
+      const params = new URLSearchParams(location.search);
+      const jsonParam = params.get("json") || params.get("data") || params.get("import");
+      if (jsonParam) {
+        let text = jsonParam;
+        try { text = decodeURIComponent(text); } catch {}
+        if (!text.trim().startsWith("{")) {
+          try { text = atob(text); } catch {}
+        }
+        const inp = document.getElementById("jsonInput");
+        if (inp) inp.value = text;
+        tryImportJson(text);
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, location.pathname);
+        }
+      } else if (params.get("name") || params.get("grams") || params.get("hours") || params.get("title")) {
+        const imp = {
+          name: params.get("name") || params.get("title") || "",
+          grams: params.get("grams") || params.get("weight") || 0,
+          hours: params.get("hours") || 0,
+          minutes: params.get("minutes") || 0,
+          colors: params.get("colors") || undefined,
+          quantity: params.get("quantity") || undefined,
+          insumos: params.get("insumos") || undefined,
+        };
+        tryImportJson(JSON.stringify(imp));
+        if (window.history && window.history.replaceState) {
+          window.history.replaceState({}, document.title, location.pathname);
+        }
+      }
+    } catch (e) {}
 
     refreshProfileMenu();
     refreshProductMenu();
