@@ -1218,7 +1218,7 @@
         colors: colors !== undefined && colors !== null ? (Number(colors) || 1) : undefined,
         quantity: quantity !== undefined && quantity !== null ? (Number(quantity) || 1) : undefined,
         insumos: insumos !== undefined && insumos !== null ? (Number(insumos) || 0) : undefined,
-        image: d.image || d.coverUrl || d.cover || d.coverPortrait || "",
+        image: d.image || d.coverUrl || d.cover || d.coverPortrait || d.previewUrl || d.thumbnail || "",
         url: d.url || d.link || "",
         allInstances: (d.debug && d.debug.allInstances) || d.allInstances || d.profiles || d.instances || null,
         raw: d,
@@ -1288,7 +1288,13 @@
       const imp = normalizeImportData(parsed);
       if (!imp) { if (status) status.textContent = "No se pudieron extraer datos."; return false; }
       lastImportedJson = imp;
-      const wrap = document.getElementById("importProfileWrap");
+      // Asegurar costos por defecto si están en 0
+      const _ci = CURRENCIES[state.currency] || CURRENCIES.ARS;
+      if (!state.priceKg) state.priceKg = _ci.priceKg;
+      if (!state.priceKwh) state.priceKwh = _ci.priceKwh;
+      if (!state.repairCosts) state.repairCosts = _ci.repairCosts;
+      if (!state.consumptionW) state.consumptionW = 120;
+      if (!state.machineLifespanHours) state.machineLifespanHours = 4320;
       const sel = document.getElementById("importProfileSelect");
       if (wrap && sel && imp.allInstances && Array.isArray(imp.allInstances) && imp.allInstances.length > 1) {
         sel.innerHTML = "";
@@ -1349,6 +1355,14 @@
     // ---------- Init ----------
     loadPiece();
     if (!CURRENCIES[state.currency]) state.currency = "ARS";
+    // Asegurar costos por defecto si quedaron en 0 (datos viejos o perfil vacío)
+    const _c = CURRENCIES[state.currency];
+    if (!state.priceKg) state.priceKg = _c.priceKg;
+    if (!state.priceKwh) state.priceKwh = _c.priceKwh;
+    if (!state.repairCosts) state.repairCosts = _c.repairCosts;
+    if (!state.consumptionW) state.consumptionW = 120;
+    if (!state.machineLifespanHours) state.machineLifespanHours = 4320;
+    if (state.errorMarginPercent === undefined || state.errorMarginPercent === null) state.errorMarginPercent = 5;
     applyCurrency(state.currency, false);
     applyPrinter(state.printerModel || "custom");
     syncInputs();
