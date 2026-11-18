@@ -776,6 +776,26 @@
     });
 
     function productData() {
+      const priceKg = M(state.priceKg);
+      const priceKwh = M(state.priceKwh);
+      const consumptionW = M(state.consumptionW);
+      const lifespan = M(state.machineLifespanHours);
+      const repair = M(state.repairCosts);
+      const errPct = M(state.errorMarginPercent);
+      const hours = M(state.hours);
+      const minutes = M(state.minutes);
+      const grams = M(state.grams);
+      const insumos = M(state.insumos);
+      const mult = M(state.profitMultiplier) || 1;
+      const qty = Math.max(1, M(state.quantity) || 1);
+      const p = hours + minutes / 60;
+      const b = (grams / 1000) * priceKg * qty;
+      const x = (consumptionW / 1000) * p * priceKwh * qty;
+      const h = (lifespan > 0 ? repair / lifespan : 0) * p * qty;
+      const g = (errPct / 100) * (b + x + h);
+      const f = b + x + h + g;
+      const y = 1.3 * insumos * qty;
+      const v = f * mult + y;
       return {
         productName: state.productName,
         colors: state.colors,
@@ -787,7 +807,7 @@
         profitMultiplier: state.profitMultiplier,
         currency: state.currency,
         productImage: state.productImage || "",
-        rawPrice: M(state.lastCalculatedTotal) || 0,
+        rawPrice: M(v) || 0,
       };
     }
 
