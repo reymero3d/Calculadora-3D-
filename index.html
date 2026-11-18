@@ -866,6 +866,10 @@
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
         state.activeProductId = null;
       }
+      // Asegurar foto desde la última importación
+      if (!state.productImage && lastImportedJson && lastImportedJson.image) {
+        state.productImage = lastImportedJson.image;
+      }
       const data = productData();
       if (state.activeProductId) {
         const pr = state.products.find(p => p.id === state.activeProductId);
