@@ -1367,7 +1367,7 @@
       }
       savePiece();
 
-      if (status) status.textContent = "Datos importados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m";
+      if (status) status.textContent = "Datos importados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m" + (state.productImage ? " · foto OK" : " · sin foto");
       toast("Datos importados");
       return true;
     }
@@ -1480,6 +1480,10 @@
         if (name) {
           const existing = state.products.find(p => (p.name || "").toLowerCase() === name.toLowerCase());
           if (existing) state.activeProductId = existing.id;
+        }
+        // Asegurar que la foto se guarde aunque la conversión async no haya terminado
+        if (!state.productImage && lastImportedJson && lastImportedJson.image) {
+          state.productImage = lastImportedJson.image;
         }
         saveProduct();
         toast("Producto guardado automáticamente");
