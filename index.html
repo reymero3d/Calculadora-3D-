@@ -1319,6 +1319,7 @@
       if (!state.repairCosts) state.repairCosts = _ci.repairCosts;
       if (!state.consumptionW) state.consumptionW = 120;
       if (!state.machineLifespanHours) state.machineLifespanHours = 4320;
+      const wrap = document.getElementById("importProfileWrap");
       const sel = document.getElementById("importProfileSelect");
       if (wrap && sel && imp.allInstances && Array.isArray(imp.allInstances) && imp.allInstances.length > 1) {
         sel.innerHTML = "";
