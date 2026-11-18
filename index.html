@@ -1438,10 +1438,12 @@
     });
 
     // Importar desde parámetros de URL
+    let hadParams = false;
     try {
       const params = new URLSearchParams(location.search);
       const jsonParam = params.get("json") || params.get("data") || params.get("import");
       if (jsonParam) {
+        hadParams = true;
         let text = jsonParam;
         try { text = decodeURIComponent(text); } catch {}
         if (!text.trim().startsWith("{")) {
@@ -1454,6 +1456,7 @@
           window.history.replaceState({}, document.title, location.pathname);
         }
       } else if (params.get("name") || params.get("grams") || params.get("hours") || params.get("title")) {
+        hadParams = true;
         const imp = {
           name: params.get("name") || params.get("title") || "",
           grams: params.get("grams") || params.get("weight") || 0,
@@ -1462,6 +1465,7 @@
           colors: params.get("colors") || undefined,
           quantity: params.get("quantity") || undefined,
           insumos: params.get("insumos") || undefined,
+          image: params.get("image") || params.get("img") || "",
         };
         tryImportJson(JSON.stringify(imp));
         if (window.history && window.history.replaceState) {
@@ -1469,6 +1473,18 @@
         }
       }
     } catch (e) {}
+
+    if (hadParams) {
+      setTimeout(() => {
+        const name = (state.productName || "").trim();
+        if (name) {
+          const existing = state.products.find(p => (p.name || "").toLowerCase() === name.toLowerCase());
+          if (existing) state.activeProductId = existing.id;
+        }
+        saveProduct();
+        toast("Producto guardado automáticamente");
+      }, 400);
+    }
 
     refreshProfileMenu();
     refreshProductMenu();
