@@ -399,7 +399,7 @@
         });
         if (!res.ok) return null;
         const fileData = await res.json();
-        const content = JSON.parse(atob(fileData.content));
+        const content = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
         return Array.isArray(content) ? content : (content.products || []);
       } catch (e) { return null; }
     }
