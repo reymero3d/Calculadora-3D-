@@ -181,24 +181,6 @@
       }
     },
     {
-      "id": "prod_1795071731051",
-      "name": "Eevee golpeado por una pokebola (SIN AMSÃÂÃÂ¯ÃÂÃÂ¼ÃÂÃÂ",
-      "data": {
-        "productName": "Eevee golpeado por una pokebola (SIN AMSÃÂÃÂ¯ÃÂÃÂ¼ÃÂÃÂ",
-        "category": "Pokemon",
-        "colors": 1,
-        "hours": 4,
-        "minutes": 40,
-        "grams": 124,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US3914dd12bb657b/1132694910/instance/e6fa1d459f47c01c.jpg",
-        "rawPrice": 10500
-      }
-    },
-    {
       "id": "prod_1795071917366",
       "name": "Tarjeta de kit de aviÃÂÃÂÃÂÃÂ³n Piper PA-28",
       "data": {
