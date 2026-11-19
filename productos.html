@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     :root {
@@ -196,6 +197,15 @@
           </div>
         </div>
 
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:pointer;">
+            <input type="checkbox" id="editPublished" checked> Publicar en tienda
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:pointer;">
+            <input type="checkbox" id="editInStock" checked> Disponible (stock)
+          </label>
+        </div>
+
         <div class="field">
           <label class="label">Foto del producto (opcional)</label>
           <div id="editImagePreview" style="display:none;margin-bottom:.5rem;border:1px dashed var(--border);border-radius:6px;padding:.5rem;text-align:center;background:var(--surface-2);">
@@ -224,10 +234,29 @@
   </div>
 
   <div class="toast" id="toast"></div>
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);align-items:center;justify-content:center;padding:1rem;">
+    <div style="max-width:420px;width:100%;padding:2rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow-lg);">
+      <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:1.6rem;margin:0 0 1rem;">Acceso administrador</h2>
+      <p class="hint" style="margin-bottom:1rem;">Ingresá con tu cuenta de Supabase.</p>
+      <div class="field" style="margin-bottom:.75rem;">
+        <label class="label">Email</label>
+        <input type="email" id="loginEmail" placeholder="tu@email.com">
+      </div>
+      <div class="field" style="margin-bottom:.75rem;">
+        <label class="label">Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-full" id="loginBtn" style="margin-top:.5rem;">Ingresar</button>
+      <p class="hint" id="loginStatus" style="margin-top:.75rem;"></p>
+    </div>
+  </div>
 
   <script>
     const $ = id => document.getElementById(id);
     const SYM = { ARS: "$", USD: "US$", EUR: "€", MXN: "MX$", BRL: "R$" };
+    const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
+    const sb = (typeof window.supabase !== "undefined") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
     function money(n, code) {
       const sym = SYM[code] || "$";
       const r = (Number.isFinite(n) ? n : 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -446,6 +475,90 @@
         }
       });
     }
+    // --- Supabase helpers ---
+    function mapRowToProduct(r) {
+      const c = r.product_costs || {};
+      return {
+        id: "sb_" + r.id,
+        name: r.name,
+        data: {
+          productName: r.description || r.name,
+          category: r.category || "",
+          colors: c.colors || 1,
+          hours: c.hours || 0,
+          minutes: c.minutes || 0,
+          grams: c.grams || 0,
+          insumos: c.insumos || 0,
+          quantity: c.quantity || 1,
+          profitMultiplier: c.profit_multiplier || 4,
+          roundTo: c.round_to || 0,
+          currency: c.currency || "ARS",
+          productImage: r.image_url || "",
+          rawPrice: c.raw_price || r.price || 0,
+          published: r.published,
+          inStock: r.in_stock,
+        },
+      };
+    }
+
+    async function fetchSupabaseProducts() {
+      if (!sb) return null;
+      const { data, error } = await sb.from("products").select("*, product_costs(*)");
+      if (error) { console.error(error); return null; }
+      return (data || []).map(mapRowToProduct);
+    }
+
+    async function syncProductToSupabase(pr) {
+      if (!sb) return;
+      const { data: sess } = await sb.auth.getSession();
+      if (!sess || !sess.session) return;
+      const d = pr.data || {};
+      const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      const productRow = {
+        name: pr.name,
+        description: d.productName || pr.name,
+        category: d.category || null,
+        price: d.rawPrice || 0,
+        image_url: d.productImage || null,
+        published: d.published !== false,
+        in_stock: d.inStock !== false,
+      };
+      let prod = null;
+      if (sbId) {
+        const res = await sb.from("products").update(productRow).eq("id", sbId).select().single();
+        if (res.error) { console.error(res.error); return; }
+        prod = res.data;
+      } else {
+        const res = await sb.from("products").insert(productRow).select().single();
+        if (res.error) { console.error(res.error); return; }
+        prod = res.data;
+        if (prod) { pr.id = "sb_" + prod.id; saveProducts(products); }
+      }
+      if (prod) {
+        const costRow = {
+          product_id: prod.id,
+          grams: d.grams || 0,
+          hours: d.hours || 0,
+          minutes: d.minutes || 0,
+          colors: d.colors || 1,
+          insumos: d.insumos || 0,
+          quantity: d.quantity || 1,
+          profit_multiplier: d.profitMultiplier || 4,
+          round_to: d.roundTo || 0,
+          currency: d.currency || "ARS",
+          raw_price: d.rawPrice || 0,
+        };
+        await sb.from("product_costs").upsert(costRow);
+      }
+    }
+
+    async function deleteProductFromSupabase(pr) {
+      if (!sb || !pr || !pr.id || !pr.id.startsWith("sb_")) return;
+      const sbId = pr.id.slice(3);
+      await sb.from("product_costs").delete().eq("product_id", sbId);
+      await sb.from("products").delete().eq("id", sbId);
+    }
+
     let searchTerm = "";
     let categoryFilter = "";
     let editingIndex = -1;
@@ -467,6 +580,8 @@
       $("editPrice").value = d.rawPrice || 0;
       $("editCurrency").value = d.currency || "ARS";
       $("editMult").value = d.profitMultiplier || 0;
+      $("editPublished").checked = d.published !== false;
+      $("editInStock").checked = d.inStock !== false;
       const imgPreview = $("editImagePreview");
       const imgEl = $("editImageImg");
       if (d.productImage) { imgEl.src = d.productImage; imgPreview.style.display = "block"; }
@@ -542,6 +657,8 @@
       p.data.rawPrice = M($("editPrice").value);
       p.data.currency = $("editCurrency").value;
       p.data.profitMultiplier = M($("editMult").value);
+      p.data.published = $("editPublished").checked;
+      p.data.inStock = $("editInStock").checked;
       if (pendingImage !== null) {
         if (pendingImage === "") p.data.productImage = "";
         else p.data.productImage = pendingImage;
@@ -552,6 +669,7 @@
       render();
       toast("Producto actualizado");
       ghPushProducts(products);
+      syncProductToSupabase(p);
     });
 
     function fmtPrice(p) {
@@ -606,7 +724,9 @@
                 ${grams ? `<div class="meta">${grams} g · ${timeStr}</div>` : ""}
                 ${mult ? `<div class="meta">Multiplicador ×${mult}</div>` : ""}
                 <div class="price">${money(sale, code)}</div>
+                ${d.published !== false ? `<div style="font-size:.7rem;color:#15803d;font-weight:700;">● Publicado en tienda</div>` : `<div style="font-size:.7rem;color:var(--muted-2);font-weight:600;">○ Oculto de la tienda</div>`}
                 <div class="actions">
+                  <button class="btn ${d.published !== false ? 'btn-ghost' : 'btn-primary'}" data-pub="${i}" style="flex:1;">${d.published !== false ? 'Ocultar' : 'Publicar'}</button>
                   <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
                   <button class="btn btn-primary" data-sell="${i}" style="flex:1;">Vender</button>
                   <button class="btn btn-ghost" data-dup="${i}" style="flex:1;">Duplicar</button>
@@ -615,16 +735,32 @@
               </div>
             </div>`;
         }).join("");
+        catalog.querySelectorAll("[data-pub]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.pub);
+            const p = filtered[idx];
+            if (!p) return;
+            p.data = p.data || {};
+            p.data.published = p.data.published === false;
+            saveProducts(products);
+            render();
+            toast(p.data.published ? "Producto publicado en la tienda" : "Producto oculto de la tienda");
+            ghPushProducts(products);
+            syncProductToSupabase(p);
+          });
+        });
         catalog.querySelectorAll("[data-del]").forEach(btn => {
           btn.addEventListener("click", () => {
             const idx = Number(btn.dataset.del);
             if (!confirm("¿Eliminar este producto?")) return;
             const realIdx = products.findIndex(p => p === filtered[idx]);
+            const removed = realIdx >= 0 ? products[realIdx] : null;
             if (realIdx >= 0) products.splice(realIdx, 1);
             saveProducts(products);
             render();
             toast("Producto eliminado");
             ghPushProducts(products);
+            deleteProductFromSupabase(removed);
           });
         });
         catalog.querySelectorAll("[data-dup]").forEach(btn => {
@@ -640,6 +776,7 @@
             render();
             toast("Producto duplicado");
             ghPushProducts(products);
+            syncProductToSupabase(copy);
           });
         });
         catalog.querySelectorAll("[data-sell]").forEach(btn => {
@@ -688,10 +825,12 @@
     $("clearAllBtn").addEventListener("click", () => {
       if (!products.length) { toast("No hay productos"); return; }
       if (!confirm("¿Eliminar todos los productos guardados?")) return;
+      const all = [...products];
       products = [];
       saveProducts(products);
       render();
       toast("Catálogo limpiado");
+      all.forEach(p => deleteProductFromSupabase(p));
     });
 
     // Dark mode
@@ -708,6 +847,48 @@
       localStorage.setItem("reymero-theme", theme);
       applyTheme();
     });
+
+    // --- Auth Supabase ---
+    const loginOverlay = document.getElementById("loginOverlay");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginStatus = document.getElementById("loginStatus");
+
+    function applySupabaseRows(rows) {
+      if (!rows || !rows.length) return;
+      products = rows;
+      saveProducts(products);
+      render();
+    }
+
+    if (sb) {
+      sb.auth.getSession().then(async ({ data }) => {
+        if (data && data.session) {
+          if (loginOverlay) loginOverlay.style.display = "none";
+          applySupabaseRows(await fetchSupabaseProducts());
+        } else {
+          if (loginOverlay) loginOverlay.style.display = "flex";
+        }
+      });
+    } else if (loginOverlay) {
+      loginOverlay.style.display = "none";
+    }
+
+    if (loginBtn) {
+      loginBtn.addEventListener("click", async () => {
+        if (!sb) return;
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (loginStatus) loginStatus.textContent = "Verificando...";
+        const { data, error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) {
+          if (loginStatus) loginStatus.textContent = "✗ " + error.message;
+        } else {
+          if (loginOverlay) loginOverlay.style.display = "none";
+          applySupabaseRows(await fetchSupabaseProducts());
+          toast("Sesión iniciada");
+        }
+      });
+    }
 
     render();
   </script>
