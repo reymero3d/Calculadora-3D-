@@ -184,6 +184,7 @@
           <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
             <a href="index.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid var(--accent);border-radius:2px;font-family:'JetBrains Mono',monospace;background:var(--accent);">Costos 3D</a>
             <a href="productos.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;">Productos</a>
+            <a href="tienda.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;">Tienda</a>
           </div>
         </div>
         <div class="hero-meta">
@@ -225,6 +226,14 @@
               <option value="Herramientas">
               <option value="Otro">
             </datalist>
+          </div>
+          <div style="display:flex;gap:1rem;margin-top:.5rem;flex-wrap:wrap;">
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:pointer;">
+              <input type="checkbox" id="productPublished" checked> Publicar en tienda
+            </label>
+            <label style="display:flex;align-items:center;gap:.4rem;font-size:.85rem;cursor:pointer;">
+              <input type="checkbox" id="productInStock" checked> Disponible (stock)
+            </label>
           </div>
           <div class="field" style="margin-top:.5rem;">
             <label class="label">Filtrar por categoría</label>
@@ -576,6 +585,8 @@
       refsOpen: true,
       productImage: "",
       productCategory: "",
+      published: true,
+      inStock: true,
       ghToken: localStorage.getItem("gh_token_calc") || "",
       rawPrice: 0,
       lastCalculatedTotal: 0,
@@ -688,6 +699,10 @@
       document.getElementById("productName").value = state.productName || "";
       const _cat = document.getElementById("productCategory");
       if (_cat) _cat.value = state.productCategory || "";
+      const _pub = document.getElementById("productPublished");
+      if (_pub) _pub.checked = state.published !== false;
+      const _stock = document.getElementById("productInStock");
+      if (_stock) _stock.checked = state.inStock !== false;
       document.getElementById("colors").value = state.colors || 1;
       document.getElementById("hours").value = state.hours || "";
       document.getElementById("minutes").value = state.minutes || "";
@@ -915,6 +930,8 @@
         roundTo: state.roundTo || 0,
         currency: state.currency,
         productImage: state.productImage || "",
+        published: state.published !== false,
+        inStock: state.inStock !== false,
         rawPrice: M(v) || 0,
       };
     }
@@ -937,6 +954,8 @@
         state.quantity = 1;
         state.productImage = "";
         state.productCategory = "";
+        state.published = true;
+        state.inStock = true;
         syncInputs();
         recalc();
         savePiece();
@@ -974,6 +993,8 @@
           state.insumos = d.insumos || 0;
           state.quantity = d.quantity || 1;
           state.productImage = d.productImage || state.productImage || "";
+          state.published = d.published !== false;
+          state.inStock = d.inStock !== false;
           if (d.currency && CURRENCIES[d.currency]) { state.currency = d.currency; applyCurrency(state.currency, false); }
           syncInputs();
           recalc();
@@ -1083,6 +1104,8 @@
       state.quantity = 1;
       state.productImage = "";
       state.productCategory = "";
+      state.published = true;
+      state.inStock = true;
       syncInputs();
       recalc();
       savePiece();
@@ -1090,6 +1113,10 @@
     });
 
     document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
+    const pubCb = document.getElementById("productPublished");
+    if (pubCb) pubCb.addEventListener("change", (e) => { state.published = e.target.checked; savePiece(); });
+    const stockCb = document.getElementById("productInStock");
+    if (stockCb) stockCb.addEventListener("change", (e) => { state.inStock = e.target.checked; savePiece(); });
     const rtSel = document.getElementById("roundTo");
     if (rtSel) {
       rtSel.addEventListener("change", (e) => {
