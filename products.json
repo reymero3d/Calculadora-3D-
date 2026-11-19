@@ -198,6 +198,25 @@
         "productImage": "https://makerworld.bblmw.com/makerworld/model/US57e20a5b93727e/548789958/instance/2026-01-02_13b42c460c7e28.jpg",
         "rawPrice": 5000
       }
+    },
+    {
+      "id": "prod_1795102071453",
+      "name": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
+      "data": {
+        "productName": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
+        "category": "Dragon Ball",
+        "colors": 1,
+        "hours": 11,
+        "minutes": 46,
+        "grams": 208,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
+        "rawPrice": 18000
+      }
     }
   ]
 }
