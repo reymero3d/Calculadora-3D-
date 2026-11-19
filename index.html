@@ -1440,6 +1440,7 @@
 
     // ---------- Importar JSON (MakerWorld) ----------
     let lastImportedJson = null;
+    let lastEffectiveImage = "";
 
     async function imageToDataUrl(url) {
       if (!url) return "";
@@ -1478,6 +1479,34 @@
         });
       } catch (e) {}
       return url;
+    }
+
+    function setImportImage(url) {
+      if (!url) return;
+      state.productImage = url;
+      const previewWrap = document.getElementById("importImagePreview");
+      const previewImg = document.getElementById("importImageImg");
+      if (previewWrap && previewImg) { previewImg.src = url; previewWrap.style.display = ""; }
+      imageToDataUrl(url).then((dataUrl) => {
+        // Sólo aplicar si sigue siendo la foto del perfil elegido
+        if (dataUrl && dataUrl !== url && state.productImage === url) {
+          state.productImage = dataUrl;
+          if (previewImg) previewImg.src = dataUrl;
+          savePiece();
+          const active = state.products.find(p => p.id === state.activeProductId);
+          if (active) {
+            active.data = { ...(active.data || {}), productImage: dataUrl };
+            saveProducts();
+            sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
+          }
+          toast("Foto importada");
+        }
+      }).catch(() => {});
+    }
+
+    function profileImage(prof) {
+      if (!prof) return "";
+      return prof.image || prof.cover || prof.preview || prof.coverUrl || prof.previewUrl || prof.coverPortrait || "";
     }
 
     function normalizeImportData(raw) {
@@ -1574,7 +1603,10 @@
       state.minutes = minutes;
       if (colors !== undefined) state.colors = colors;
       if (imp.quantity !== undefined) state.quantity = imp.quantity;
-      if (imp.image) state.productImage = imp.image;
+      const chosenProfile = (imp.allInstances && profileIndex !== undefined && profileIndex !== null)
+        ? imp.allInstances[profileIndex] : null;
+      lastEffectiveImage = profileImage(chosenProfile) || imp.image || "";
+      if (lastEffectiveImage) state.productImage = lastEffectiveImage;
       syncInputs();
       recalc();
       savePiece();
@@ -1626,6 +1658,7 @@
           sel.addEventListener("change", () => {
             if (lastImportedJson) {
               applyImportedData(lastImportedJson, parseInt(sel.value));
+              if (lastEffectiveImage) setImportImage(lastEffectiveImage);
               const st = document.getElementById("importStatus");
               if (st) st.textContent = "Perfil aplicado: " + (lastImportedJson.allInstances[parseInt(sel.value)]?.title || "");
             }
@@ -1635,19 +1668,8 @@
         if (wrap) wrap.style.display = "none";
         applyImportedData(imp, null);
       }
-      if (imp.image) {
-        state.productImage = imp.image;
-        const previewWrap = document.getElementById("importImagePreview");
-        const previewImg = document.getElementById("importImageImg");
-        if (previewWrap && previewImg) { previewImg.src = imp.image; previewWrap.style.display = ""; }
-        imageToDataUrl(imp.image).then((dataUrl) => {
-          if (dataUrl && dataUrl !== imp.image) {
-            state.productImage = dataUrl;
-            if (previewImg) previewImg.src = dataUrl;
-            savePiece();
-            toast("Foto importada");
-          }
-        }).catch(() => {});
+      if (lastEffectiveImage) {
+        setImportImage(lastEffectiveImage);
       } else {
         const previewWrap = document.getElementById("importImagePreview");
         if (previewWrap) previewWrap.style.display = "none";
