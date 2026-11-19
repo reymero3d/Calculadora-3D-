@@ -181,24 +181,6 @@
       }
     },
     {
-      "id": "prod_1795071197852",
-      "name": "Fanart de Goku Daima (19 cm incl. base)",
-      "data": {
-        "productName": "Fanart de Goku Daima (19 cm incl. base)",
-        "category": "Dragon Ball",
-        "colors": 1,
-        "hours": 11,
-        "minutes": 46,
-        "grams": 208,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
-        "rawPrice": 18000
-      }
-    },
-    {
       "id": "prod_1795071260317",
       "name": "Vegeta Daima Fanart (19 cm de alto)",
       "data": {
