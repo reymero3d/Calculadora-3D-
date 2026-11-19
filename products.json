@@ -347,7 +347,7 @@
       }
     },
     {
-      "id": "prod_1795102660013",
+      "id": "sb_b18de9d8-6aea-42f9-bc9f-b82a25288988",
       "name": "Pokébola",
       "data": {
         "productName": "Pokébola",
@@ -362,7 +362,8 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USaf3c20b1e54c0f/414247799/instance/2024-12-01_5d9dde29d0d74.jpg",
-        "rawPrice": 8000
+        "rawPrice": 8000,
+        "published": true
       }
     },
     {
