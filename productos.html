@@ -511,7 +511,11 @@
       const { data: sess } = await sb.auth.getSession();
       if (!sess || !sess.session) return;
       const d = pr.data || {};
-      const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      let sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      if (!sbId && pr.name) {
+        const { data: same } = await sb.from("products").select("id").eq("name", pr.name).limit(1);
+        if (same && same.length) sbId = same[0].id;
+      }
       const productRow = {
         name: pr.name,
         description: d.productName || pr.name,

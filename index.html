@@ -1015,7 +1015,13 @@
         return;
       }
       const d = pr.data || {};
-      const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      let sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      // Si ya existe un producto con el mismo nombre, actualizarlo en vez de insertar otro
+      if (!sbId && pr.name) {
+        const { data: same } = await supabaseClient.from("products")
+          .select("id").eq("name", pr.name).limit(1);
+        if (same && same.length) sbId = same[0].id;
+      }
       const productRow = {
         name: pr.name,
         description: d.productName || pr.name,
@@ -1030,10 +1036,12 @@
         : await supabaseClient.from("products").insert(productRow).select().single();
       if (error) { console.error(error); return; }
       if (!prod) return;
-      if (!sbId) {
-        const live = state.products.find(p => p.id === pr.id) || pr;
+      if (!sbId || !String(pr.id || "").startsWith("sb_")) {
+        const oldId = pr.id;
+        let live = state.products.find(p => p.id === oldId);
+        if (!live) { live = pr; if (!state.products.includes(live)) state.products.push(live); }
         live.id = "sb_" + prod.id;
-        if (state.activeProductId === pr.id) {
+        if (state.activeProductId === oldId || live === pr) {
           state.activeProductId = live.id;
           savePiece();
         }
@@ -1932,6 +1940,13 @@
               },
             };
           });
+          // Conservar productos locales nuevos (aún no subidos) que no estén en el remoto
+          for (const p of state.products) {
+            if (p.id && !String(p.id).startsWith("sb_") && !mapped.some(m => m.id === p.id)) {
+              mapped.push(p);
+            }
+          }
+          mapped.sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }));
           state.products = mapped;
           saveProducts();
           refreshProductMenu();
