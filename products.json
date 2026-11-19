@@ -200,7 +200,7 @@
       }
     },
     {
-      "id": "prod_1795102071453",
+      "id": "sb_c8b99ee3-48e6-4b72-9e40-27e9db4caf9b",
       "name": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
       "data": {
         "productName": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
@@ -216,7 +216,7 @@
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
         "rawPrice": 18000,
-        "published": false
+        "published": true
       }
     },
     {
