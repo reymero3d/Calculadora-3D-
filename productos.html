@@ -80,6 +80,20 @@
     .stats { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
     .stat { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: .6rem 1rem; font-size: .8rem; }
     .stat b { font-family: "JetBrains Mono", monospace; color: var(--accent); }
+    @media (max-width: 640px) {
+      .app { padding: 0 1rem 6rem; }
+      .hero { padding: 1.5rem 1rem 1.25rem; margin: 1rem -1rem 0; }
+      .hero h1 { font-size: 1.7rem; }
+      .hero p { font-size: .9rem; }
+      .hero-meta { text-align: left; }
+      .search-bar { flex-direction: column; }
+      .search-bar input, .search-bar select, .search-bar button { width: 100%; }
+      .catalog { grid-template-columns: 1fr; gap: 1rem; }
+      .prod-card .actions { flex-direction: column; }
+      .prod-card .actions .btn { width: 100%; }
+      .stats { flex-direction: column; gap: .5rem; }
+      #editModal > div { padding: 1.25rem; max-width: 95vw; }
+    }
   </style>
 </head>
 <body>
