@@ -260,6 +260,7 @@
           <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
             <button class="btn btn-primary" id="ghVerifyBtn">Verificar token</button>
             <button class="btn btn-ghost" id="ghSyncBtn">Sincronizar ahora</button>
+            <button class="btn btn-ghost" id="migrateBtn">Migrar productos a Supabase</button>
           </div>
           <p class="hint" id="ghStatus" style="margin-top:.5rem;"></p>
         </div>
@@ -1804,8 +1805,53 @@
       });
     }
 
+    const migrateBtn = document.getElementById("migrateBtn");
+    if (migrateBtn) {
+      migrateBtn.addEventListener("click", async () => {
+        if (!supabaseClient) { toast("Supabase no configurado"); return; }
+        const { data } = await supabaseClient.auth.getSession();
+        if (!data || !data.session) { toast("Iniciá sesión primero"); return; }
+        if (ghStatus) ghStatus.textContent = "Migrando...";
+        let count = 0;
+        for (const pr of state.products) {
+          const d = pr.data || {};
+          const productRow = {
+            name: pr.name,
+            description: d.productName || pr.name,
+            category: d.category || null,
+            price: d.rawPrice || 0,
+            image_url: d.productImage || null,
+            published: d.published !== false,
+            in_stock: d.inStock !== false,
+          };
+          const { data: prod, error } = await supabaseClient.from("products").insert(productRow).select().single();
+          if (error) { console.error(error); continue; }
+          if (prod) {
+            pr.id = "sb_" + prod.id;
+            const costRow = {
+              product_id: prod.id,
+              grams: d.grams || 0,
+              hours: d.hours || 0,
+              minutes: d.minutes || 0,
+              colors: d.colors || 1,
+              insumos: d.insumos || 0,
+              quantity: d.quantity || 1,
+              profit_multiplier: d.profitMultiplier || 4,
+              round_to: d.roundTo || 0,
+              currency: d.currency || "ARS",
+              raw_price: d.rawPrice || 0,
+            };
+            await supabaseClient.from("product_costs").upsert(costRow);
+            count++;
+          }
+        }
+        saveProducts();
+        refreshProductMenu();
+        if (ghStatus) ghStatus.textContent = "✓ Migrados " + count + " productos a Supabase.";
+        toast("Migración completa");
+      });
+    }
     if (state.ghToken) {
-      if (ghStatus) ghStatus.textContent = "Token cargado. Sincronizando...";
       ghFetchProducts(state.ghToken).then((remote) => {
         if (remote && Array.isArray(remote)) {
           // Merge: mantener productos locales no presentes en remoto
@@ -1846,7 +1892,7 @@
       if (!supabaseClient) return Promise.resolve();
       return supabaseClient.from("products").select("*, product_costs(*)").then(({ data, error }) => {
         if (error) { if (loginStatus) loginStatus.textContent = "Error: " + error.message; return; }
-        if (data) {
+        if (data && data.length > 0) {
           // Map Supabase rows to app product format
           const mapped = data.map((row) => {
             const c = row.product_costs || {};
