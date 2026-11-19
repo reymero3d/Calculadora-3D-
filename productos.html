@@ -209,7 +209,7 @@
     function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
     function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
-    function generateSellPdf(p) {
+    async function generateSellPdf(p) {
       if (typeof window.jspdf === "undefined") { toast("jsPDF no cargó."); return; }
       const { jsPDF } = window.jspdf;
       const d = p.data || {};
@@ -245,7 +245,44 @@
       y += 8;
 
       // Foto del producto
-      const img = d.productImage || "";
+      let img = d.productImage || "";
+      if (img && !img.startsWith("data:")) {
+        // Convertir URL a base64 para poder incrustarla en el PDF
+        try {
+          const res = await fetch(img, { mode: "cors" });
+          if (res.ok) {
+            const blob = await res.blob();
+            img = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result);
+              r.onerror = reject;
+              r.readAsDataURL(blob);
+            });
+          }
+        } catch (e) {}
+        if (!img.startsWith("data:")) {
+          try {
+            img = await new Promise((resolve, reject) => {
+              const image = new Image();
+              image.crossOrigin = "anonymous";
+              image.onload = () => {
+                try {
+                  const canvas = document.createElement("canvas");
+                  const maxW = 320;
+                  const scale = Math.min(1, maxW / (image.width || 1));
+                  canvas.width = Math.max(1, Math.round((image.width || 1) * scale));
+                  canvas.height = Math.max(1, Math.round((image.height || 1) * scale));
+                  const ctx = canvas.getContext("2d");
+                  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+                  resolve(canvas.toDataURL("image/jpeg", 0.75));
+                } catch (e) { reject(e); }
+              };
+              image.onerror = reject;
+              image.src = d.productImage;
+            });
+          } catch (e) {}
+        }
+      }
       if (img) {
         try {
           doc.addImage(img, "JPEG", margin, y, 60, 60);
