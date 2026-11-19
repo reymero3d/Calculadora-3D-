@@ -506,6 +506,10 @@
       return (data || []).map(mapRowToProduct);
     }
 
+    function sbLikeName(name) {
+      return String(name || "").trim().replace(/[\\%_]/g, "\\$&");
+    }
+
     async function syncProductToSupabase(pr) {
       if (!sb) return;
       const { data: sess } = await sb.auth.getSession();
@@ -513,7 +517,7 @@
       const d = pr.data || {};
       let sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
       if (!sbId && pr.name) {
-        const { data: same } = await sb.from("products").select("id").eq("name", pr.name).limit(1);
+        const { data: same } = await sb.from("products").select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
       const productRow = {
@@ -534,7 +538,7 @@
         let res = await sb.from("products").insert(productRow).select().single();
         // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
         if (res.error && res.error.code === "23505" && pr.name) {
-          const { data: same } = await sb.from("products").select("id").eq("name", pr.name).limit(1);
+          const { data: same } = await sb.from("products").select("id").ilike("name", sbLikeName(pr.name)).limit(1);
           if (same && same.length) {
             res = await sb.from("products").update(productRow).eq("id", same[0].id).select().single();
           }

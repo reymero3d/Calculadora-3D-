@@ -1007,6 +1007,10 @@
     let sbSaveQueue = Promise.resolve();
     let sbSaveVersion = 0;
 
+    function sbLikeName(name) {
+      return String(name || "").trim().replace(/[\\%_]/g, "\\$&");
+    }
+
     async function syncProductRow(pr) {
       if (!supabaseClient || !pr) return;
       const { data: sess } = await supabaseClient.auth.getSession();
@@ -1020,7 +1024,7 @@
       // Si ya existe un producto con el mismo nombre, actualizarlo en vez de insertar otro
       if (!sbId && pr.name) {
         const { data: same } = await supabaseClient.from("products")
-          .select("id").eq("name", pr.name).limit(1);
+          .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
       const productRow = {
@@ -1040,7 +1044,7 @@
       // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
       if (error && error.code === "23505" && pr.name) {
         const { data: same } = await supabaseClient.from("products")
-          .select("id").eq("name", pr.name).limit(1);
+          .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) {
           res = await supabaseClient.from("products").update(productRow).eq("id", same[0].id).select().single();
           prod = res.data;
