@@ -1515,9 +1515,17 @@
         const previewWrap = document.getElementById("importImagePreview");
         if (previewWrap) previewWrap.style.display = "none";
       }
+      // Auto-guardar producto (como el catálogo)
+      if (state.productName) {
+        const existing = state.products.find(p => (p.name || "").toLowerCase() === state.productName.toLowerCase());
+        if (existing) state.activeProductId = existing.id;
+        if (!state.productImage && lastImportedJson && lastImportedJson.image) state.productImage = lastImportedJson.image;
+        saveProduct();
+      }
+
       savePiece();
 
-      if (status) status.textContent = "Datos importados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m" + (state.productImage ? " · foto OK" : " · sin foto");
+      if (status) status.textContent = "Datos importados y guardados: " + (imp.name || "sin nombre") + " · " + imp.grams + "g · " + imp.hours + "h " + imp.minutes + "m" + (state.productImage ? " · foto OK" : " · sin foto");
       toast("Datos importados");
       return true;
     }
