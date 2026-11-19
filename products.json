@@ -589,7 +589,28 @@
       }
     },
     {
-      "id": "prod_1795125127136",
+      "id": "sb_fe4d08b5-c10f-471f-82c5-b39d007e216b",
+      "name": "HexaDex-Pikachu pokemon",
+      "data": {
+        "productName": "HexaDex-Pikachu pokemon",
+        "category": "Cuadro",
+        "colors": 1,
+        "hours": 3,
+        "minutes": 30,
+        "grams": 74,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US9ac4042a737304/1089449904/instance/a31d7440c84d4149.jpeg",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 8500
+      }
+    },
+    {
+      "id": "sb_e7a10979-6f7e-4fb8-8dbe-194183365c65",
       "name": "HexaDex-Pikachu pokemon",
       "data": {
         "productName": "HexaDex-Pikachu pokemon",
