@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Producto · Reymero3d</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --bg:#f2eee7; --surface:#fbf8f3; --surface-2:#ece7de; --border:#d9d2c5; --text:#26221d; --muted:#6b6359; --muted-2:#a09688; --accent:#b91c1c; --accent-dark:#991b1b; --shadow:0 1px 0 rgba(38,34,29,0.04); --shadow-lg:0 1px 2px rgba(38,34,29,0.06),0 12px 32px rgba(38,34,29,0.08); }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Inter","Segoe UI",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    body { min-height:100vh; background-image:radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size:24px 24px; }
+    .app { max-width:900px; margin:0 auto; padding:0 1.5rem 4rem; }
+    .hero { background:#1c1917; color:#fbf8f3; padding:2rem 2.25rem; margin:1.5rem -1.5rem 0; border-bottom:3px solid var(--accent); }
+    .hero h1 { margin:0; font-family:"Fraunces",serif; font-size:2rem; font-weight:700; }
+    .hero-nav { display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap; }
+    .hero-nav a { color:#fbf8f3; text-decoration:none; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding:.35rem .7rem; border:1px solid rgba(251,248,243,0.3); border-radius:2px; font-family:'JetBrains Mono',monospace; }
+    .hero-nav a:hover, .hero-nav a.active { background:var(--accent); border-color:var(--accent); }
+    .detail { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:2rem; }
+    @media (max-width:768px) { .detail { grid-template-columns:1fr; } }
+    .img { background:var(--surface-2); border-radius:4px; overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
+    .img img { width:100%; height:100%; object-fit:cover; }
+    .info h2 { font-family:"Fraunces",serif; font-size:1.8rem; font-weight:700; margin:0 0 .5rem; }
+    .cat { font-size:.75rem; color:var(--accent); font-weight:600; text-transform:uppercase; letter-spacing:.06em; margin-bottom:.5rem; }
+    .desc { color:var(--muted); line-height:1.6; margin:1rem 0; }
+    .price { font-family:"JetBrains Mono",monospace; font-weight:800; font-size:2rem; color:var(--accent); margin:1rem 0; }
+    .stock { font-size:.8rem; color:var(--muted); margin-bottom:1rem; }
+    .whatsapp-btn { display:inline-flex; align-items:center; gap:.5rem; background:#25D366; color:#fff; padding:.8rem 1.4rem; border-radius:4px; font-weight:600; font-size:.9rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; transition:background .15s; }
+    .whatsapp-btn:hover { background:#1ebe57; }
+    .back { display:inline-block; margin-top:1.5rem; color:var(--accent); text-decoration:none; font-size:.85rem; font-weight:600; }
+    .empty { text-align:center; padding:3rem 1rem; color:var(--muted); font-style:italic; }
+    .toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:3px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; }
+    .toast.show { transform:translateY(0); }
+    @media (max-width:640px) { .app { padding:0 1rem 3rem; } .hero { padding:1.5rem 1rem; margin:1rem -1rem 0; } .hero h1 { font-size:1.6rem; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-content">
+        <div>
+          <h1 id="pageTitle">Producto</h1>
+          <div class="hero-nav">
+            <a href="index.html">Costos 3D</a>
+            <a href="tienda.html">Tienda</a>
+          </div>
+        </div>
+        <div class="hero-meta">Reymero3d<br>Impresión 3D</div>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const WHATSAPP = "5491167994767";
+
+    function money(n) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
+
+    async function loadProduct() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+      const content = document.getElementById("content");
+      if (!id) { content.innerHTML = '<p class="empty">Producto no encontrado.</p>'; return; }
+      const { data, error } = await sb.from("products").select("*").eq("id", id).eq("published", true).single();
+      if (error || !data) { content.innerHTML = '<p class="empty">Producto no encontrado o no disponible.</p>'; return; }
+      document.getElementById("pageTitle").textContent = data.name;
+      document.title = data.name + " · Reymero3d";
+      content.innerHTML = `
+        <div class="detail">
+          <div class="img">${data.image_url ? `<img src="${data.image_url}" alt="${data.name}">` : `<span class="placeholder">Sin foto</span>`}</div>
+          <div class="info">
+            ${data.category ? `<div class="cat">${data.category}</div>` : ""}
+            <h2>${data.name}</h2>
+            ${data.description ? `<div class="desc">${data.description}</div>` : ""}
+            <div class="price">${money(data.price)}</div>
+            <div class="stock">${data.in_stock ? "Disponible" : "Sin stock"}</div>
+            <a class="whatsapp-btn" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, me interesa el producto: " + data.name + " a " + money(data.price))}" target="_blank">
+              Consultar por WhatsApp
+            </a>
+            <br>
+            <a class="back" href="tienda.html">← Volver al catálogo</a>
+          </div>
+        </div>
+      `;
+    }
+    loadProduct();
+  </script>
+</body>
+</html>
