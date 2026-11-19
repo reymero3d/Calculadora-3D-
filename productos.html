@@ -609,6 +609,7 @@
                 <div class="actions">
                   <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
                   <button class="btn btn-primary" data-sell="${i}" style="flex:1;">Vender</button>
+                  <button class="btn btn-ghost" data-dup="${i}" style="flex:1;">Duplicar</button>
                   <button class="btn btn-ghost" data-del="${i}" style="flex:1;">Quitar</button>
                 </div>
               </div>
@@ -623,6 +624,21 @@
             saveProducts(products);
             render();
             toast("Producto eliminado");
+            ghPushProducts(products);
+          });
+        });
+        catalog.querySelectorAll("[data-dup]").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.dup);
+            const p = filtered[idx];
+            if (!p) return;
+            const copy = JSON.parse(JSON.stringify(p));
+            copy.id = "prod_" + Date.now();
+            copy.name = (copy.name || "Producto") + " (copia)";
+            products.push(copy);
+            saveProducts(products);
+            render();
+            toast("Producto duplicado");
             ghPushProducts(products);
           });
         });
