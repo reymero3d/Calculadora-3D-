@@ -236,6 +236,23 @@
             Guardar producto
           </button>
         </div>
+
+        <!-- Sincronización GitHub -->
+        <div class="card">
+          <div class="header-row">
+            <h3 class="card-title" style="margin:0;"><span class="dot"></span>Sincronizar con GitHub</h3>
+          </div>
+          <p class="hint">Guardá tus productos en tu cuenta de GitHub para verlos en cualquier dispositivo.</p>
+          <div class="field" style="margin-top:.5rem;">
+            <label class="label">GitHub Personal Access Token (scope repo)</label>
+            <input type="password" id="ghTokenInput" placeholder="ghp_... o github_pat_...">
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="ghVerifyBtn">Verificar token</button>
+            <button class="btn btn-ghost" id="ghSyncBtn">Sincronizar ahora</button>
+          </div>
+          <p class="hint" id="ghStatus" style="margin-top:.5rem;"></p>
+        </div>
         <!-- Perfil -->
         <div class="card">
           <div class="header-row">
@@ -538,6 +555,7 @@
       refsOpen: true,
       productImage: "",
       productCategory: "",
+      ghToken: localStorage.getItem("gh_token_calc") || "",
       rawPrice: 0,
       lastCalculatedTotal: 0,
     };
@@ -954,6 +972,13 @@
         document.getElementById("productSelectLabel").textContent = name;
         toast("Producto guardado");
       }
+    }
+    // Sincronizar con GitHub si hay token
+    if (state.ghToken) {
+      ghPushProducts(state.ghToken, state.products).then((ok) => {
+        const gs = document.getElementById("ghStatus");
+        if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
+      });
     }
 
     document.getElementById("newProductBtn").addEventListener("click", () => {
@@ -1464,6 +1489,60 @@
       return true;
     }
 
+    // ---------- Sincronización GitHub ----------
+    const GH_OWNER = "reymero3d";
+    const GH_REPO = "Calculadora-3D-";
+    const GH_FILE = "products.json";
+
+    async function ghFetchProducts(token) {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`, {
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" },
+        });
+        if (!res.ok) return null;
+        const fileData = await res.json();
+        const content = JSON.parse(atob(fileData.content));
+        return Array.isArray(content) ? content : (content.products || []);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function ghPushProducts(token, products) {
+      try {
+        let sha = null;
+        const getRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`, {
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" },
+        });
+        if (getRes.ok) {
+          const fileData = await getRes.json();
+          sha = fileData.sha;
+        }
+        const content = JSON.stringify({ products }, null, 2);
+        const body = { message: "sync: productos calculadora", content: btoa(unescape(encodeURIComponent(content))) };
+        if (sha) body.sha = sha;
+        const putRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_FILE}`, {
+          method: "PUT",
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        return putRes.ok;
+      } catch (e) {
+        return false;
+      }
+    }
+
+    async function ghVerifyToken(token) {
+      try {
+        const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } });
+        if (!res.ok) return false;
+        const u = await res.json();
+        return u.login || true;
+      } catch (e) {
+        return false;
+      }
+    }
+
     // ---------- Init ----------
     loadPiece();
     if (!CURRENCIES[state.currency]) state.currency = "ARS";
@@ -1493,6 +1572,64 @@
     setupProfileDropdown();
     setupProductDropdown();
     bindInputs();
+
+    // --- GitHub sync ---
+    const ghTokenInput = document.getElementById("ghTokenInput");
+    const ghStatus = document.getElementById("ghStatus");
+    if (ghTokenInput && state.ghToken) ghTokenInput.value = state.ghToken;
+
+    const ghVerifyBtn = document.getElementById("ghVerifyBtn");
+    if (ghVerifyBtn) {
+      ghVerifyBtn.addEventListener("click", async () => {
+        const t = (ghTokenInput ? ghTokenInput.value.trim() : "") || state.ghToken;
+        if (!t) { if (ghStatus) ghStatus.textContent = "Ingresá un token."; return; }
+        const ok = await ghVerifyToken(t);
+        if (ok) {
+          state.ghToken = t;
+          localStorage.setItem("gh_token_calc", t);
+          if (ghStatus) ghStatus.textContent = "✓ Token verificado. Sincronizando...";
+          const remote = await ghFetchProducts(t);
+          if (remote) {
+            state.products = remote;
+            saveProducts();
+            refreshProductMenu();
+            if (ghStatus) ghStatus.textContent = "✓ Sincronizado. " + remote.length + " productos cargados.";
+            toast("Productos sincronizados");
+          } else {
+            if (ghStatus) ghStatus.textContent = "✓ Token OK. No se encontró products.json remoto aún.";
+          }
+        } else {
+          if (ghStatus) ghStatus.textContent = "✗ Token inválido.";
+        }
+      });
+    }
+
+    const ghSyncBtn = document.getElementById("ghSyncBtn");
+    if (ghSyncBtn) {
+      ghSyncBtn.addEventListener("click", async () => {
+        const t = state.ghToken || (ghTokenInput ? ghTokenInput.value.trim() : "");
+        if (!t) { if (ghStatus) ghStatus.textContent = "Verificá un token primero."; return; }
+        if (ghStatus) ghStatus.textContent = "Sincronizando...";
+        const ok = await ghPushProducts(t, state.products);
+        if (ok) {
+          if (ghStatus) ghStatus.textContent = "✓ Productos guardados en GitHub.";
+          toast("Sincronizado");
+        } else {
+          if (ghStatus) ghStatus.textContent = "✗ Error al sincronizar.";
+        }
+      });
+    }
+
+    if (state.ghToken) {
+      ghFetchProducts(state.ghToken).then((remote) => {
+        if (remote && Array.isArray(remote)) {
+          state.products = remote;
+          saveProducts();
+          refreshProductMenu();
+          if (ghStatus) ghStatus.textContent = "✓ " + remote.length + " productos sincronizados.";
+        }
+      });
+    }
 
     const importBtn = document.getElementById("importJsonBtn");
     if (importBtn) importBtn.addEventListener("click", () => tryImportJson(document.getElementById("jsonInput").value));
