@@ -242,7 +242,7 @@
           <div class="header-row">
             <h3 class="card-title" style="margin:0;"><span class="dot"></span>Sincronizar con GitHub</h3>
           </div>
-          <p class="hint">Guardá tus productos en tu cuenta de GitHub para verlos en cualquier dispositivo.</p>
+          <p class="hint">Guardá tus productos en tu cuenta de GitHub para verlos en cualquier dispositivo. Ingresá el token una sola vez por dispositivo.</p>
           <div class="field" style="margin-top:.5rem;">
             <label class="label">GitHub Personal Access Token (scope repo)</label>
             <input type="password" id="ghTokenInput" placeholder="ghp_... o github_pat_...">
@@ -1645,14 +1645,19 @@
     }
 
     if (state.ghToken) {
+      if (ghStatus) ghStatus.textContent = "Token cargado. Sincronizando...";
       ghFetchProducts(state.ghToken).then((remote) => {
         if (remote && Array.isArray(remote)) {
           state.products = remote;
           saveProducts();
           refreshProductMenu();
-          if (ghStatus) ghStatus.textContent = "✓ " + remote.length + " productos sincronizados.";
+          if (ghStatus) ghStatus.textContent = "✓ " + remote.length + " productos sincronizados automáticamente.";
+        } else {
+          if (ghStatus) ghStatus.textContent = "Token cargado. No se pudo sincronizar.";
         }
       });
+    } else {
+      if (ghStatus) ghStatus.textContent = "Ingresá tu token una vez y se guardará en este dispositivo.";
     }
 
     const importBtn = document.getElementById("importJsonBtn");
