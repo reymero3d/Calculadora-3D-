@@ -962,7 +962,7 @@
       });
     }
 
-    function saveProduct() {
+    async function saveProduct() {
       // Si el producto activo ya no existe, tratar como nuevo
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
         state.activeProductId = null;
@@ -998,10 +998,9 @@
     }
     // Sincronizar con GitHub si hay token
     if (state.ghToken) {
-      ghPushProducts(state.ghToken, state.products).then((ok) => {
-        const gs = document.getElementById("ghStatus");
-        if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
-      });
+      const ok = await ghPushProducts(state.ghToken, state.products);
+      const gs = document.getElementById("ghStatus");
+      if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
     }
 
     document.getElementById("newProductBtn").addEventListener("click", () => {
@@ -1632,7 +1631,11 @@
           if (ghStatus) ghStatus.textContent = "✓ Token verificado. Sincronizando...";
           const remote = await ghFetchProducts(t);
           if (remote) {
-            state.products = remote;
+            const merged = [...state.products];
+            for (const rp of remote) {
+              if (!merged.find(p => p.id === rp.id)) merged.push(rp);
+            }
+            state.products = merged;
             saveProducts();
             refreshProductMenu();
             if (ghStatus) ghStatus.textContent = "✓ Sincronizado. " + remote.length + " productos cargados.";
@@ -1666,7 +1669,12 @@
       if (ghStatus) ghStatus.textContent = "Token cargado. Sincronizando...";
       ghFetchProducts(state.ghToken).then((remote) => {
         if (remote && Array.isArray(remote)) {
-          state.products = remote;
+          // Merge: mantener productos locales no presentes en remoto
+          const merged = [...state.products];
+          for (const rp of remote) {
+            if (!merged.find(p => p.id === rp.id)) merged.push(rp);
+          }
+          state.products = merged;
           saveProducts();
           refreshProductMenu();
           if (ghStatus) ghStatus.textContent = "✓ " + remote.length + " productos sincronizados automáticamente.";

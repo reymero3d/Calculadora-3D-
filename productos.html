@@ -434,7 +434,12 @@
     if (ghToken()) {
       ghFetchProducts().then((remote) => {
         if (remote && Array.isArray(remote)) {
-          products = remote;
+          // Merge: mantener productos locales que no estén en remoto
+          const merged = [...products];
+          for (const rp of remote) {
+            if (!merged.find(p => p.id === rp.id)) merged.push(rp);
+          }
+          products = merged;
           saveProducts(products);
           render();
           toast("Productos sincronizados");
