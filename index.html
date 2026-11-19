@@ -1626,7 +1626,8 @@
       // Auto-guardar producto (como el catálogo)
       if (state.productName) {
         const existing = state.products.find(p => (p.name || "").toLowerCase() === state.productName.toLowerCase());
-        if (existing) state.activeProductId = existing.id;
+        // Si el nombre es nuevo, crear producto nuevo en vez de sobrescribir el activo anterior
+        state.activeProductId = existing ? existing.id : null;
         if (!state.productImage && lastImportedJson && lastImportedJson.image) state.productImage = lastImportedJson.image;
         saveProduct();
       }
