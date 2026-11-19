@@ -92,7 +92,12 @@
 
     async function loadProducts() {
       const { data, error } = await sb.from("products").select("id,name,description,category,price,image_url,published,in_stock").eq("published", true).eq("in_stock", true).order("name");
-      if (error) { console.error(error); return; }
+      if (error) {
+        console.error(error);
+        document.getElementById("emptyMsg").textContent = "No se pudo cargar el catálogo. Error: " + error.message;
+        document.getElementById("emptyMsg").style.display = "block";
+        return;
+      }
       products = data || [];
       render();
     }

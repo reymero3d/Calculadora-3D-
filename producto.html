@@ -70,7 +70,10 @@
       const content = document.getElementById("content");
       if (!id) { content.innerHTML = '<p class="empty">Producto no encontrado.</p>'; return; }
       const { data, error } = await sb.from("products").select("*").eq("id", id).eq("published", true).single();
-      if (error || !data) { content.innerHTML = '<p class="empty">Producto no encontrado o no disponible.</p>'; return; }
+      if (error || !data) {
+        content.innerHTML = '<p class="empty">' + (error ? 'No se pudo cargar el producto. Error: ' + error.message : 'Producto no encontrado o no disponible.') + '</p>';
+        return;
+      }
       document.getElementById("pageTitle").textContent = data.name;
       document.title = data.name + " · Reymero3d";
       content.innerHTML = `
