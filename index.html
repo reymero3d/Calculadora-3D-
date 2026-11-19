@@ -962,7 +962,7 @@
       });
     }
 
-    async function saveProduct() {
+    function saveProduct() {
       // Si el producto activo ya no existe, tratar como nuevo
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
         state.activeProductId = null;
@@ -998,9 +998,10 @@
     }
     // Sincronizar con GitHub si hay token
     if (state.ghToken) {
-      const ok = await ghPushProducts(state.ghToken, state.products);
-      const gs = document.getElementById("ghStatus");
-      if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
+      ghPushProducts(state.ghToken, state.products).then((ok) => {
+        const gs = document.getElementById("ghStatus");
+        if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
+      });
     }
 
     document.getElementById("newProductBtn").addEventListener("click", () => {
