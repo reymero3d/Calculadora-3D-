@@ -1481,24 +1481,28 @@
       return url;
     }
 
+    function persistActiveImage(url) {
+      const active = state.products.find(p => p.id === state.activeProductId);
+      if (!active) return;
+      active.data = { ...(active.data || {}), productImage: url };
+      saveProducts();
+      sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
+    }
+
     function setImportImage(url) {
       if (!url) return;
       state.productImage = url;
       const previewWrap = document.getElementById("importImagePreview");
       const previewImg = document.getElementById("importImageImg");
       if (previewWrap && previewImg) { previewImg.src = url; previewWrap.style.display = ""; }
+      persistActiveImage(url);
       imageToDataUrl(url).then((dataUrl) => {
         // Sólo aplicar si sigue siendo la foto del perfil elegido
         if (dataUrl && dataUrl !== url && state.productImage === url) {
           state.productImage = dataUrl;
           if (previewImg) previewImg.src = dataUrl;
           savePiece();
-          const active = state.products.find(p => p.id === state.activeProductId);
-          if (active) {
-            active.data = { ...(active.data || {}), productImage: dataUrl };
-            saveProducts();
-            sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
-          }
+          persistActiveImage(dataUrl);
           toast("Foto importada");
         }
       }).catch(() => {});
