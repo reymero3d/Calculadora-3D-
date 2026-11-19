@@ -181,42 +181,6 @@
       }
     },
     {
-      "id": "prod_1795071260317",
-      "name": "Vegeta Daima Fanart (19 cm de alto)",
-      "data": {
-        "productName": "Vegeta Daima Fanart (19 cm de alto)",
-        "category": "Dragon Ball",
-        "colors": 1,
-        "hours": 7,
-        "minutes": 3,
-        "grams": 135,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USb8e99f000f8675/159887986/instance/2024-11-20_772db9e81a0e6.jpg",
-        "rawPrice": 12000
-      }
-    },
-    {
-      "id": "prod_1795071467149",
-      "name": "Minecraft Cerdo zombi - Articulado",
-      "data": {
-        "productName": "Minecraft Cerdo zombi - Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 10,
-        "minutes": 16,
-        "grams": 171,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USbf48fff5cfcf0/763501588/instance/573aa36cbcc9fb09.jpg",
-        "rawPrice": 5000
-      }
-    },
-    {
       "id": "prod_1795071521057",
       "name": "Minecraft Enderman - Articulado",
       "data": {
