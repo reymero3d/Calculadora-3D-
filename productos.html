@@ -109,6 +109,9 @@
     <div class="stats" id="stats"></div>
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Buscar producto...">
+      <select id="categoryFilter" style="padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:3px;background:var(--surface);color:var(--text);font-size:.9rem;">
+        <option value="">Todas las categorías</option>
+      </select>
       <button class="btn btn-ghost" id="clearAllBtn">Limpiar todo</button>
     </div>
 
@@ -128,6 +131,17 @@
         <div class="field">
           <label class="label">Nombre</label>
           <input type="text" id="editName" placeholder="Nombre del producto">
+        </div>
+        <div class="field">
+          <label class="label">Categoría</label>
+          <input type="text" id="editCategory" list="editCategoryList" placeholder="Ej: Figuras, Llaveros...">
+          <datalist id="editCategoryList">
+            <option value="Figuras">
+            <option value="Llaveros">
+            <option value="Decoración">
+            <option value="Repuestos">
+            <option value="Herramientas">
+          </datalist>
         </div>
         <div class="field">
           <label class="label">Nombre del producto (cliente)</label>
@@ -340,6 +354,7 @@
 
     let products = loadProducts();
     let searchTerm = "";
+    let categoryFilter = "";
     let editingIndex = -1;
     let pendingImage = null; // null = no change, "" = removed, string = new image
 
@@ -351,6 +366,7 @@
       const p = products[idx];
       const d = p.data || {};
       $("editName").value = p.name || "";
+      $("editCategory").value = d.category || "";
       $("editProductName").value = d.productName || "";
       $("editGrams").value = d.grams || 0;
       $("editHours").value = d.hours || 0;
@@ -426,6 +442,7 @@
       p.name = $("editName").value.trim() || p.name;
       p.data = p.data || {};
       p.data.productName = $("editProductName").value.trim();
+      p.data.category = $("editCategory").value.trim();
       p.data.grams = M($("editGrams").value);
       p.data.hours = M($("editHours").value);
       p.data.minutes = M($("editMinutes").value);
@@ -451,7 +468,19 @@
     }
 
     function render() {
-      const filtered = products.filter(p => !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || ((p.data&&p.data.productName)||"").toLowerCase().includes(searchTerm.toLowerCase()));
+      // Poblar filtro de categorías
+      const cfEl = $("categoryFilter");
+      if (cfEl) {
+        const cats = [...new Set(products.map(p => (p.data && p.data.category) || "").filter(Boolean))];
+        const cur = cfEl.value;
+        cfEl.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c => '<option value="' + c + '">' + c + '</option>').join("");
+        if (cur && cats.includes(cur)) cfEl.value = cur;
+      }
+      const filtered = products.filter(p => {
+        const matchSearch = !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || ((p.data&&p.data.productName)||"").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchCat = !categoryFilter || ((p.data && p.data.category) === categoryFilter);
+        return matchSearch && matchCat;
+      });
       const catalog = $("catalog");
       if (filtered.length === 0) {
         catalog.innerHTML = "";
@@ -478,6 +507,7 @@
               </div>
               <div class="body">
                 <h3 class="name">${escapeHtml(p.name || "Sin nombre")}</h3>
+                ${d.category ? `<div class="meta" style="color:var(--accent);font-weight:600;">${escapeHtml(d.category)}</div>` : ""}
                 <div class="meta">${escapeHtml(d.productName || "")}</div>
                 ${grams ? `<div class="meta">${grams} g · ${timeStr}</div>` : ""}
                 ${mult ? `<div class="meta">Multiplicador ×${mult}</div>` : ""}
@@ -537,6 +567,13 @@
       searchTerm = e.target.value;
       render();
     });
+    const cfEl = $("categoryFilter");
+    if (cfEl) {
+      cfEl.addEventListener("change", (e) => {
+        categoryFilter = e.target.value;
+        render();
+      });
+    }
     $("clearAllBtn").addEventListener("click", () => {
       if (!products.length) { toast("No hay productos"); return; }
       if (!confirm("¿Eliminar todos los productos guardados?")) return;
