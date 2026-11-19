@@ -215,7 +215,8 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
-        "rawPrice": 18000
+        "rawPrice": 18000,
+        "published": false
       }
     },
     {
