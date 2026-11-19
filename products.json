@@ -610,7 +610,28 @@
       }
     },
     {
-      "id": "prod_1795125547062",
+      "id": "sb_468a32e2-e7c9-4e4d-95b6-554e2b59fa9e",
+      "name": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
+      "data": {
+        "productName": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
+        "category": "Motos",
+        "colors": 1,
+        "hours": 5,
+        "minutes": 37,
+        "grams": 77,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USffb1c451e64f1c/403176570/instance/2025-07-17_6e0c8d5c1fdb48.jpg",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 9000
+      }
+    },
+    {
+      "id": "sb_21c6fee2-1360-49bd-ac1b-02d7aaa3b21f",
       "name": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
       "data": {
         "productName": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
