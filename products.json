@@ -2,7 +2,7 @@
   "products": [
     {
       "id": "sb_c8b99ee3-48e6-4b72-9e40-27e9db4caf9b",
-      "name": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
+      "name": "Goku Daima (19 cm incl. base)",
       "data": {
         "productName": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
         "category": "Dragon Ball",
@@ -604,30 +604,9 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/US9ac4042a737304/1089449904/instance/a31d7440c84d4149.jpeg",
+        "rawPrice": 8500,
         "published": true,
-        "inStock": true,
-        "rawPrice": 8500
-      }
-    },
-    {
-      "id": "sb_e7a10979-6f7e-4fb8-8dbe-194183365c65",
-      "name": "HexaDex-Pikachu pokemon",
-      "data": {
-        "productName": "HexaDex-Pikachu pokemon",
-        "category": "Cuadro",
-        "colors": 1,
-        "hours": 3,
-        "minutes": 30,
-        "grams": 74,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US9ac4042a737304/1089449904/instance/a31d7440c84d4149.jpeg",
-        "published": true,
-        "inStock": true,
-        "rawPrice": 8500
+        "inStock": true
       }
     }
   ]
