@@ -1039,7 +1039,6 @@
         document.getElementById("productSelectLabel").textContent = name;
         toast("Producto guardado");
       }
-    }
     // Sincronizar con GitHub si hay token
     if (state.ghToken) {
       ghPushProducts(state.ghToken, state.products).then((ok) => {
@@ -1071,7 +1070,15 @@
             upsertProd.then(({ data: prod, error }) => {
               if (error) { console.error(error); return; }
               if (prod) {
-                if (!sbId) { pr.id = "sb_" + prod.id; saveProducts(); }
+                if (!sbId) {
+                  pr.id = "sb_" + prod.id;
+                  if (state.activeProductId !== pr.id) {
+                    state.activeProductId = pr.id;
+                    savePiece();
+                  }
+                  saveProducts();
+                  refreshProductMenu();
+                }
                 const costRow = {
                   product_id: prod.id,
                   grams: d.grams || 0,
@@ -1091,6 +1098,7 @@
           }
         }
       });
+    }
     }
 
     document.getElementById("newProductBtn").addEventListener("click", () => {
