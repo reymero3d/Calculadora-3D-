@@ -574,7 +574,7 @@
         const matchSearch = !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || ((p.data&&p.data.productName)||"").toLowerCase().includes(searchTerm.toLowerCase());
         const matchCat = !categoryFilter || ((p.data && p.data.category) === categoryFilter);
         return matchSearch && matchCat;
-      });
+      }).sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }));
       const catalog = $("catalog");
       if (filtered.length === 0) {
         catalog.innerHTML = "";

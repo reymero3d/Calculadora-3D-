@@ -933,6 +933,7 @@
       const filterCat = cf ? cf.value : "";
       state.products
         .filter(pr => !filterCat || ((pr.data && pr.data.category) === filterCat))
+        .sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }))
         .forEach(pr => {
         const div = document.createElement("div");
         div.className = "opt";
