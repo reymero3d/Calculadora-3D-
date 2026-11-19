@@ -631,7 +631,7 @@
       }
     },
     {
-      "id": "prod_1795126276477",
+      "id": "sb_ddae8c0d-ba41-4acd-8e09-891c65407025",
       "name": "Mini Honda CRF250R de Motocross a Escala",
       "data": {
         "productName": "Mini Honda CRF250R de Motocross a Escala",
@@ -649,7 +649,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 15500
-      }
+      },
+      "_sbJustSaved": 1795126277032
     }
   ]
 }
