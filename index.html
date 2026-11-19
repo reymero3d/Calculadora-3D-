@@ -1393,6 +1393,7 @@
         const prof = imp.allInstances[profileIndex];
         if (prof) {
           if (prof.weight !== undefined && prof.weight !== null) grams = Number(prof.weight) || grams;
+          if (prof.colors) state.colors = Number(prof.colors) || state.colors;
           const t = profileTime(prof);
           if (t.hours || t.minutes) { hours = t.hours; minutes = t.minutes; }
         }
@@ -1403,7 +1404,7 @@
       state.minutes = minutes;
       if (imp.colors !== undefined) state.colors = imp.colors;
       if (imp.quantity !== undefined) state.quantity = imp.quantity;
-      if (imp.insumos !== undefined) state.insumos = imp.insumos;
+      if (imp.colors !== undefined) state.colors = imp.colors;
       if (imp.image) state.productImage = imp.image;
       syncInputs();
       recalc();
@@ -1691,6 +1692,7 @@
           grams: params.get("grams") || params.get("weight") || 0,
           hours: params.get("hours") || 0,
           minutes: params.get("minutes") || 0,
+          colors: params.get("colors") || undefined,
           colors: params.get("colors") || undefined,
           quantity: params.get("quantity") || undefined,
           insumos: params.get("insumos") || undefined,
