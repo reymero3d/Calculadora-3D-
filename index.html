@@ -394,6 +394,19 @@
               <span class="hint">Si necesitás otro valor, ingresalo acá (ej: 2.8).</span>
               <input type="number" id="customMult" step="any" inputmode="decimal">
             </div>
+            <div class="field" style="margin-top:.85rem;">
+              <label class="label">Redondear precio final</label>
+              <span class="hint">Redondea el total a cobrar a un múltiplo.</span>
+              <select id="roundTo">
+                <option value="0">Sin redondeo</option>
+                <option value="1">Entero</option>
+                <option value="10">×10</option>
+                <option value="50">×50</option>
+                <option value="100">×100</option>
+                <option value="500">×500</option>
+                <option value="1000">×1000</option>
+              </select>
+            </div>
             <div class="refs">
               <button class="refs-toggle" id="refsToggle">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
@@ -521,6 +534,7 @@
       insumos: 0,
       quantity: 1,
       profitMultiplier: 4,
+      roundTo: 0,
       refsOpen: true,
       productImage: "",
       productCategory: "",
@@ -617,6 +631,8 @@
       document.getElementById("insumos").value = state.insumos || "";
       document.getElementById("quantity").value = state.quantity || 1;
       document.getElementById("customMult").value = state.profitMultiplier;
+      const _rt = document.getElementById("roundTo");
+      if (_rt) _rt.value = state.roundTo || 0;
       const _activePr = state.products.find(p => p.id === state.activeProductId);
       const _psl = document.getElementById("productSelectLabel");
       if (_psl) _psl.textContent = _activePr ? (_activePr.name || "Sin nombre") : "-- Nuevo producto --";
@@ -697,8 +713,11 @@
       const g = (errPct / 100) * (b + x + h);
       const f = b + x + h + g;
       const y = 1.3 * insumos * qty;
-      const v = f * mult + y;
-      const j = f * (mult + 0.8) + y;
+      const vRaw = f * mult + y;
+      const jRaw = f * (mult + 0.8) + y;
+      const roundTo = M(state.roundTo);
+      const v = roundTo > 0 ? Math.round(vRaw / roundTo) * roundTo : vRaw;
+      const j = roundTo > 0 ? Math.round(jRaw / roundTo) * roundTo : jRaw;
 
       document.getElementById("rMaterial").textContent = fmt(b);
       document.getElementById("rLuz").textContent = fmt(x);
@@ -828,6 +847,7 @@
         insumos: state.insumos,
         quantity: state.quantity,
         profitMultiplier: state.profitMultiplier,
+        roundTo: state.roundTo || 0,
         currency: state.currency,
         productImage: state.productImage || "",
         rawPrice: M(v) || 0,
@@ -852,6 +872,7 @@
         state.quantity = 1;
         state.productImage = "";
         state.productCategory = "";
+        state.roundTo = 0;
         state.profitMultiplier = 4;
         syncInputs();
         recalc();
@@ -881,6 +902,7 @@
           const d = pr.data || {};
           state.productName = d.productName || "";
           state.productCategory = d.category || state.productCategory || "";
+          state.roundTo = (d.roundTo !== undefined ? d.roundTo : state.roundTo) || 0;
           state.colors = d.colors || 1;
           state.hours = d.hours || 0;
           state.minutes = d.minutes || 0;
@@ -945,6 +967,7 @@
       state.quantity = 1;
       state.productImage = "";
       state.productCategory = "";
+      state.roundTo = 0;
       syncInputs();
       recalc();
       savePiece();
@@ -952,6 +975,14 @@
     });
 
     document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
+    const rtSel = document.getElementById("roundTo");
+    if (rtSel) {
+      rtSel.addEventListener("change", (e) => {
+        state.roundTo = Number(e.target.value) || 0;
+        recalc();
+        savePiece();
+      });
+    }
     const cfEl = document.getElementById("categoryFilter");
     if (cfEl) {
       cfEl.addEventListener("change", () => {
