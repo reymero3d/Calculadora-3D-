@@ -22,6 +22,27 @@
       }
     },
     {
+      "id": "sb_37952c79-bdbc-48d2-858f-7431ea79f528",
+      "name": "Charmander - Pokémon Articulado Flexible",
+      "data": {
+        "productName": "Charmander - Pokémon Articulado Flexible",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 1,
+        "minutes": 7,
+        "grams": 24,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US6533af1667d6d0/238419823/instance/2025-02-17_8d8828f51bc2b.png",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 2500
+      }
+    },
+    {
       "id": "sb_a2a25aaa-b05b-43cf-82e2-22cba9426441",
       "name": "Dilophosaurus Articulated",
       "data": {
@@ -691,27 +712,6 @@
         "rawPrice": 15000,
         "published": true,
         "inStock": true
-      }
-    },
-    {
-      "id": "prod_1795131779493",
-      "name": "Charmander - Pokémon Articulado Flexible",
-      "data": {
-        "productName": "Charmander - Pokémon Articulado Flexible",
-        "category": "Pokemon",
-        "colors": 1,
-        "hours": 1,
-        "minutes": 7,
-        "grams": 24,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US6533af1667d6d0/238419339/instance/2025-02-07_435520b164db9.jpg",
-        "published": true,
-        "inStock": true,
-        "rawPrice": 2500
       }
     }
   ]
