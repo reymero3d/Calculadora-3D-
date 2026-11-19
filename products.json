@@ -179,6 +179,151 @@
         "rawPrice": 3500,
         "category": "Pistola"
       }
+    },
+    {
+      "id": "prod_1795071197852",
+      "name": "Fanart de Goku Daima (19 cm incl. base)",
+      "data": {
+        "productName": "Fanart de Goku Daima (19 cm incl. base)",
+        "category": "Dragon Ball",
+        "colors": 1,
+        "hours": 11,
+        "minutes": 46,
+        "grams": 208,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
+        "rawPrice": 18000
+      }
+    },
+    {
+      "id": "prod_1795071260317",
+      "name": "Vegeta Daima Fanart (19 cm de alto)",
+      "data": {
+        "productName": "Vegeta Daima Fanart (19 cm de alto)",
+        "category": "Dragon Ball",
+        "colors": 1,
+        "hours": 7,
+        "minutes": 3,
+        "grams": 135,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USb8e99f000f8675/159887986/instance/2024-11-20_772db9e81a0e6.jpg",
+        "rawPrice": 12000
+      }
+    },
+    {
+      "id": "prod_1795071467149",
+      "name": "Minecraft Cerdo zombi - Articulado",
+      "data": {
+        "productName": "Minecraft Cerdo zombi - Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 10,
+        "minutes": 16,
+        "grams": 171,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USbf48fff5cfcf0/763501588/instance/573aa36cbcc9fb09.jpg",
+        "rawPrice": 5000
+      }
+    },
+    {
+      "id": "prod_1795071521057",
+      "name": "Minecraft Enderman - Articulado",
+      "data": {
+        "productName": "Minecraft Enderman - Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 1,
+        "minutes": 18,
+        "grams": 36,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US3d0f833e613585/775827977/instance/1d036a979da3d3c1.jpg",
+        "rawPrice": 3000
+      }
+    },
+    {
+      "id": "prod_1795071564957",
+      "name": "Minecraft Alex - Articulado",
+      "data": {
+        "productName": "Minecraft Alex - Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 3,
+        "minutes": 31,
+        "grams": 66,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USc7bcd5c62ba01e/868504148/instance/213542ec672d0b0f.png",
+        "rawPrice": 5000
+      }
+    },
+    {
+      "id": "prod_1795071731051",
+      "name": "Eevee golpeado por una pokebola (SIN AMSï¼",
+      "data": {
+        "productName": "Eevee golpeado por una pokebola (SIN AMSï¼",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 4,
+        "minutes": 40,
+        "grams": 124,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US3914dd12bb657b/1132694910/instance/e6fa1d459f47c01c.jpg",
+        "rawPrice": 10500
+      }
+    },
+    {
+      "id": "prod_1795071917366",
+      "name": "Tarjeta de kit de avión Piper PA-28",
+      "data": {
+        "productName": "Tarjeta de kit de avión Piper PA-28",
+        "category": "Aviones",
+        "colors": 1,
+        "hours": 8,
+        "minutes": 23,
+        "grams": 181,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8b2746718d2bd1/792841025/instance/3edba63648daaffb.png",
+        "rawPrice": 15000
+      }
+    },
+    {
+      "id": "prod_1795101984344",
+      "name": "HK USP Match Llavero Antiestrés – Juguete de Acción Deslizante",
+      "data": {
+        "productName": "HK USP Match Llavero Antiestrés – Juguete de Acción Deslizante",
+        "category": "",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 0,
+        "grams": 42,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US57e20a5b93727e/548789958/instance/2026-01-02_13b42c460c7e28.jpg",
+        "rawPrice": 5000
+      }
     }
   ]
 }
