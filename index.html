@@ -1411,6 +1411,17 @@
     function applyImportedData(imp, profileIndex) {
       if (!imp) return false;
       let grams = imp.grams, hours = imp.hours, minutes = imp.minutes;
+      // Colores: si no viene a nivel raíz, tomar del perfil elegido o del primero
+      let colors = imp.colors;
+      if (colors === undefined && imp.allInstances && Array.isArray(imp.allInstances)) {
+        const idx = (profileIndex !== undefined && profileIndex !== null) ? profileIndex : 0;
+        const prof = imp.allInstances[idx];
+        if (prof && prof.colors) colors = prof.colors;
+      }
+      if (colors === undefined && imp.allInstances && Array.isArray(imp.allInstances) && imp.allInstances.length) {
+        const prof = imp.allInstances.find(p => p.isA1) || imp.allInstances[0];
+        if (prof && prof.colors) colors = prof.colors;
+      }
       if (imp.allInstances && Array.isArray(imp.allInstances) && profileIndex !== undefined && profileIndex !== null) {
         const prof = imp.allInstances[profileIndex];
         if (prof) {
@@ -1424,9 +1435,8 @@
       state.grams = grams;
       state.hours = hours;
       state.minutes = minutes;
-      if (imp.colors !== undefined) state.colors = imp.colors;
+      if (colors !== undefined) state.colors = colors;
       if (imp.quantity !== undefined) state.quantity = imp.quantity;
-      if (imp.colors !== undefined) state.colors = imp.colors;
       if (imp.image) state.productImage = imp.image;
       syncInputs();
       recalc();
