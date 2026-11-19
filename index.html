@@ -1058,6 +1058,7 @@
         let live = state.products.find(p => p.id === oldId);
         if (!live) { live = pr; if (!state.products.includes(live)) state.products.push(live); }
         live.id = "sb_" + prod.id;
+        live._sbJustSaved = Date.now();
         if (state.activeProductId === oldId || live === pr) {
           state.activeProductId = live.id;
           savePiece();
@@ -1970,9 +1971,14 @@
           // no vinieron en este SELECT (carrera entre guardar y cargar)
           const all = mapped.slice();
           const seen = new Set(mapped.map(m => (m.name || "").trim().toLowerCase()));
+          const now = Date.now();
           for (const p of state.products) {
             const key = (p.name || "").trim().toLowerCase();
             if (!p.id || mapped.some(m => m.id === p.id) || seen.has(key)) continue;
+            const isRemoteId = String(p.id).startsWith("sb_");
+            const justSaved = p._sbJustSaved && (now - p._sbJustSaved) < 60000;
+            // Un producto sb_ que no está en remoto fue borrado; no lo traemos de vuelta
+            if (isRemoteId && !justSaved) continue;
             all.push(p);
             seen.add(key);
           }
