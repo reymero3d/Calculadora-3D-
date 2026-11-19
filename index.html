@@ -560,12 +560,37 @@
       lastCalculatedTotal: 0,
     };
 
+    function fixMojibakeStr(s) {
+      if (typeof s !== "string") return s;
+      let p = s;
+      for (let i = 0; i < 10; i++) {
+        if (!/[ÃÂÅ]/.test(p)) break;
+        const bytes = new Uint8Array(p.length);
+        for (let j = 0; j < p.length; j++) bytes[j] = p.charCodeAt(j) & 0xff;
+        let f;
+        try { f = new TextDecoder("utf-8").decode(bytes); } catch (e) { break; }
+        if (f === p) break;
+        if (f.includes("\uFFFD")) break;
+        p = f;
+      }
+      return p;
+    }
+    function fixMojibakeObj(o) {
+      if (typeof o === "string") return fixMojibakeStr(o);
+      if (Array.isArray(o)) return o.map(fixMojibakeObj);
+      if (o && typeof o === "object") {
+        const r = {};
+        for (const k of Object.keys(o)) r[k] = fixMojibakeObj(o[k]);
+        return r;
+      }
+      return o;
+    }
     function loadProfiles() {
       try { return JSON.parse(localStorage.getItem("reymero-calc-profiles") || "[]"); } catch { return []; }
     }
     function saveProfiles() { localStorage.setItem("reymero-calc-profiles", JSON.stringify(state.profiles)); }
     function loadProducts() {
-      try { return JSON.parse(localStorage.getItem("reymero-calc-products") || "[]"); } catch { return []; }
+      try { return fixMojibakeObj(JSON.parse(localStorage.getItem("reymero-calc-products") || "[]")); } catch { return []; }
     }
     function saveProducts() { localStorage.setItem("reymero-calc-products", JSON.stringify(state.products)); }
 
@@ -1500,7 +1525,8 @@
         if (!res.ok) return null;
         const fileData = await res.json();
         const content = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
-        return Array.isArray(content) ? content : (content.products || []);
+        const products = Array.isArray(content) ? content : (content.products || []);
+        return fixMojibakeObj(products);
       } catch (e) {
         return null;
       }
