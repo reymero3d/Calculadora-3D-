@@ -491,21 +491,19 @@
     <div style="text-align:right;"><p class="label">MercadoLibre</p><p style="font-size:.875rem;font-weight:700;color:#b45309;" id="bML">AR$ 0,00</p></div>
   </div>
 
-  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem;">
-    <div style="max-width:420px;width:100%;padding:2rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow-lg);">
-      <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:1.6rem;margin:0 0 1rem;">Acceso administrador</h2>
-      <p class="hint" style="margin-bottom:1rem;">Ingresá con tu cuenta de Supabase para administrar productos.</p>
-      <div class="field" style="margin-bottom:.75rem;">
-        <label class="label">Email</label>
-        <input type="email" id="loginEmail" placeholder="tu@email.com">
-      </div>
-      <div class="field" style="margin-bottom:.75rem;">
-        <label class="label">Contraseña</label>
-        <input type="password" id="loginPassword" placeholder="••••••••">
-      </div>
-      <button class="btn btn-primary btn-full" id="loginBtn" style="margin-top:.5rem;">Ingresar</button>
-      <p class="hint" id="loginStatus" style="margin-top:.75rem;"></p>
+  <div id="loginOverlay" style="display:none;max-width:460px;margin:1.5rem auto;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow-lg);">
+    <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:1.4rem;margin:0 0 .5rem;">Acceso administrador</h2>
+    <p class="hint" style="margin-bottom:1rem;">Ingresá con tu cuenta de Supabase para subir productos a la tienda. Sin sesión podés seguir usando la calculadora normalmente.</p>
+    <div class="field" style="margin-bottom:.75rem;">
+      <label class="label">Email</label>
+      <input type="email" id="loginEmail" placeholder="tu@email.com">
     </div>
+    <div class="field" style="margin-bottom:.75rem;">
+      <label class="label">Contraseña</label>
+      <input type="password" id="loginPassword" placeholder="••••••••">
+    </div>
+    <button class="btn btn-primary btn-full" id="loginBtn" style="margin-top:.5rem;">Ingresar</button>
+    <p class="hint" id="loginStatus" style="margin-top:.75rem;"></p>
   </div>
   <div class="toast" id="toast"></div>
 
@@ -1006,7 +1004,60 @@
       });
     }
 
+    let sbSaveQueue = Promise.resolve();
+
+    async function syncProductRow(pr) {
+      if (!supabaseClient || !pr) return;
+      const { data: sess } = await supabaseClient.auth.getSession();
+      if (!sess || !sess.session) {
+        toast("Guardado localmente. Iniciá sesión para subirlo a la tienda.");
+        if (loginOverlay) loginOverlay.style.display = "block";
+        return;
+      }
+      const d = pr.data || {};
+      const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+      const productRow = {
+        name: pr.name,
+        description: d.productName || pr.name,
+        category: d.category || null,
+        price: d.rawPrice || 0,
+        image_url: d.productImage || null,
+        published: d.published !== false,
+        in_stock: d.inStock !== false,
+      };
+      const { data: prod, error } = sbId
+        ? await supabaseClient.from("products").update(productRow).eq("id", sbId).select().single()
+        : await supabaseClient.from("products").insert(productRow).select().single();
+      if (error) { console.error(error); return; }
+      if (!prod) return;
+      if (!sbId) {
+        const live = state.products.find(p => p.id === pr.id) || pr;
+        live.id = "sb_" + prod.id;
+        if (state.activeProductId === pr.id) {
+          state.activeProductId = live.id;
+          savePiece();
+        }
+        saveProducts();
+        refreshProductMenu();
+      }
+      await supabaseClient.from("product_costs").upsert({
+        product_id: prod.id,
+        grams: d.grams || 0,
+        hours: d.hours || 0,
+        minutes: d.minutes || 0,
+        colors: d.colors || 1,
+        insumos: d.insumos || 0,
+        quantity: d.quantity || 1,
+        profit_multiplier: d.profitMultiplier || 4,
+        round_to: d.roundTo || 0,
+        currency: d.currency || "ARS",
+        raw_price: d.rawPrice || 0,
+      });
+      toast("Producto sincronizado con Supabase");
+    }
+
     function saveProduct() {
+      let savedPr = null;
       // Si el producto activo ya no existe, tratar como nuevo
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
         state.activeProductId = null;
@@ -1021,6 +1072,7 @@
         if (pr) {
           pr.data = { ...data };
           pr.name = pr.name || (state.productName || "Producto");
+          savedPr = pr;
           saveProducts();
           savePiece();
           refreshProductMenu();
@@ -1031,7 +1083,8 @@
         if (!name) name = prompt("Nombre del producto:", "");
         if (!name) return;
         const id = "prod_" + Date.now();
-        state.products.push({ id, name, data: { ...data } });
+        savedPr = { id, name, data: { ...data } };
+        state.products.push(savedPr);
         state.activeProductId = id;
         saveProducts();
         savePiece();
@@ -1047,57 +1100,9 @@
       });
     }
 
-    // Sincronizar con Supabase si hay sesión
-    if (supabaseClient) {
-      supabaseClient.auth.getSession().then(({ data }) => {
-        if (data && data.session) {
-          const pr = state.products.find(p => p.id === state.activeProductId);
-          if (pr) {
-            const d = pr.data || {};
-            const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
-            const productRow = {
-              name: pr.name,
-              description: d.productName || pr.name,
-              category: d.category || null,
-              price: d.rawPrice || 0,
-              image_url: d.productImage || null,
-              published: d.published !== false,
-              in_stock: d.inStock !== false,
-            };
-            const upsertProd = sbId
-              ? supabaseClient.from("products").update(productRow).eq("id", sbId).select().single()
-              : supabaseClient.from("products").insert(productRow).select().single();
-            upsertProd.then(({ data: prod, error }) => {
-              if (error) { console.error(error); return; }
-              if (prod) {
-                if (!sbId) {
-                  pr.id = "sb_" + prod.id;
-                  if (state.activeProductId !== pr.id) {
-                    state.activeProductId = pr.id;
-                    savePiece();
-                  }
-                  saveProducts();
-                  refreshProductMenu();
-                }
-                const costRow = {
-                  product_id: prod.id,
-                  grams: d.grams || 0,
-                  hours: d.hours || 0,
-                  minutes: d.minutes || 0,
-                  colors: d.colors || 1,
-                  insumos: d.insumos || 0,
-                  quantity: d.quantity || 1,
-                  profit_multiplier: d.profitMultiplier || 4,
-                  round_to: d.roundTo || 0,
-                  currency: d.currency || "ARS",
-                  raw_price: d.rawPrice || 0,
-                };
-                supabaseClient.from("product_costs").upsert(costRow).then(() => {});
-              }
-            });
-          }
-        }
-      });
+    // Sincronizar con Supabase en cola (evita duplicados al importar JSON)
+    if (savedPr) {
+      sbSaveQueue = sbSaveQueue.then(() => syncProductRow(savedPr)).catch(e => console.error(e));
     }
     }
 
@@ -1898,7 +1903,7 @@
 
     function loadFromSupabase() {
       if (!supabaseClient) return Promise.resolve();
-      return supabaseClient.from("products").select("*, product_costs(*)").then(({ data, error }) => {
+      return sbSaveQueue.then(() => supabaseClient.from("products").select("*, product_costs(*)")).then(({ data, error }) => {
         if (error) { if (loginStatus) loginStatus.textContent = "Error: " + error.message; return; }
         if (data && data.length > 0) {
           // Map Supabase rows to app product format
@@ -1944,7 +1949,7 @@
           if (loginOverlay) loginOverlay.style.display = "none";
           return true;
         }
-        if (loginOverlay) loginOverlay.style.display = "flex";
+        if (loginOverlay) loginOverlay.style.display = "block";
         return false;
       });
     }
