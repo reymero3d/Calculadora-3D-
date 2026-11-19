@@ -28,9 +28,9 @@
         "productName": "Charmander - Pokémon Articulado Flexible",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 1,
-        "minutes": 7,
-        "grams": 24,
+        "hours": 7,
+        "minutes": 14,
+        "grams": 123,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
@@ -39,7 +39,7 @@
         "productImage": "https://makerworld.bblmw.com/makerworld/model/US6533af1667d6d0/238419823/instance/2025-02-17_8d8828f51bc2b.png",
         "published": true,
         "inStock": true,
-        "rawPrice": 2500
+        "rawPrice": 14500
       }
     },
     {
