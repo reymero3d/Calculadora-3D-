@@ -1,27 +1,6 @@
 {
   "products": [
     {
-      "id": "sb_c8b99ee3-48e6-4b72-9e40-27e9db4caf9b",
-      "name": "Goku Daima (19 cm incl. base)",
-      "data": {
-        "productName": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
-        "category": "Dragon Ball",
-        "colors": 1,
-        "hours": 11,
-        "minutes": 46,
-        "grams": 208,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
-        "rawPrice": 18000,
-        "published": true,
-        "inStock": true
-      }
-    },
-    {
       "id": "sb_997fe4f6-65e1-4e39-9787-c101a8fee7bc",
       "name": "Casa KITcard de Navidad",
       "data": {
@@ -568,6 +547,27 @@
       }
     },
     {
+      "id": "sb_c8b99ee3-48e6-4b72-9e40-27e9db4caf9b",
+      "name": "Goku Daima (19 cm incl. base)",
+      "data": {
+        "productName": "¡¡Gracias 2k!! Fanart de Goku Daima (19 cm incl. base)",
+        "category": "Dragon Ball",
+        "colors": 1,
+        "hours": 11,
+        "minutes": 46,
+        "grams": 208,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
+        "rawPrice": 18000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_97e70e0b-fe77-472d-8922-41b603837812",
       "name": "Ultra Ball",
       "data": {
@@ -607,6 +607,27 @@
         "rawPrice": 8500,
         "published": true,
         "inStock": true
+      }
+    },
+    {
+      "id": "prod_1795125547062",
+      "name": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
+      "data": {
+        "productName": "Mini Surron Light Bee X a escala (Moto eléctrica todoterreno)",
+        "category": "Motos",
+        "colors": 1,
+        "hours": 5,
+        "minutes": 37,
+        "grams": 77,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USffb1c451e64f1c/403176570/instance/2025-07-17_6e0c8d5c1fdb48.jpg",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 9000
       }
     }
   ]
