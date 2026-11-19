@@ -213,6 +213,24 @@
               <div class="dropdown-menu" id="productMenu"></div>
             </div>
           </div>
+          <div class="field" style="margin-top:.5rem;">
+            <label class="label">Categoría</label>
+            <input type="text" id="productCategory" list="categoryList" placeholder="Ej: Figuras, Llaveros...">
+            <datalist id="categoryList">
+              <option value="Figuras">
+              <option value="Llaveros">
+              <option value="Decoración">
+              <option value="Repuestos">
+              <option value="Herramientas">
+              <option value="Otro">
+            </datalist>
+          </div>
+          <div class="field" style="margin-top:.5rem;">
+            <label class="label">Filtrar por categoría</label>
+            <select id="categoryFilter" style="width:100%;padding:.6rem .8rem;border:1.5px solid var(--border);border-radius:3px;background:var(--surface);color:var(--text);font-size:.9rem;">
+              <option value="">Todas</option>
+            </select>
+          </div>
           <button class="btn btn-primary btn-full" id="saveProductBtn" style="margin-top:.5rem;">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z"/><path d="M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7"/><path d="M7 3v4a1 1 0 0 0 1 1h7"/></svg>
             Guardar producto
@@ -495,6 +513,7 @@
       repairCosts: 150000,
       errorMarginPercent: 5,
       productName: "",
+      productCategory: "",
       colors: 1,
       hours: 0,
       minutes: 0,
@@ -504,6 +523,7 @@
       profitMultiplier: 4,
       refsOpen: true,
       productImage: "",
+      productCategory: "",
       rawPrice: 0,
       lastCalculatedTotal: 0,
     };
@@ -588,6 +608,8 @@
       document.getElementById("repairCosts").value = state.repairCosts;
       document.getElementById("errorMarginPercent").value = state.errorMarginPercent;
       document.getElementById("productName").value = state.productName || "";
+      const _cat = document.getElementById("productCategory");
+      if (_cat) _cat.value = state.productCategory || "";
       document.getElementById("colors").value = state.colors || 1;
       document.getElementById("hours").value = state.hours || "";
       document.getElementById("minutes").value = state.minutes || "";
@@ -798,6 +820,7 @@
       const v = f * mult + y;
       return {
         productName: state.productName,
+        category: state.productCategory || "",
         colors: state.colors,
         hours: state.hours,
         minutes: state.minutes,
@@ -828,6 +851,7 @@
         state.insumos = 0;
         state.quantity = 1;
         state.productImage = "";
+        state.productCategory = "";
         state.profitMultiplier = 4;
         syncInputs();
         recalc();
@@ -835,15 +859,28 @@
         menu.classList.remove("open");
       });
       menu.appendChild(newItem);
-      state.products.forEach(pr => {
+      // Poblar filtro de categorías
+      const cf = document.getElementById("categoryFilter");
+      if (cf) {
+        const cats = [...new Set(state.products.map(p => (p.data && p.data.category) || "").filter(Boolean))];
+        const cur = cf.value;
+        cf.innerHTML = '<option value="">Todas</option>' + cats.map(c => '<option value="' + c + '">' + c + '</option>').join("");
+        if (cur && cats.includes(cur)) cf.value = cur;
+      }
+      const filterCat = cf ? cf.value : "";
+      state.products
+        .filter(pr => !filterCat || ((pr.data && pr.data.category) === filterCat))
+        .forEach(pr => {
         const div = document.createElement("div");
         div.className = "opt";
-        div.textContent = pr.name || "Sin nombre";
+        const _cat = (pr.data && pr.data.category) ? " · " + pr.data.category : "";
+        div.textContent = (pr.name || "Sin nombre") + _cat;
         div.addEventListener("click", () => {
           state.activeProductId = pr.id;
           document.getElementById("productSelectLabel").textContent = pr.name || "Sin nombre";
           const d = pr.data || {};
           state.productName = d.productName || "";
+          state.productCategory = d.category || state.productCategory || "";
           state.colors = d.colors || 1;
           state.hours = d.hours || 0;
           state.minutes = d.minutes || 0;
@@ -907,6 +944,7 @@
       state.insumos = 0;
       state.quantity = 1;
       state.productImage = "";
+      state.productCategory = "";
       syncInputs();
       recalc();
       savePiece();
@@ -914,6 +952,22 @@
     });
 
     document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
+    const cfEl = document.getElementById("categoryFilter");
+    if (cfEl) {
+      cfEl.addEventListener("change", () => {
+        refreshProductMenu();
+        // reopen menu
+        const m = document.getElementById("productMenu");
+        if (m) m.classList.add("open");
+      });
+    }
+    const catInput = document.getElementById("productCategory");
+    if (catInput) {
+      catInput.addEventListener("input", (e) => {
+        state.productCategory = e.target.value;
+        savePiece();
+      });
+    }
     document.getElementById("saveProductBottomBtn").addEventListener("click", saveProduct);
 
     function setupProductDropdown() {
