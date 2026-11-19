@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap');
     :root {
@@ -480,6 +481,22 @@
     <div style="text-align:right;"><p class="label">MercadoLibre</p><p style="font-size:.875rem;font-weight:700;color:#b45309;" id="bML">AR$ 0,00</p></div>
   </div>
 
+  <div id="loginOverlay" style="display:none;position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem;">
+    <div style="max-width:420px;width:100%;padding:2rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow-lg);">
+      <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:1.6rem;margin:0 0 1rem;">Acceso administrador</h2>
+      <p class="hint" style="margin-bottom:1rem;">Ingresá con tu cuenta de Supabase para administrar productos.</p>
+      <div class="field" style="margin-bottom:.75rem;">
+        <label class="label">Email</label>
+        <input type="email" id="loginEmail" placeholder="tu@email.com">
+      </div>
+      <div class="field" style="margin-bottom:.75rem;">
+        <label class="label">Contraseña</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn btn-primary btn-full" id="loginBtn" style="margin-top:.5rem;">Ingresar</button>
+      <p class="hint" id="loginStatus" style="margin-top:.75rem;"></p>
+    </div>
+  </div>
   <div class="toast" id="toast"></div>
 
   <script>
@@ -527,6 +544,10 @@
     ];
 
     const MULTS = [2, 2.5, 3, 3.5, 4, 5];
+
+    const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
+    let supabaseClient = (typeof window.supabase !== "undefined") ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 
     let state = {
       profileName: "",
@@ -1002,6 +1023,51 @@
       ghPushProducts(state.ghToken, state.products).then((ok) => {
         const gs = document.getElementById("ghStatus");
         if (gs) gs.textContent = ok ? "✓ Sincronizado con GitHub." : "✗ Error al sincronizar.";
+      });
+    }
+
+    // Sincronizar con Supabase si hay sesión
+    if (supabaseClient) {
+      supabaseClient.auth.getSession().then(({ data }) => {
+        if (data && data.session) {
+          const pr = state.products.find(p => p.id === state.activeProductId);
+          if (pr) {
+            const d = pr.data || {};
+            const sbId = (pr.id && pr.id.startsWith("sb_")) ? pr.id.slice(3) : null;
+            const productRow = {
+              name: pr.name,
+              description: d.productName || pr.name,
+              category: d.category || null,
+              price: d.rawPrice || 0,
+              image_url: d.productImage || null,
+              published: d.published !== false,
+              in_stock: d.inStock !== false,
+            };
+            const upsertProd = sbId
+              ? supabaseClient.from("products").update(productRow).eq("id", sbId).select().single()
+              : supabaseClient.from("products").insert(productRow).select().single();
+            upsertProd.then(({ data: prod, error }) => {
+              if (error) { console.error(error); return; }
+              if (prod) {
+                if (!sbId) { pr.id = "sb_" + prod.id; saveProducts(); }
+                const costRow = {
+                  product_id: prod.id,
+                  grams: d.grams || 0,
+                  hours: d.hours || 0,
+                  minutes: d.minutes || 0,
+                  colors: d.colors || 1,
+                  insumos: d.insumos || 0,
+                  quantity: d.quantity || 1,
+                  profit_multiplier: d.profitMultiplier || 4,
+                  round_to: d.roundTo || 0,
+                  currency: d.currency || "ARS",
+                  raw_price: d.rawPrice || 0,
+                };
+                supabaseClient.from("product_costs").upsert(costRow).then(() => {});
+              }
+            });
+          }
+        }
       });
     }
 
@@ -1743,6 +1809,88 @@
     } else {
       if (ghStatus) ghStatus.textContent = "Ingresá tu token una vez y se guardará en este dispositivo.";
     }
+
+    // --- Auth Supabase ---
+    const loginOverlay = document.getElementById("loginOverlay");
+    const loginBtn = document.getElementById("loginBtn");
+    const loginStatus = document.getElementById("loginStatus");
+
+    function loadFromSupabase() {
+      if (!supabaseClient) return Promise.resolve();
+      return supabaseClient.from("products").select("*, product_costs(*)").then(({ data, error }) => {
+        if (error) { if (loginStatus) loginStatus.textContent = "Error: " + error.message; return; }
+        if (data) {
+          // Map Supabase rows to app product format
+          const mapped = data.map((row) => {
+            const c = row.product_costs || {};
+            return {
+              id: "sb_" + row.id,
+              name: row.name,
+              data: {
+                productName: row.description || row.name,
+                category: row.category || "",
+                colors: c.colors || 1,
+                hours: c.hours || 0,
+                minutes: c.minutes || 0,
+                grams: c.grams || 0,
+                insumos: c.insumos || 0,
+                quantity: c.quantity || 1,
+                profitMultiplier: c.profit_multiplier || 4,
+                roundTo: c.round_to || 0,
+                currency: c.currency || "ARS",
+                productImage: row.image_url || "",
+                rawPrice: c.raw_price || row.price || 0,
+                published: row.published,
+                inStock: row.in_stock,
+              },
+            };
+          });
+          state.products = mapped;
+          saveProducts();
+          refreshProductMenu();
+          if (ghStatus) ghStatus.textContent = "✓ " + mapped.length + " productos sincronizados.";
+        }
+      });
+    }
+
+    function checkSession() {
+      if (!supabaseClient) {
+        if (loginOverlay) loginOverlay.style.display = "none";
+        return Promise.resolve(true);
+      }
+      return supabaseClient.auth.getSession().then(({ data }) => {
+        if (data && data.session) {
+          if (loginOverlay) loginOverlay.style.display = "none";
+          return true;
+        }
+        if (loginOverlay) loginOverlay.style.display = "flex";
+        return false;
+      });
+    }
+
+    if (loginBtn) {
+      loginBtn.addEventListener("click", () => {
+        if (!supabaseClient) return;
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        if (loginStatus) loginStatus.textContent = "Verificando...";
+        supabaseClient.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+          if (error) {
+            if (loginStatus) loginStatus.textContent = "✗ " + error.message;
+          } else {
+            if (loginOverlay) loginOverlay.style.display = "none";
+            toast("Sesión iniciada");
+            loadFromSupabase();
+          }
+        });
+      });
+    }
+
+    checkSession().then((hasSession) => {
+      if (hasSession && supabaseClient) {
+        loadFromSupabase();
+      }
+    });
 
     const importBtn = document.getElementById("importJsonBtn");
     if (importBtn) importBtn.addEventListener("click", () => tryImportJson(document.getElementById("jsonInput").value));
