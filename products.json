@@ -674,11 +674,11 @@
       "_sbJustSaved": 1795131518952
     },
     {
-      "id": "prod_1795131584388",
+      "id": "sb_02a9de7e-13b4-440d-815c-ef6bbe00130a",
       "name": "Pequeño dragón de plumas de fuego las alas se pueden mover al presionar se puede imprimir en MINI",
       "data": {
-        "productName": "Pequeño dragón de plumas de fuego las alas se pueden mover al presionar se puede imprimir en MINI",
-        "category": "",
+        "productName": "Pequeño dragón de plumas de fuego",
+        "category": "Dragones",
         "colors": 1,
         "hours": 3,
         "minutes": 9,
@@ -692,7 +692,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 6000
-      }
+      },
+      "_sbJustSaved": 1795131585324
     }
   ]
 }
