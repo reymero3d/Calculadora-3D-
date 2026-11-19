@@ -668,7 +668,7 @@
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USbd2dbb8124e56b/1105698710/instance/16d816cb755d4aa5.jpg",
         "rawPrice": 3500,
-        "published": true,
+        "published": false,
         "inStock": true
       }
     },
