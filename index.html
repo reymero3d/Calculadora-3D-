@@ -1005,6 +1005,7 @@
     }
 
     let sbSaveQueue = Promise.resolve();
+    let sbSaveVersion = 0;
 
     async function syncProductRow(pr) {
       if (!supabaseClient || !pr) return;
@@ -1031,9 +1032,21 @@
         published: d.published !== false,
         in_stock: d.inStock !== false,
       };
-      const { data: prod, error } = sbId
+      let res = sbId
         ? await supabaseClient.from("products").update(productRow).eq("id", sbId).select().single()
         : await supabaseClient.from("products").insert(productRow).select().single();
+      let prod = res.data;
+      let error = res.error;
+      // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
+      if (error && error.code === "23505" && pr.name) {
+        const { data: same } = await supabaseClient.from("products")
+          .select("id").eq("name", pr.name).limit(1);
+        if (same && same.length) {
+          res = await supabaseClient.from("products").update(productRow).eq("id", same[0].id).select().single();
+          prod = res.data;
+          error = res.error;
+        }
+      }
       if (error) { console.error(error); return; }
       if (!prod) return;
       if (!sbId || !String(pr.id || "").startsWith("sb_")) {
@@ -1061,10 +1074,13 @@
         currency: d.currency || "ARS",
         raw_price: d.rawPrice || 0,
       });
+      // Avisar a la carga inicial que hay datos nuevos en remoto
+      sbSaveVersion++;
       toast("Producto sincronizado con Supabase");
     }
 
     function saveProduct() {
+      sbSaveVersion++;
       let savedPr = null;
       // Si el producto activo ya no existe, tratar como nuevo
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
@@ -1910,10 +1926,16 @@
     const loginBtn = document.getElementById("loginBtn");
     const loginStatus = document.getElementById("loginStatus");
 
-    function loadFromSupabase() {
+    function loadFromSupabase(retries) {
+      retries = retries || 0;
       if (!supabaseClient) return Promise.resolve();
+      const versionAtStart = sbSaveVersion;
       return sbSaveQueue.then(() => supabaseClient.from("products").select("*, product_costs(*)")).then(({ data, error }) => {
         if (error) { if (loginStatus) loginStatus.textContent = "Error: " + error.message; return; }
+        // Si se guardó algo mientras se cargaba, repetir para no sobrescribir el estado nuevo
+        if (sbSaveVersion !== versionAtStart && retries < 5) {
+          return loadFromSupabase(retries + 1);
+        }
         if (data && data.length > 0) {
           // Map Supabase rows to app product format
           const mapped = data.map((row) => {
@@ -1940,17 +1962,21 @@
               },
             };
           });
-          // Conservar productos locales nuevos (aún no subidos) que no estén en el remoto
+          // Merge: conservar también productos recién creados que ya tienen id sb_ pero
+          // no vinieron en este SELECT (carrera entre guardar y cargar)
+          const all = mapped.slice();
+          const seen = new Set(mapped.map(m => (m.name || "").trim().toLowerCase()));
           for (const p of state.products) {
-            if (p.id && !String(p.id).startsWith("sb_") && !mapped.some(m => m.id === p.id)) {
-              mapped.push(p);
-            }
+            const key = (p.name || "").trim().toLowerCase();
+            if (!p.id || mapped.some(m => m.id === p.id) || seen.has(key)) continue;
+            all.push(p);
+            seen.add(key);
           }
-          mapped.sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }));
-          state.products = mapped;
+          all.sort((a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }));
+          state.products = all;
           saveProducts();
           refreshProductMenu();
-          if (ghStatus) ghStatus.textContent = "✓ " + mapped.length + " productos sincronizados.";
+          if (ghStatus) ghStatus.textContent = "✓ " + all.length + " productos sincronizados.";
         }
       });
     }

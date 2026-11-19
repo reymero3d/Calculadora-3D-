@@ -531,7 +531,14 @@
         if (res.error) { console.error(res.error); return; }
         prod = res.data;
       } else {
-        const res = await sb.from("products").insert(productRow).select().single();
+        let res = await sb.from("products").insert(productRow).select().single();
+        // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
+        if (res.error && res.error.code === "23505" && pr.name) {
+          const { data: same } = await sb.from("products").select("id").eq("name", pr.name).limit(1);
+          if (same && same.length) {
+            res = await sb.from("products").update(productRow).eq("id", same[0].id).select().single();
+          }
+        }
         if (res.error) { console.error(res.error); return; }
         prod = res.data;
         if (prod) { pr.id = "sb_" + prod.id; saveProducts(products); }
