@@ -179,24 +179,6 @@
         "rawPrice": 3500,
         "category": "Pistola"
       }
-    },
-    {
-      "id": "prod_1795071917366",
-      "name": "Tarjeta de kit de aviÃÂÃÂÃÂÃÂ³n Piper PA-28",
-      "data": {
-        "productName": "Tarjeta de kit de aviÃÂÃÂÃÂÃÂ³n Piper PA-28",
-        "category": "Aviones",
-        "colors": 1,
-        "hours": 8,
-        "minutes": 23,
-        "grams": 181,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8b2746718d2bd1/792841025/instance/3edba63648daaffb.png",
-        "rawPrice": 15000
-      }
     }
   ]
 }
