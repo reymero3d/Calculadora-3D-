@@ -181,42 +181,6 @@
       }
     },
     {
-      "id": "prod_1795071521057",
-      "name": "Minecraft Enderman - Articulado",
-      "data": {
-        "productName": "Minecraft Enderman - Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 1,
-        "minutes": 18,
-        "grams": 36,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US3d0f833e613585/775827977/instance/1d036a979da3d3c1.jpg",
-        "rawPrice": 3000
-      }
-    },
-    {
-      "id": "prod_1795071564957",
-      "name": "Minecraft Alex - Articulado",
-      "data": {
-        "productName": "Minecraft Alex - Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 3,
-        "minutes": 31,
-        "grams": 66,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USc7bcd5c62ba01e/868504148/instance/213542ec672d0b0f.png",
-        "rawPrice": 5000
-      }
-    },
-    {
       "id": "prod_1795071731051",
       "name": "Eevee golpeado por una pokebola (SIN AMSï¼",
       "data": {
