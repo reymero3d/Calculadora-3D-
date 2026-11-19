@@ -652,7 +652,7 @@
       }
     },
     {
-      "id": "prod_1795131518373",
+      "id": "sb_4b11f1ef-a20e-452a-b04d-f34453803fd1",
       "name": "Libélula mecánica sin soportes, se puede imprimir directamente desde el móvil incluso con MINI",
       "data": {
         "productName": "Libélula mecánica sin soportes, se puede imprimir directamente desde el móvil incluso con MINI",
@@ -670,6 +670,28 @@
         "published": true,
         "inStock": true,
         "rawPrice": 3500
+      },
+      "_sbJustSaved": 1795131518952
+    },
+    {
+      "id": "prod_1795131584388",
+      "name": "Pequeño dragón de plumas de fuego las alas se pueden mover al presionar se puede imprimir en MINI",
+      "data": {
+        "productName": "Pequeño dragón de plumas de fuego las alas se pueden mover al presionar se puede imprimir en MINI",
+        "category": "",
+        "colors": 1,
+        "hours": 3,
+        "minutes": 9,
+        "grams": 50,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8c8f53cfc00a0f/992697169/instance/fcc40462dea0992f.jpg",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 6000
       }
     }
   ]
