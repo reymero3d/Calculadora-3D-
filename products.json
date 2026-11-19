@@ -715,15 +715,15 @@
       }
     },
     {
-      "id": "prod_1795132364131",
+      "id": "sb_46de3810-e3c5-494a-a296-964a0e2f511e",
       "name": "Squirtle - Pokémon Articulado Flexible",
       "data": {
         "productName": "Squirtle - Pokémon Articulado Flexible",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 1,
-        "minutes": 44,
-        "grams": 41,
+        "hours": 12,
+        "minutes": 27,
+        "grams": 195,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
@@ -732,8 +732,9 @@
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USf05941ae3f7043/222024567/instance/2024-06-28_6ccaaa6264bdc.jpg",
         "published": true,
         "inStock": true,
-        "rawPrice": 4500
-      }
+        "rawPrice": 23000
+      },
+      "_sbJustSaved": 1795132364765
     }
   ]
 }
