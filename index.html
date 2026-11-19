@@ -588,7 +588,7 @@
     function loadProfiles() {
       try { return JSON.parse(localStorage.getItem("reymero-calc-profiles") || "[]"); } catch { return []; }
     }
-    function saveProfiles() { localStorage.setItem("reymero-calc-profiles", JSON.stringify(state.profiles)); }
+    function saveProfiles() { localStorage.setItem("reymero-calc-profiles", JSON.stringify(state.profiles)); if (state.ghToken) { ghPushProfiles(state.ghToken, state.profiles); } }
     function loadProducts() {
       try { return fixMojibakeObj(JSON.parse(localStorage.getItem("reymero-calc-products") || "[]")); } catch { return []; }
     }
@@ -1573,6 +1573,39 @@
       }
     }
 
+    const GH_PROFILE_FILE = "profiles.json";
+
+    async function ghFetchProfiles(token) {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PROFILE_FILE}`, {
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" },
+        });
+        if (!res.ok) return null;
+        const fileData = await res.json();
+        const content = JSON.parse(decodeURIComponent(escape(atob(fileData.content))));
+        return Array.isArray(content) ? content : (content.profiles || []);
+      } catch (e) { return null; }
+    }
+
+    async function ghPushProfiles(token, profiles) {
+      try {
+        let sha = null;
+        const getRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PROFILE_FILE}`, {
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" },
+        });
+        if (getRes.ok) sha = (await getRes.json()).sha;
+        const content = JSON.stringify({ profiles }, null, 2);
+        const body = { message: "sync: perfiles calculadora", content: btoa(unescape(encodeURIComponent(content))) };
+        if (sha) body.sha = sha;
+        const putRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PROFILE_FILE}`, {
+          method: "PUT",
+          headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json", "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        return putRes.ok;
+      } catch (e) { return false; }
+    }
+
     async function ghVerifyToken(token) {
       try {
         const res = await fetch("https://api.github.com/user", { headers: { Authorization: `token ${token}`, Accept: "application/vnd.github.v3+json" } });
@@ -1643,6 +1676,17 @@
           } else {
             if (ghStatus) ghStatus.textContent = "✓ Token OK. No se encontró products.json remoto aún.";
           }
+          // Fetch profiles
+          const remoteProf = await ghFetchProfiles(t);
+          if (remoteProf) {
+            const mergedP = [...state.profiles];
+            for (const rp of remoteProf) {
+              if (!mergedP.find(p => p.id === rp.id)) mergedP.push(rp);
+            }
+            state.profiles = mergedP;
+            saveProfiles();
+            refreshProfileMenu();
+          }
         } else {
           if (ghStatus) ghStatus.textContent = "✗ Token inválido.";
         }
@@ -1680,6 +1724,18 @@
           if (ghStatus) ghStatus.textContent = "✓ " + remote.length + " productos sincronizados automáticamente.";
         } else {
           if (ghStatus) ghStatus.textContent = "Token cargado. No se pudo sincronizar.";
+        }
+      });
+      // Fetch profiles
+      ghFetchProfiles(state.ghToken).then((remote) => {
+        if (remote && Array.isArray(remote)) {
+          const merged = [...state.profiles];
+          for (const rp of remote) {
+            if (!merged.find(p => p.id === rp.id)) merged.push(rp);
+          }
+          state.profiles = merged;
+          saveProfiles();
+          refreshProfileMenu();
         }
       });
     } else {
