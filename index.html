@@ -925,7 +925,7 @@
       // Poblar filtro de categorías
       const cf = document.getElementById("categoryFilter");
       if (cf) {
-        const cats = [...new Set(state.products.map(p => (p.data && p.data.category) || "").filter(Boolean))];
+        const cats = [...new Set(state.products.map(p => (p.data && p.data.category) || "").filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
         const cur = cf.value;
         cf.innerHTML = '<option value="">Todas</option>' + cats.map(c => '<option value="' + c + '">' + c + '</option>').join("");
         if (cur && cats.includes(cur)) cf.value = cur;
