@@ -361,21 +361,21 @@
       "id": "sb_4b11f1ef-a20e-452a-b04d-f34453803fd1",
       "name": "Libélula mecánica sin soportes, se puede imprimir directamente desde el móvil incluso con MINI",
       "data": {
-        "productName": "Libélula mecánica sin soportes, se puede imprimir directamente desde el móvil incluso con MINI",
-        "category": "Motos",
+        "productName": "Libélula mecánica",
+        "category": "Bichos",
         "colors": 1,
-        "hours": 1,
-        "minutes": 15,
-        "grams": 29,
+        "hours": 3,
+        "minutes": 39,
+        "grams": 74,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USbd2dbb8124e56b/1105698710/instance/16d816cb755d4aa5.jpg",
-        "published": false,
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USbd2dbb8124e56b/1105309511/instance/24590333ea898ec8.jpg",
+        "published": true,
         "inStock": true,
-        "rawPrice": 3500
+        "rawPrice": 8500
       }
     },
     {
