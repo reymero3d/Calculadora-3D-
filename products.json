@@ -56,9 +56,9 @@
     },
     {
       "id": "prod_1794967160655",
-      "name": "Disfraz de Ã¡rbol de Navidad de Pikachu",
+      "name": "Disfraz de ÃÂ¡rbol de Navidad de Pikachu",
       "data": {
-        "productName": "Disfraz de Ã¡rbol de Navidad de Pikachu",
+        "productName": "Disfraz de ÃÂ¡rbol de Navidad de Pikachu",
         "colors": 4,
         "hours": 7,
         "minutes": 0,
@@ -92,9 +92,9 @@
     },
     {
       "id": "prod_1795013229618",
-      "name": "Kurenai YÅ«hi Naruto Hueforge",
+      "name": "Kurenai YÃÂ«hi Naruto Hueforge",
       "data": {
-        "productName": "Kurenai YÅ«hi Naruto Hueforge",
+        "productName": "Kurenai YÃÂ«hi Naruto Hueforge",
         "colors": 4,
         "hours": 4,
         "minutes": 11,
@@ -164,9 +164,9 @@
     },
     {
       "id": "prod_1795039367895",
-      "name": "Llavero Fidget de Pistola Makarov PM â Juguete de AcciÃ³n Deslizante",
+      "name": "Llavero Fidget de Pistola Makarov PM Ã¢ÂÂ Juguete de AcciÃÂ³n Deslizante",
       "data": {
-        "productName": "Llavero Fidget de Pistola Makarov PM â Juguete de AcciÃ³n Deslizante",
+        "productName": "Llavero Fidget de Pistola Makarov PM Ã¢ÂÂ Juguete de AcciÃÂ³n Deslizante",
         "colors": 1,
         "hours": 1,
         "minutes": 48,
@@ -178,24 +178,6 @@
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USff923f0b0fa23a/856546711/instance/176bfaceecd7a5e9.jpg",
         "rawPrice": 3500,
         "category": "Pistola"
-      }
-    },
-    {
-      "id": "prod_1795071197852",
-      "name": "Fanart de Goku Daima (19 cm incl. base)",
-      "data": {
-        "productName": "Fanart de Goku Daima (19 cm incl. base)",
-        "category": "Dragon Ball",
-        "colors": 1,
-        "hours": 11,
-        "minutes": 46,
-        "grams": 208,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 3,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USa350299a48215e/218902334/instance/2024-11-07_817c95d6f8076.jpg",
-        "rawPrice": 18000
       }
     },
     {
@@ -272,9 +254,9 @@
     },
     {
       "id": "prod_1795071731051",
-      "name": "Eevee golpeado por una pokebola (SIN AMSï¼",
+      "name": "Eevee golpeado por una pokebola (SIN AMSÃ¯Â¼Â",
       "data": {
-        "productName": "Eevee golpeado por una pokebola (SIN AMSï¼",
+        "productName": "Eevee golpeado por una pokebola (SIN AMSÃ¯Â¼Â",
         "category": "Pokemon",
         "colors": 1,
         "hours": 4,
@@ -290,9 +272,9 @@
     },
     {
       "id": "prod_1795071917366",
-      "name": "Tarjeta de kit de aviÃ³n Piper PA-28",
+      "name": "Tarjeta de kit de aviÃÂ³n Piper PA-28",
       "data": {
-        "productName": "Tarjeta de kit de aviÃ³n Piper PA-28",
+        "productName": "Tarjeta de kit de aviÃÂ³n Piper PA-28",
         "category": "Aviones",
         "colors": 1,
         "hours": 8,
