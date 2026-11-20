@@ -883,10 +883,10 @@
       }
     },
     {
-      "id": "prod_1795138105990",
+      "id": "sb_608462fc-085a-4e6f-9104-6b53faef7b65",
       "name": "Pescador multiparte sin AMS",
       "data": {
-        "productName": "Pescador multiparte sin AMS",
+        "productName": "Pescador",
         "category": "Asesinos",
         "colors": 1,
         "hours": 5,
@@ -901,7 +901,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 12000
-      }
+      },
+      "_sbJustSaved": 1795138106524
     }
   ]
 }
