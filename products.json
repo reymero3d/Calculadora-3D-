@@ -799,10 +799,10 @@
       }
     },
     {
-      "id": "prod_1795137902137",
+      "id": "sb_3c47c6bc-9846-4997-965c-60287bfe7f90",
       "name": "Hannibal Lecter multipart sin AMS",
       "data": {
-        "productName": "Hannibal Lecter multipart sin AMS",
+        "productName": "Hannibal Lecter",
         "category": "Asesinos",
         "colors": 1,
         "hours": 5,
@@ -817,7 +817,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 10000
-      }
+      },
+      "_sbJustSaved": 1795137902918
     }
   ]
 }
