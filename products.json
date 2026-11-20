@@ -1114,7 +1114,7 @@
       }
     },
     {
-      "id": "prod_1795188880054",
+      "id": "sb_3d468c79-bbe6-4d8a-aa82-6e09210a6661",
       "name": "Minecraft Ghast Feliz - Articulado",
       "data": {
         "productName": "Minecraft Ghast Feliz - Articulado",
@@ -1132,7 +1132,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 9000
-      }
+      },
+      "_sbJustSaved": 1795188880591
     }
   ]
 }
