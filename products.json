@@ -22,6 +22,27 @@
       }
     },
     {
+      "id": "sb_03e7d61f-230c-4222-b981-3618a7f03bf7",
+      "name": "Arte de pared con el HUD de GTA",
+      "data": {
+        "productName": "Arte de pared con el HUD de GTA",
+        "category": "Cuadro",
+        "colors": 1,
+        "hours": 17,
+        "minutes": 33,
+        "grams": 302,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US31a4c0c89f4463/1156163420/instance/b9a87dcb44284ed7.jpg",
+        "rawPrice": 35000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_997fe4f6-65e1-4e39-9787-c101a8fee7bc",
       "name": "Casa KITcard de Navidad",
       "data": {
@@ -1093,26 +1114,25 @@
       }
     },
     {
-      "id": "sb_03e7d61f-230c-4222-b981-3618a7f03bf7",
-      "name": "Arte de pared con el HUD de GTA",
+      "id": "prod_1795188880054",
+      "name": "Minecraft Ghast Feliz - Articulado",
       "data": {
-        "productName": "Arte de pared con el HUD de GTA",
-        "category": "Cuadro",
+        "productName": "Minecraft Ghast Feliz - Articulado",
+        "category": "Minecraft",
         "colors": 1,
-        "hours": 17,
-        "minutes": 33,
-        "grams": 302,
+        "hours": 2,
+        "minutes": 53,
+        "grams": 81,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US31a4c0c89f4463/1156163420/instance/b9a87dcb44284ed7.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd1b24b65b98226/1141910777/instance/b314755ba19eb76d.jpg",
         "published": true,
         "inStock": true,
-        "rawPrice": 35000
-      },
-      "_sbJustSaved": 1795188155224
+        "rawPrice": 9000
+      }
     }
   ]
 }
