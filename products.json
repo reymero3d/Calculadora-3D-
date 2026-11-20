@@ -484,6 +484,27 @@
       }
     },
     {
+      "id": "sb_70dea212-d369-49c9-a621-9817a8f64e48",
+      "name": "Minecraft Warden Full Color",
+      "data": {
+        "productName": "Minecraft Warden Full Color",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 10,
+        "grams": 29,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US822f1862f9cf1a/design/2023-10-26_eec13b27bc087.jpg",
+        "rawPrice": 3500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_ddae8c0d-ba41-4acd-8e09-891c65407025",
       "name": "Mini Honda CRF250R de Motocross a Escala",
       "data": {
@@ -736,26 +757,25 @@
       }
     },
     {
-      "id": "sb_70dea212-d369-49c9-a621-9817a8f64e48",
-      "name": "Minecraft Warden Full Color",
+      "id": "prod_1795137766793",
+      "name": "Art el Payaso multiparte sin AMS",
       "data": {
-        "productName": "Minecraft Warden Full Color",
-        "category": "Minecraft",
+        "productName": "Art el Payaso multiparte sin AMS",
+        "category": "Asesinos",
         "colors": 1,
-        "hours": 2,
-        "minutes": 10,
-        "grams": 29,
+        "hours": 5,
+        "minutes": 35,
+        "grams": 82,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US822f1862f9cf1a/design/2023-10-26_eec13b27bc087.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US94c225ad4ff1eb/1014462489/instance/ab08eb25d4d03067.jpeg",
         "published": true,
         "inStock": true,
-        "rawPrice": 3500
-      },
-      "_sbJustSaved": 1795134069661
+        "rawPrice": 9500
+      }
     }
   ]
 }
