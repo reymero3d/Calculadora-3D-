@@ -100,6 +100,14 @@
     // En la APK usamos la descarga nativa: evita el CORS de MakerWorld.
     try { return await nativeBlob(url); }
     catch (e) { /* en la web caemos al fetch normal */ }
+
+    // MakerWorld no envía headers CORS: en la web las fotos se muestran con <img>,
+    // pero no se pueden guardar con fetch. Evitamos el error en consola.
+    try {
+      const u = new URL(url, location.href);
+      if (!global.Capacitor && /makerworld\.bblmw\.com$/i.test(u.hostname)) return null;
+    } catch (e) {}
+
     const res = await fetch(url, { mode: "cors" });
     if (!res.ok) throw new Error("No se pudo descargar la imagen");
     return await res.blob();
