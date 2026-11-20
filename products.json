@@ -1093,7 +1093,7 @@
       }
     },
     {
-      "id": "prod_1795188153933",
+      "id": "sb_03e7d61f-230c-4222-b981-3618a7f03bf7",
       "name": "Arte de pared con el HUD de GTA",
       "data": {
         "productName": "Arte de pared con el HUD de GTA",
@@ -1111,7 +1111,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 35000
-      }
+      },
+      "_sbJustSaved": 1795188155224
     }
   ]
 }
