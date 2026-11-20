@@ -62,7 +62,9 @@
     .prod-card .name { font-family: "Fraunces", serif; font-weight: 700; font-size: 1.1rem; margin: 0; }
     .prod-card .meta { font-size: .72rem; color: var(--muted); }
     .prod-card .price { font-family: "JetBrains Mono", monospace; font-weight: 800; font-size: 1.4rem; color: var(--accent); margin-top: .4rem; }
-    .prod-card .actions { display: flex; gap: .4rem; margin-top: .6rem; }
+    .prod-card .actions { display: grid; grid-template-columns: 1fr 1fr; gap: .4rem; margin-top: .6rem; }
+    .prod-card .actions .btn { width: 100%; }
+    .prod-card .actions .span-2 { grid-column: 1 / -1; }
     .btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; border-radius: 3px; font-weight: 600; font-size: .8rem; padding: .5rem .8rem; cursor: pointer; transition: all .15s; border: 1.5px solid transparent; font-family: inherit; text-transform: uppercase; letter-spacing: .04em; }
     .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
     .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
@@ -92,8 +94,7 @@
       .search-bar { flex-direction: column; }
       .search-bar input, .search-bar select, .search-bar button { width: 100%; }
       .catalog { grid-template-columns: 1fr; gap: 1rem; }
-      .prod-card .actions { flex-direction: column; }
-      .prod-card .actions .btn { width: 100%; }
+      .prod-card .actions { grid-template-columns: 1fr 1fr; }
       .stats { flex-direction: column; gap: .5rem; }
       #editModal > div { padding: 1.25rem; max-width: 95vw; }
     }
@@ -741,11 +742,11 @@
                 <div class="price">${money(sale, code)}</div>
                 ${d.published !== false ? `<div style="font-size:.7rem;color:#15803d;font-weight:700;">● Publicado en tienda</div>` : `<div style="font-size:.7rem;color:var(--muted-2);font-weight:600;">○ Oculto de la tienda</div>`}
                 <div class="actions">
-                  <button class="btn ${d.published !== false ? 'btn-ghost' : 'btn-primary'}" data-pub="${i}" style="flex:1;">${d.published !== false ? 'Ocultar' : 'Publicar'}</button>
-                  <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
-                  <button class="btn btn-primary" data-sell="${i}" style="flex:1;">Vender</button>
-                  <button class="btn btn-ghost" data-dup="${i}" style="flex:1;">Duplicar</button>
-                  <button class="btn btn-danger" data-del="${i}" style="flex:1;">Eliminar</button>
+                  <button class="btn ${d.published !== false ? 'btn-ghost' : 'btn-primary'}" data-pub="${i}">${d.published !== false ? 'Ocultar' : 'Publicar'}</button>
+                  <button class="btn btn-outline" data-edit="${i}">Editar</button>
+                  <button class="btn btn-primary" data-sell="${i}">Vender</button>
+                  <button class="btn btn-danger" data-del="${i}">Eliminar</button>
+                  <button class="btn btn-ghost span-2" data-dup="${i}">Duplicar</button>
                 </div>
               </div>
             </div>`;
