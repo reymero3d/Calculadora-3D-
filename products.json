@@ -1156,10 +1156,10 @@
       }
     },
     {
-      "id": "prod_1795212472326",
+      "id": "sb_eacf8657-0969-4053-9ba2-823620cb497e",
       "name": "Figura articulada del Warden de Minecraft (sin AMS)",
       "data": {
-        "productName": "Figura articulada del Warden de Minecraft (sin AMS)",
+        "productName": "Figura articulada del Warden de Minecraft",
         "category": "Minecraft",
         "colors": 1,
         "hours": 8,
@@ -1174,7 +1174,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 21000
-      }
+      },
+      "_sbJustSaved": 1795212472949
     }
   ]
 }
