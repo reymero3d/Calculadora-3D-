@@ -862,7 +862,7 @@
       }
     },
     {
-      "id": "prod_1795138066502",
+      "id": "sb_c200ea58-4773-46ba-b694-68ba135a657b",
       "name": "Jigsaw multipart sin AMS",
       "data": {
         "productName": "Jigsaw multipart sin AMS",
@@ -880,7 +880,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 7000
-      }
+      },
+      "_sbJustSaved": 1795138067069
     }
   ]
 }
