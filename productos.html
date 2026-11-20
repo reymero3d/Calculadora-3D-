@@ -68,6 +68,8 @@
     .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
     .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
     .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+    .btn-danger { background: transparent; color: #dc2626; border-color: #fca5a5; }
+    .btn-danger:hover { background: #fef2f2; border-color: #dc2626; }
     .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
     .btn-full { width: 100%; }
@@ -743,7 +745,7 @@
                   <button class="btn btn-outline" data-edit="${i}" style="flex:1;">Editar</button>
                   <button class="btn btn-primary" data-sell="${i}" style="flex:1;">Vender</button>
                   <button class="btn btn-ghost" data-dup="${i}" style="flex:1;">Duplicar</button>
-                  <button class="btn btn-ghost" data-del="${i}" style="flex:1;">Quitar</button>
+                  <button class="btn btn-danger" data-del="${i}" style="flex:1;">Eliminar</button>
                 </div>
               </div>
             </div>`;
