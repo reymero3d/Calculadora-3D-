@@ -946,10 +946,10 @@
       }
     },
     {
-      "id": "prod_1795138342534",
+      "id": "sb_12e8994d-bf58-4fa3-8934-ec0017fbdeee",
       "name": "Pennywise multiparte sin AMS",
       "data": {
-        "productName": "Pennywise multiparte sin AMS",
+        "productName": "Pennywise",
         "category": "Asesinos",
         "colors": 1,
         "hours": 3,
@@ -964,7 +964,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 9500
-      }
+      },
+      "_sbJustSaved": 1795138343122
     }
   ]
 }
