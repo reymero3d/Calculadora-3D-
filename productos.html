@@ -267,6 +267,88 @@
     function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
     function escapeHtml(s){ return String(s??"").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
 
+    // --- Helpers de imagen para PDF ---
+    function pdfImageFormat(dataUrl) {
+      const m = String(dataUrl || "").match(/^data:image\/([a-zA-Z0-9+.-]+);/);
+      const t = ((m && m[1]) || "").toLowerCase();
+      if (t === "jpg" || t === "jpeg") return "JPEG";
+      if (t === "png") return "PNG";
+      if (t === "webp") return "WEBP";
+      return "";
+    }
+
+    function imageToJpegDataUrl(image) {
+      const w = image.naturalWidth || image.width || 1;
+      const h = image.naturalHeight || image.height || 1;
+      const scale = Math.min(1, 900 / w, 900 / h);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(w * scale));
+      canvas.height = Math.max(1, Math.round(h * scale));
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      return {
+        dataUrl: canvas.toDataURL("image/jpeg", 0.85),
+        format: "JPEG",
+        width: canvas.width,
+        height: canvas.height,
+      };
+    }
+
+    function loadImageElement(src, useCors) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        if (useCors) image.crossOrigin = "anonymous";
+        image.onload = () => resolve(image);
+        image.onerror = reject;
+        image.src = src;
+      });
+    }
+
+    async function loadPdfImage(src) {
+      if (!src) return null;
+      const isData = String(src).startsWith("data:");
+
+      // 1) Supabase Storage / URLs con CORS: fetch -> blob -> imagen normalizada
+      if (!isData) {
+        try {
+          const controller = new AbortController();
+          const timer = setTimeout(() => controller.abort(), 8000);
+          let res = null, blob = null;
+          try {
+            res = await fetch(src, { mode: "cors", signal: controller.signal });
+            if (res.ok) blob = await res.blob();
+          } finally {
+            clearTimeout(timer);
+          }
+          if (blob && blob.size > 0) {
+            const dataUrl = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => resolve(r.result);
+              r.onerror = reject;
+              r.readAsDataURL(blob);
+            });
+            try {
+              return imageToJpegDataUrl(await loadImageElement(dataUrl, false));
+            } catch (e) {
+              const f = pdfImageFormat(dataUrl);
+              if (f) return { dataUrl, format: f, width: 0, height: 0 };
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 2) URL remota con CORS / 3) data URL / 4) último intento sin CORS
+      for (const useCors of [!isData, false]) {
+        try {
+          return imageToJpegDataUrl(await loadImageElement(src, useCors));
+        } catch (e) {}
+      }
+      const f = pdfImageFormat(src);
+      return f ? { dataUrl: src, format: f, width: 0, height: 0 } : null;
+    }
+
     async function generateSellPdf(p) {
       if (typeof window.jspdf === "undefined") { toast("jsPDF no cargó."); return; }
       const { jsPDF } = window.jspdf;
@@ -274,6 +356,8 @@
       const code = d.currency || "ARS";
       const sym = SYM[code] || "$";
       const price = M(d.rawPrice) || 0;
+      const name = String(d.productName || p.name || "Producto").trim();
+      const num = n => (Number.isFinite(n) ? n : 0).toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
       const doc = new jsPDF({ unit: "mm", format: "a4" });
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
@@ -281,111 +365,164 @@
       const contentW = pageW - margin * 2;
       let y = 16;
 
+      toast("Preparando PDF...");
+
+      // Cabecera
+      doc.setFillColor(28, 25, 23);
+      doc.rect(0, 0, pageW, 34, "F");
       doc.setFillColor(185, 28, 28);
-      doc.rect(0, 0, pageW, 30, "F");
+      doc.rect(0, 31, pageW, 3, "F");
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
+      doc.setFontSize(17);
       doc.setTextColor(255, 255, 255);
-      doc.text("Reymero3d", margin, 12);
+      doc.text("Reymero3d", margin, 13);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(252, 165, 165);
+      doc.text("Impresión 3D · Presupuesto", margin, 20);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text(new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }), pageW - margin, 13, { align: "right" });
+      doc.setTextColor(252, 165, 165);
+      doc.text("Tel 1167994767", pageW - margin, 20, { align: "right" });
+      y = 46;
+
+      // Título
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.setTextColor(185, 28, 28);
+      doc.text("PRESUPUESTO", margin, y);
+      y += 4;
+      doc.setDrawColor(185, 28, 28);
+      doc.setLineWidth(1);
+      doc.line(margin, y, margin + 38, y);
+      doc.setLineWidth(0.2);
+      y += 10;
+
+      // Imagen de referencia + ficha del producto
+      const box = { x: margin, y: y, w: 72, h: 68 };
+      const pdfImg = await loadPdfImage(d.productImage || "");
+      doc.setFillColor(245, 241, 234);
+      doc.setDrawColor(222, 214, 200);
+      doc.roundedRect(box.x, box.y, box.w, box.h, 3, 3, "FD");
+      if (pdfImg) {
+        try {
+          let props = null;
+          try { props = doc.getImageProperties(pdfImg.dataUrl); } catch (e) {}
+          const iw = pdfImg.width || (props && props.width) || 1;
+          const ih = pdfImg.height || (props && props.height) || 1;
+          const scale = Math.min((box.w - 4) / iw, (box.h - 4) / ih);
+          const dw = Math.max(1, iw * scale);
+          const dh = Math.max(1, ih * scale);
+          doc.addImage(pdfImg.dataUrl, pdfImg.format, box.x + (box.w - dw) / 2, box.y + (box.h - dh) / 2, dw, dh);
+        } catch (e) {
+          doc.setFont("helvetica", "italic");
+          doc.setFontSize(9);
+          doc.setTextColor(154, 145, 132);
+          doc.text("Sin imagen de referencia", box.x + box.w / 2, box.y + box.h / 2, { align: "center" });
+        }
+      } else {
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
+        doc.setTextColor(154, 145, 132);
+        doc.text("Sin imagen de referencia", box.x + box.w / 2, box.y + box.h / 2, { align: "center" });
+      }
+
+      const rx = box.x + box.w + 8;
+      const rw = pageW - margin - rx;
+      let ry = box.y + 1;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(8);
+      doc.setTextColor(154, 145, 132);
+      doc.text("PRODUCTO", rx, ry);
+      ry += 7;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.setTextColor(38, 34, 29);
+      const nameLines = doc.splitTextToSize(name, rw);
+      doc.text(nameLines.slice(0, 3), rx, ry);
+      ry += Math.min(nameLines.length, 3) * 6 + 2;
+      if (d.category) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(107, 99, 89);
+        doc.text("Categoría: " + d.category, rx, ry);
+        ry += 6;
+      }
+      doc.setDrawColor(222, 214, 200);
+      doc.line(rx, ry, rx + rw, ry);
+      ry += 7;
+
+      const specs = [];
+      specs.push(["Cantidad", String(M(d.quantity) || 1)]);
+      specs.push(["Colores", String(M(d.colors) || 1)]);
+      if (M(d.grams) > 0) specs.push(["Material", M(d.grams) + " g"]);
+      if (M(d.hours) + M(d.minutes) > 0) specs.push(["Impresión", M(d.hours) + " h " + M(d.minutes) + " min"]);
+      if (M(d.insumos) > 0) specs.push(["Insumos", String(M(d.insumos))]);
+      specs.forEach(([k, v]) => {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9.5);
+        doc.setTextColor(107, 99, 89);
+        doc.text(k, rx, ry);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(38, 34, 29);
+        doc.text(v, rx + rw, ry, { align: "right" });
+        ry += 6;
+      });
+
+      y = box.y + box.h + 10;
+
+      // Precio
+      doc.setFillColor(185, 28, 28);
+      doc.roundedRect(margin, y, contentW, 34, 4, 4, "F");
+      doc.setFillColor(153, 27, 27);
+      doc.roundedRect(margin, y, contentW, 4, 4, 4, "F");
+      doc.rect(margin, y + 2, contentW, 2, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(255, 220, 220);
+      doc.text("PRECIO FINAL", margin + 8, y + 12);
+      doc.setFontSize(24);
+      doc.setTextColor(255, 255, 255);
+      doc.text(sym + " " + num(price), margin + 8, y + 26);
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(255, 220, 220);
-      doc.text("Presupuesto de producto", margin, 19);
-      doc.setFontSize(9);
-      doc.setTextColor(255, 255, 255);
-      doc.text(new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }), pageW - margin, 12, { align: "right" });
-      y = 38;
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(20);
-      doc.setTextColor(38, 34, 29);
-      doc.text(p.name || "Producto", margin, y);
-      y += 8;
-
-      // Foto del producto
-      let img = d.productImage || "";
-      if (img && !img.startsWith("data:")) {
-        // Convertir URL a base64 para poder incrustarla en el PDF
-        try {
-          const res = await fetch(img, { mode: "cors" });
-          if (res.ok) {
-            const blob = await res.blob();
-            img = await new Promise((resolve, reject) => {
-              const r = new FileReader();
-              r.onload = () => resolve(r.result);
-              r.onerror = reject;
-              r.readAsDataURL(blob);
-            });
-          }
-        } catch (e) {}
-        if (!img.startsWith("data:")) {
-          try {
-            img = await new Promise((resolve, reject) => {
-              const image = new Image();
-              image.crossOrigin = "anonymous";
-              image.onload = () => {
-                try {
-                  const canvas = document.createElement("canvas");
-                  const maxW = 320;
-                  const scale = Math.min(1, maxW / (image.width || 1));
-                  canvas.width = Math.max(1, Math.round((image.width || 1) * scale));
-                  canvas.height = Math.max(1, Math.round((image.height || 1) * scale));
-                  const ctx = canvas.getContext("2d");
-                  ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
-                  resolve(canvas.toDataURL("image/jpeg", 0.75));
-                } catch (e) { reject(e); }
-              };
-              image.onerror = reject;
-              image.src = d.productImage;
-            });
-          } catch (e) {}
-        }
-      }
-      if (img) {
-        try {
-          doc.addImage(img, "JPEG", margin, y, 60, 60);
-          y += 64;
-        } catch (e) {
-          // si falla el formato, ignorar
-        }
-      }
-
-      doc.setFont("helvetica", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(107, 99, 89);
-      if (d.productName) { doc.text(d.productName, margin, y); y += 5; }
-      const qty = d.quantity || 1;
-      const colors = d.colors || 1;
-      const grams = d.grams || 0;
-      const hours = d.hours || 0;
-      const minutes = d.minutes || 0;
-      doc.text("Cantidad: " + qty, margin, y); y += 5;
-      doc.text("Colores: " + colors, margin, y); y += 5;
-      if (grams > 0) { doc.text("Peso de material: " + grams + " g", margin, y); y += 5; }
-      const tiempo = hours + (minutes || 0) / 60;
-      if (tiempo > 0) { doc.text("Tiempo de impresión: " + hours + " h " + (minutes || 0) + " min", margin, y); y += 5; }
-      y += 4;
-
-      doc.setFillColor(185, 28, 28);
-      doc.roundedRect(margin, y, contentW, 28, 3, 3, "F");
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
-      doc.setTextColor(255, 255, 255);
-      doc.text("PRECIO FINAL", margin + 8, y + 9);
-      doc.setFontSize(20);
-      doc.text(sym + " " + (Number.isFinite(price) ? price.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00"), margin + 8, y + 21);
-      y += 34;
+      doc.text("Consultá disponibilidad por WhatsApp", pageW - margin - 8, y + 26, { align: "right" });
+      y += 42;
 
       doc.setFont("helvetica", "italic");
       doc.setFontSize(9);
       doc.setTextColor(107, 99, 89);
       doc.text("Presupuesto sujeto a confirmación. Válido por 7 días.", margin, y);
       y += 6;
-      doc.text("Gracias por tu consulta.", margin, y);
+      doc.text("Incluye material, mano de obra y acabado. Consultar por otros colores y cantidades.", margin, y);
 
+      // Contacto
+      const fy = pageH - 30;
+      doc.setFillColor(28, 25, 23);
+      doc.roundedRect(margin, fy, contentW, 20, 3, 3, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.setTextColor(255, 255, 255);
+      doc.text("Reymero3d", margin + 7, fy + 8);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(252, 165, 165);
+      doc.text("Impresión 3D personalizada", margin + 7, fy + 14);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(255, 255, 255);
+      doc.text("WhatsApp", pageW - margin - 7, fy + 8, { align: "right" });
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(252, 165, 165);
+      doc.text("11 6799-4767", pageW - margin - 7, fy + 14, { align: "right" });
+      try { doc.link(pageW - margin - 50, fy + 3, 50, 13, { url: "https://wa.me/5491167994767" }); } catch (e) {}
+      doc.setFont("helvetica", "normal");
       doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text("Reymero3d · Impresión 3D personalizada · Tel 1167994767", pageW / 2, pageH - 8, { align: "center" });
+      doc.setTextColor(154, 145, 132);
+      doc.text("Reymero3d · Impresión 3D a medida · Presupuesto generado automáticamente", pageW / 2, pageH - 6, { align: "center" });
 
       doc.save("presupuesto-" + (p.name || "producto").replace(/[^a-z0-9]/gi, "_").toLowerCase() + ".pdf");
       toast("PDF generado");
