@@ -863,7 +863,7 @@
     },
     {
       "id": "sb_608462fc-085a-4e6f-9104-6b53faef7b65",
-      "name": "Pescador multiparte sin AMS",
+      "name": "Pescador",
       "data": {
         "productName": "Pescador",
         "category": "Asesinos",
@@ -877,7 +877,7 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USe351b0974c715b/468205857/instance/2025-11-08_3498a3297865d.jpeg",
-        "rawPrice": 12000,
+        "rawPrice": 10000,
         "published": true,
         "inStock": true
       }
