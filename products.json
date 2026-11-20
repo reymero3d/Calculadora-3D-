@@ -358,6 +358,27 @@
       }
     },
     {
+      "id": "sb_c200ea58-4773-46ba-b694-68ba135a657b",
+      "name": "Jigsaw multipart sin AMS",
+      "data": {
+        "productName": "Jigsaw multipart sin AMS",
+        "category": "Asesinos",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 32,
+        "grams": 63,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US26dc9eda33267f/1114434273/instance/1aab7a170ea42035.jpeg",
+        "rawPrice": 7000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_784cd955-dfa7-47cd-84a6-dbd0ca17172b",
       "name": "Kit de helicóptero AH-64",
       "data": {
@@ -862,26 +883,25 @@
       }
     },
     {
-      "id": "sb_c200ea58-4773-46ba-b694-68ba135a657b",
-      "name": "Jigsaw multipart sin AMS",
+      "id": "prod_1795138105990",
+      "name": "Pescador multiparte sin AMS",
       "data": {
-        "productName": "Jigsaw multipart sin AMS",
+        "productName": "Pescador multiparte sin AMS",
         "category": "Asesinos",
         "colors": 1,
-        "hours": 2,
-        "minutes": 32,
-        "grams": 63,
+        "hours": 5,
+        "minutes": 1,
+        "grams": 107,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US26dc9eda33267f/1114434273/instance/1aab7a170ea42035.jpeg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USe351b0974c715b/468205857/instance/2025-11-08_3498a3297865d.jpeg",
         "published": true,
         "inStock": true,
-        "rawPrice": 7000
-      },
-      "_sbJustSaved": 1795138067069
+        "rawPrice": 12000
+      }
     }
   ]
 }
