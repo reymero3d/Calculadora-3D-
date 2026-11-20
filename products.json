@@ -1030,10 +1030,10 @@
       }
     },
     {
-      "id": "prod_1795143093692",
+      "id": "sb_b901cff9-4e52-4e5c-a1fa-f63bb29af360",
       "name": "Magikarp Múltiples partes 14cm de altura sobre base",
       "data": {
-        "productName": "Magikarp Múltiples partes 14cm de altura sobre base",
+        "productName": "Magikarp 14cm",
         "category": "Pokemon",
         "colors": 1,
         "hours": 8,
@@ -1048,7 +1048,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 15500
-      }
+      },
+      "_sbJustSaved": 1795143094258
     }
   ]
 }
