@@ -736,6 +736,27 @@
       }
     },
     {
+      "id": "sb_350c02c0-1e17-4152-8601-26048519819f",
+      "name": "Minecraft Ghast Feliz - Articulado",
+      "data": {
+        "productName": "Minecraft Ghast Feliz - Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 53,
+        "grams": 81,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd1b24b65b98226/1141910777/instance/b314755ba19eb76d.jpg",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 9000
+      }
+    },
+    {
       "id": "sb_70dea212-d369-49c9-a621-9817a8f64e48",
       "name": "Minecraft Warden Full Color",
       "data": {
@@ -1112,28 +1133,6 @@
         "published": true,
         "inStock": true
       }
-    },
-    {
-      "id": "sb_350c02c0-1e17-4152-8601-26048519819f",
-      "name": "Minecraft Ghast Feliz - Articulado",
-      "data": {
-        "productName": "Minecraft Ghast Feliz - Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 2,
-        "minutes": 53,
-        "grams": 81,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd1b24b65b98226/1141910777/instance/b314755ba19eb76d.jpg",
-        "published": true,
-        "inStock": true,
-        "rawPrice": 9000
-      },
-      "_sbJustSaved": 1795189703309
     }
   ]
 }
