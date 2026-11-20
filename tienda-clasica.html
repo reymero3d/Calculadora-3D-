@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tienda · Reymero3d</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg:#f4f0e9; --surface:#fffdf9; --surface-2:#efe9df; --border:#ded6c8;
+      --text:#26221d; --muted:#6b6359; --muted-2:#9a9184;
+      --accent:#b91c1c; --accent-dark:#991b1b; --accent-soft:#fbeeec;
+      --green:#15803d; --shadow:0 1px 2px rgba(38,34,29,.05);
+      --shadow-md:0 6px 18px rgba(38,34,29,.08); --shadow-lg:0 18px 40px rgba(38,34,29,.14);
+      --radius:12px;
+    }
+    body.dark {
+      --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33;
+      --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70;
+      --accent:#ef4444; --accent-dark:#dc2626; --accent-soft:#3a1f1f;
+      --green:#4ade80; --shadow:0 1px 2px rgba(0,0,0,.3);
+      --shadow-md:0 6px 18px rgba(0,0,0,.35); --shadow-lg:0 18px 40px rgba(0,0,0,.5);
+    }
+    * { box-sizing: border-box; }
+    html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Inter","Segoe UI",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
+    body { min-height:100vh; background:radial-gradient(circle at 1px 1px, rgba(38,34,29,.045) 1px, transparent 0) 0 0/24px 24px, linear-gradient(180deg,#f8f4ed 0%,var(--bg) 340px); }
+    body.dark { background:radial-gradient(circle at 1px 1px, rgba(251,248,243,.045) 1px, transparent 0) 0 0/24px 24px, linear-gradient(180deg,#201d19 0%,var(--bg) 340px); }
+    .app { max-width:1280px; margin:0 auto; padding:0 1.5rem 3rem; }
+
+    /* Hero */
+    .hero { background:linear-gradient(135deg,#1c1917 0%,#2d1d1a 100%); color:#fbf8f3; padding:3rem 2.5rem 2.75rem; margin:1.5rem -1.5rem 0; position:relative; overflow:hidden; border-bottom:3px solid var(--accent); border-radius:0 0 18px 18px; }
+    .hero::before { content:""; position:absolute; inset:0; background:repeating-linear-gradient(90deg, transparent 0, transparent 39px, rgba(251,248,243,.04) 39px, rgba(251,248,243,.04) 40px); }
+    .hero::after { content:""; position:absolute; width:360px; height:360px; right:-90px; top:-150px; border-radius:50%; border:1px solid rgba(251,248,243,.09); box-shadow:0 0 0 60px rgba(251,248,243,.025),0 0 0 120px rgba(251,248,243,.015); pointer-events:none; }
+    .hero-content { position:relative; z-index:1; display:flex; justify-content:space-between; align-items:flex-end; gap:2rem; }
+    .eyebrow { display:flex; align-items:center; gap:.6rem; font-family:"JetBrains Mono",monospace; font-size:.68rem; text-transform:uppercase; letter-spacing:.18em; color:#fca5a5; margin-bottom:1rem; }
+    .eyebrow::before { content:""; width:22px; height:2px; background:var(--accent); }
+    .hero h1 { margin:0; font-family:"Fraunces",serif; font-size:clamp(2.2rem,5vw,3.4rem); font-weight:700; letter-spacing:-.02em; line-height:1.05; }
+    .hero h1 span { color:#fca5a5; }
+    .hero p { margin:.7rem 0 0; opacity:.78; font-size:1.02rem; line-height:1.6; max-width:560px; }
+    .hero-nav { display:flex; gap:.5rem; margin-top:1.4rem; flex-wrap:wrap; }
+    .hero-nav a { color:#fbf8f3; text-decoration:none; font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:.45rem .85rem; border:1px solid rgba(251,248,243,.28); border-radius:99px; font-family:"JetBrains Mono",monospace; transition:background .15s,border-color .15s; }
+    .hero-nav a:hover, .hero-nav a.active { background:var(--accent); border-color:var(--accent); }
+    .hero-meta { display:flex; flex-direction:column; align-items:flex-end; gap:.8rem; font-family:"JetBrains Mono",monospace; font-size:.72rem; opacity:.85; text-align:right; line-height:1.7; border-left:1px solid rgba(251,248,243,.18); padding-left:1.25rem; white-space:nowrap; }
+    .theme-toggle { display:inline-flex; align-items:center; gap:.4rem; background:rgba(255,255,255,.06); color:#fbf8f3; border:1px solid rgba(251,248,243,.3); border-radius:99px; padding:.45rem .85rem; font-family:"JetBrains Mono",monospace; font-size:.72rem; font-weight:600; letter-spacing:.06em; cursor:pointer; transition:background .15s,border-color .15s; opacity:1; }
+    .theme-toggle:hover { background:rgba(255,255,255,.15); border-color:rgba(251,248,243,.6); }
+
+    /* Filtros */
+    .search-bar { position:sticky; top:0; z-index:20; display:grid; grid-template-columns:minmax(220px,2fr) minmax(160px,1fr) minmax(200px,1fr); gap:.75rem; margin-top:-1.5rem; padding:1rem; background:rgba(255,253,249,.93); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md); }
+    body.dark .search-bar { background:rgba(33,30,26,.94); }
+    .field { display:block; min-width:0; }
+    .field > span { display:block; font-size:.64rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:0 0 .4rem .15rem; }
+    .search-bar input, .search-bar select { width:100%; min-width:0; padding:.72rem .9rem; border:1.5px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font-size:.9rem; font-family:inherit; box-shadow:var(--shadow); transition:border-color .15s,box-shadow .15s; outline:none; }
+    .search-bar select { cursor:pointer; appearance:none; background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6359' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right .85rem center; padding-right:2.2rem; }
+    .search-bar input:focus, .search-bar select:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(185,28,28,.12); }
+    .search-bar input::placeholder { color:var(--muted-2); }
+
+    .toolbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1.75rem; padding-bottom:.7rem; border-bottom:1px solid var(--border); }
+    .toolbar .count { font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+    .toolbar .count::before { content:""; display:inline-block; width:18px; height:2px; background:var(--accent); vertical-align:middle; margin-right:.55rem; }
+    .toolbar .hint { font-size:.75rem; color:var(--muted-2); }
+
+    /* Catálogo */
+    .catalog, .skeleton-catalog { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:1.5rem; margin-top:1.5rem; }
+    .prod-card { position:relative; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); display:flex; flex-direction:column; text-decoration:none; color:inherit; transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease; }
+    .prod-card:hover { transform:translateY(-4px); box-shadow:var(--shadow-lg); border-color:#cdb0ac; }
+    .prod-card:focus-visible { outline:3px solid rgba(185,28,28,.35); outline-offset:3px; }
+    .prod-card .img { position:relative; height:210px; background:var(--surface-2); overflow:hidden; display:flex; align-items:center; justify-content:center; }
+    .prod-card .img img { width:100%; height:100%; object-fit:cover; transition:transform .5s ease; }
+    .prod-card:hover .img img { transform:scale(1.06); }
+    .prod-card .img::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 55%,rgba(28,25,23,.16)); pointer-events:none; }
+    .prod-card .img .placeholder { color:var(--muted-2); font-size:.8rem; font-style:italic; }
+    .prod-card .cat { position:absolute; left:.75rem; top:.75rem; z-index:1; font-size:.62rem; color:var(--accent); font-weight:800; text-transform:uppercase; letter-spacing:.06em; background:rgba(255,253,249,.94); border:1px solid var(--border); border-radius:99px; padding:.28rem .65rem; box-shadow:var(--shadow); max-width:calc(100% - 1.5rem); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    body.dark .prod-card .cat { background:rgba(33,30,26,.95); }
+    .prod-card .body { padding:1.1rem 1.1rem 1rem; flex:1; display:flex; flex-direction:column; gap:.45rem; }
+    .prod-card .name { font-family:"Fraunces",serif; font-weight:700; font-size:1.12rem; margin:0; line-height:1.25; }
+    .prod-card .desc { font-size:.8rem; color:var(--muted); line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+    .prod-card .stock { display:flex; align-items:center; gap:.45rem; font-size:.7rem; color:var(--green); font-weight:600; }
+    .prod-card .stock .dot { width:6px; height:6px; border-radius:50%; background:#22c55e; box-shadow:0 0 0 3px rgba(34,197,94,.15); }
+    .prod-card .price-row { display:flex; align-items:baseline; justify-content:space-between; gap:.5rem; margin-top:auto; padding-top:.8rem; border-top:1px solid var(--border); }
+    .prod-card .price { font-family:"JetBrains Mono",monospace; font-weight:800; font-size:1.35rem; color:var(--accent); letter-spacing:-.03em; }
+    .prod-card .view { font-size:.64rem; color:var(--muted-2); text-transform:uppercase; letter-spacing:.06em; white-space:nowrap; transition:color .15s,transform .15s; }
+    .prod-card:hover .view { color:var(--accent); transform:translateX(3px); }
+
+    /* Carga y vacío */
+    .skeleton-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); }
+    .skeleton-card .sk-img, .skeleton-card .sk-line { background:linear-gradient(90deg,#ece7de 25%,#f6f2eb 50%,#ece7de 75%); background-size:200% 100%; animation:shimmer 1.5s infinite linear; }
+    .skeleton-card .sk-img { height:210px; }
+    .skeleton-card .sk-body { padding:1.1rem; }
+    .skeleton-card .sk-line { height:11px; border-radius:4px; margin-bottom:.7rem; }
+    .skeleton-card .sk-line.short { width:55%; }
+    .skeleton-card .sk-line.price { height:20px; width:40%; margin-top:1.2rem; margin-bottom:0; }
+    body.dark .skeleton-card .sk-img, body.dark .skeleton-card .sk-line { background:linear-gradient(90deg,#2c2721 25%,#3a342c 50%,#2c2721 75%); background-size:200% 100%; }
+    @keyframes shimmer { from { background-position:200% 0; } to { background-position:-200% 0; } }
+    .empty { text-align:center; padding:4rem 1rem; color:var(--muted); }
+    .empty-icon { width:64px; height:64px; margin:0 auto 1.1rem; border-radius:50%; background:var(--accent-soft); color:var(--accent); display:flex; align-items:center; justify-content:center; }
+    .empty p { margin:.3rem 0; font-style:italic; }
+    .empty .empty-sub { font-size:.82rem; color:var(--muted-2); font-style:normal; }
+
+    .site-footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:1rem; flex-wrap:wrap; font-size:.75rem; color:var(--muted); }
+    .site-footer a { color:var(--accent); text-decoration:none; font-weight:700; }
+    .site-footer a:hover { text-decoration:underline; }
+
+    .toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:6px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; }
+    .toast.show { transform:translateY(0); }
+    body.dark .toast { background:#0f0d0b; }
+    .whatsapp-btn { display:inline-flex; align-items:center; gap:.5rem; background:#25D366; color:#fff; padding:.7rem 1.2rem; border-radius:4px; font-weight:600; font-size:.85rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; transition:background .15s; }
+    .whatsapp-btn:hover { background:#1ebe57; }
+
+    @media (max-width:900px) {
+      .hero { padding:2.5rem 1.75rem 2.25rem; }
+      .hero-content { align-items:flex-start; }
+      .search-bar { grid-template-columns:1fr 1fr; }
+      .search-bar .field:first-child { grid-column:1 / -1; }
+    }
+    @media (max-width:640px) {
+      .app { padding:0 1rem 2.5rem; }
+      .hero { padding:2rem 1.25rem 2rem; margin:1rem -1rem 0; }
+      .hero h1 { font-size:2rem; }
+      .hero p { font-size:.95rem; }
+      .hero-content { flex-direction:column; gap:1rem; }
+      .hero-meta { align-items:flex-start; text-align:left; border-left:0; border-top:1px solid rgba(251,248,243,.18); padding-left:0; padding-top:.75rem; }
+      .search-bar { grid-template-columns:1fr; margin-top:-1rem; padding:.85rem; }
+      .search-bar .field:first-child { grid-column:auto; }
+      .catalog, .skeleton-catalog { grid-template-columns:1fr; gap:1.1rem; }
+      .prod-card .img, .skeleton-card .sk-img { height:190px; }
+      .toolbar .hint { display:none; }
+      .site-footer { margin-top:2.5rem; }
+    }
+    @media (prefers-reduced-motion:reduce) {
+      * { animation:none !important; transition:none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-content">
+        <div>
+          <div class="eyebrow">Reymero3d · Impresión 3D</div>
+          <h1>Catálogo <span>3D</span></h1>
+          <p>Piezas impresas en 3D, listas para vos. Elegí, consultá disponibilidad y te las preparamos.</p>
+        </div>
+        <div class="hero-meta">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">☾ Oscuro</button>
+          <div>Diseño · Impresión<br>Finalización · Envíos</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="search-bar">
+      <label class="field"><span>Buscar</span><input type="text" id="searchInput" placeholder="Nombre o descripción..." aria-label="Buscar producto"></label>
+      <label class="field"><span>Categoría</span><select id="categoryFilter" aria-label="Filtrar por categoría"><option value="">Todas las categorías</option></select></label>
+      <label class="field"><span>Ordenar por</span><select id="sortSelect" aria-label="Ordenar productos">
+        <option value="name_asc">Nombre A → Z</option>
+        <option value="name_desc">Nombre Z → A</option>
+        <option value="price_asc">Precio: menor a mayor</option>
+        <option value="price_desc">Precio: mayor a menor</option>
+        <option value="recent">Más recientes</option>
+      </select></label>
+    </div>
+
+    <div class="toolbar">
+      <span class="count" id="resultCount">Cargando…</span>
+      <span class="hint">Consultá disponibilidad por WhatsApp</span>
+    </div>
+
+    <div class="skeleton-catalog" id="skeleton" aria-hidden="true">
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+      <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
+    </div>
+
+    <div class="catalog" id="catalog"></div>
+
+    <div class="empty" id="emptyMsg" style="display:none;">
+      <div class="empty-icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/><path d="M8 11h6"/></svg>
+      </div>
+      <p id="emptyText">No hay productos disponibles por el momento.</p>
+      <div class="empty-sub">Probá con otra búsqueda o categoría.</div>
+    </div>
+
+    <footer class="site-footer">
+      <span>© Reymero3d · Impresión 3D a medida</span>
+      <a href="https://wa.me/5491167994767" target="_blank" rel="noopener">Consultar por WhatsApp &rarr;</a>
+    </footer>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script>
+    const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
+    const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const WHATSAPP = "5491167994767";
+
+    // Tema claro/oscuro (comparte la preferencia con el resto del sitio)
+    let theme = "light";
+    try { theme = localStorage.getItem("reymero-theme") || "light"; } catch (e) {}
+    function applyTheme() {
+      document.body.classList.toggle("dark", theme === "dark");
+      const btn = document.getElementById("themeToggle");
+      if (btn) btn.textContent = theme === "dark" ? "☀ Claro" : "☾ Oscuro";
+    }
+    applyTheme();
+    const themeBtn = document.getElementById("themeToggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        theme = theme === "dark" ? "light" : "dark";
+        try { localStorage.setItem("reymero-theme", theme); } catch (e) {}
+        applyTheme();
+      });
+    }
+
+    function money(n, code) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+
+    function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
+
+    function escapeHtml(v) {
+      return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    }
+
+    let products = [];
+    let searchTerm = "";
+    let categoryFilter = "";
+    let sortMode = "name_asc";
+
+    const SORTERS = {
+      name_asc: (a, b) => (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }),
+      name_desc: (a, b) => (b.name || "").localeCompare(a.name || "", "es", { sensitivity: "base" }),
+      price_asc: (a, b) => ((Number(a.price) || 0) - (Number(b.price) || 0)) || (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }),
+      price_desc: (a, b) => ((Number(b.price) || 0) - (Number(a.price) || 0)) || (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }),
+      recent: (a, b) => (new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()) || (a.name || "").localeCompare(b.name || "", "es", { sensitivity: "base" }),
+    };
+
+    try {
+      const savedSort = localStorage.getItem("reymero-store-sort");
+      if (savedSort && SORTERS[savedSort]) sortMode = savedSort;
+    } catch (e) {}
+
+    function hideSkeleton() {
+      const s = document.getElementById("skeleton");
+      if (s) s.style.display = "none";
+    }
+
+    async function loadProducts() {
+      const { data, error } = await sb.from("products").select("id,name,description,category,price,image_url,published,in_stock,created_at").eq("published", true).eq("in_stock", true).order("name");
+      hideSkeleton();
+      if (error) {
+        console.error(error);
+        const txt = document.getElementById("emptyText");
+        if (txt) txt.textContent = "No se pudo cargar el catálogo. Error: " + error.message;
+        document.getElementById("emptyMsg").style.display = "block";
+        document.getElementById("resultCount").textContent = "Error";
+        return;
+      }
+      products = data || [];
+      render();
+    }
+
+    function render() {
+      const cf = document.getElementById("categoryFilter");
+      if (cf) {
+        const cats = [...new Set(products.map(p => p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
+        const cur = cf.value;
+        cf.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c => '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>').join("");
+        if (cur && cats.includes(cur)) cf.value = cur;
+      }
+      const filtered = products.filter(p => {
+        const matchSearch = !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || (p.description||"").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchCat = !categoryFilter || p.category === categoryFilter;
+        return matchSearch && matchCat;
+      });
+      filtered.sort(SORTERS[sortMode] || SORTERS.name_asc);
+      const countEl = document.getElementById("resultCount");
+      if (countEl) countEl.textContent = filtered.length + (filtered.length === 1 ? " producto" : " productos");
+      const catalog = document.getElementById("catalog");
+      const empty = document.getElementById("emptyMsg");
+      if (filtered.length === 0) {
+        catalog.innerHTML = "";
+        empty.style.display = "block";
+      } else {
+        empty.style.display = "none";
+        catalog.innerHTML = filtered.map(p => `
+          <a class="prod-card" href="producto.html?id=${encodeURIComponent(p.id)}">
+            <div class="img">
+              ${p.category ? `<span class="cat">${escapeHtml(p.category)}</span>` : ""}
+              ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy">` : `<span class="placeholder">Sin foto</span>`}
+            </div>
+            <div class="body">
+              <h3 class="name">${escapeHtml(p.name)}</h3>
+              ${p.description ? `<div class="desc">${escapeHtml(p.description)}</div>` : ""}
+              <div class="stock"><span class="dot"></span>Disponible</div>
+              <div class="price-row">
+                <div class="price">${money(p.price)}</div>
+                <span class="view">Ver detalle &rarr;</span>
+              </div>
+            </div>
+          </a>
+        `).join("");
+      }
+    }
+
+    document.getElementById("searchInput").addEventListener("input", (e) => { searchTerm = e.target.value; render(); });
+    document.getElementById("categoryFilter").addEventListener("change", (e) => { categoryFilter = e.target.value; render(); });
+    const sortSel = document.getElementById("sortSelect");
+    if (sortSel) {
+      sortSel.value = sortMode;
+      sortSel.addEventListener("change", (e) => {
+        sortMode = e.target.value;
+        try { localStorage.setItem("reymero-store-sort", sortMode); } catch (err) {}
+        render();
+      });
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>

@@ -62,6 +62,31 @@
     .toolbar .count { font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
     .toolbar .count::before { content:""; display:inline-block; width:18px; height:2px; background:var(--accent); vertical-align:middle; margin-right:.55rem; }
     .toolbar .hint { font-size:.75rem; color:var(--muted-2); }
+    .toolbar-actions { display:flex; align-items:center; gap:1rem; }
+    .view-toggle { display:inline-flex; align-items:center; gap:.45rem; background:var(--surface); color:var(--text); border:1.5px solid var(--border); border-radius:99px; padding:.45rem .85rem; font-family:"JetBrains Mono",monospace; font-size:.72rem; font-weight:700; cursor:pointer; transition:border-color .15s,color .15s; white-space:nowrap; }
+    .view-toggle:hover { border-color:var(--accent); color:var(--accent); }
+
+    /* Vista por categorías */
+    .category-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:.9rem; margin-top:1.5rem; }
+    .cat-tile { position:relative; display:flex; flex-direction:column; justify-content:flex-end; min-height:120px; padding:1rem; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface); box-shadow:var(--shadow); color:var(--text); text-align:left; cursor:pointer; overflow:hidden; transition:transform .18s,box-shadow .18s,border-color .18s; }
+    .cat-tile:hover { transform:translateY(-3px); box-shadow:var(--shadow-lg); border-color:var(--accent); }
+    .cat-tile.active { border-color:var(--accent); box-shadow:0 0 0 2px rgba(185,28,28,.16),var(--shadow-md); }
+    .cat-tile .tile-img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:.22; filter:grayscale(.25); }
+    .cat-tile::after { content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 20%,var(--surface) 100%); }
+    .cat-tile .tile-name, .cat-tile .tile-count { position:relative; z-index:1; }
+    .cat-tile .tile-name { font-family:"Fraunces",serif; font-weight:700; font-size:1rem; line-height:1.2; }
+    .cat-tile .tile-count { font-family:"JetBrains Mono",monospace; font-size:.68rem; color:var(--muted); margin-top:.25rem; text-transform:uppercase; letter-spacing:.06em; }
+    .cat-tile.all { background:linear-gradient(135deg,var(--accent),var(--accent-dark)); border-color:var(--accent); color:#fff; }
+    .cat-tile.all::after { display:none; }
+    .cat-tile.all .tile-count { color:rgba(255,255,255,.82); }
+    .cat-loading { grid-column:1/-1; color:var(--muted); font-size:.85rem; font-style:italic; }
+    .group-section { margin-top:2.5rem; scroll-margin-top:140px; }
+    .group-head { display:flex; align-items:baseline; gap:.75rem; padding-bottom:.6rem; border-bottom:2px solid var(--border); }
+    .group-head h2 { margin:0; font-family:"Fraunces",serif; font-size:1.6rem; font-weight:700; }
+    .group-head .group-count { font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .group-section .catalog { margin-top:1rem; }
+    body:not(.view-categories) #categoryGrid, body:not(.view-categories) #grouped { display:none; }
+    body.view-categories #catalog, body.view-categories #skeleton { display:none !important; }
 
     /* Catálogo */
     .catalog, .skeleton-catalog { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:1.5rem; margin-top:1.5rem; }
@@ -126,6 +151,9 @@
       .search-bar { grid-template-columns:1fr; margin-top:-1rem; padding:.85rem; }
       .search-bar .field:first-child { grid-column:auto; }
       .catalog, .skeleton-catalog { grid-template-columns:1fr; gap:1.1rem; }
+      .category-grid { grid-template-columns:repeat(2,1fr); gap:.7rem; }
+      .cat-tile { min-height:105px; padding:.8rem; }
+      .group-head h2 { font-size:1.35rem; }
       .prod-card .img, .skeleton-card .sk-img { height:190px; }
       .toolbar .hint { display:none; }
       .site-footer { margin-top:2.5rem; }
@@ -165,8 +193,13 @@
 
     <div class="toolbar">
       <span class="count" id="resultCount">Cargando…</span>
-      <span class="hint">Consultá disponibilidad por WhatsApp</span>
+      <div class="toolbar-actions">
+        <button class="view-toggle" id="viewToggle" type="button" aria-label="Cambiar vista">▦ Categorías</button>
+        <span class="hint">Consultá disponibilidad por WhatsApp</span>
+      </div>
     </div>
+
+    <div class="category-grid" id="categoryGrid"></div>
 
     <div class="skeleton-catalog" id="skeleton" aria-hidden="true">
       <div class="skeleton-card"><div class="sk-img"></div><div class="sk-body"><div class="sk-line"></div><div class="sk-line short"></div><div class="sk-line price"></div></div></div>
@@ -180,6 +213,7 @@
     </div>
 
     <div class="catalog" id="catalog"></div>
+    <div id="grouped"></div>
 
     <div class="empty" id="emptyMsg" style="display:none;">
       <div class="empty-icon">
@@ -191,6 +225,7 @@
 
     <footer class="site-footer">
       <span>© Reymero3d · Impresión 3D a medida</span>
+      <a href="tienda-clasica.html">Ver tienda clásica</a>
       <a href="https://wa.me/5491167994767" target="_blank" rel="noopener">Consultar por WhatsApp &rarr;</a>
     </footer>
   </div>
@@ -218,6 +253,19 @@
         applyTheme();
       });
     }
+
+    // Vista: categorías (default) o clásica
+    let viewMode = "categories";
+    try {
+      const savedView = localStorage.getItem("reymero-store-view");
+      if (savedView === "classic") viewMode = "classic";
+    } catch (e) {}
+    function applyView() {
+      document.body.classList.toggle("view-categories", viewMode === "categories");
+      const btn = document.getElementById("viewToggle");
+      if (btn) btn.textContent = viewMode === "categories" ? "▦ Categorías" : "▤ Clásica";
+    }
+    applyView();
 
     function money(n, code) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
@@ -251,6 +299,8 @@
     }
 
     async function loadProducts() {
+      const grid = document.getElementById("categoryGrid");
+      if (grid && viewMode === "categories") grid.innerHTML = '<p class="cat-loading">Cargando categorías…</p>';
       const { data, error } = await sb.from("products").select("id,name,description,category,price,image_url,published,in_stock,created_at").eq("published", true).eq("in_stock", true).order("name");
       hideSkeleton();
       if (error) {
@@ -265,33 +315,15 @@
       render();
     }
 
-    function render() {
-      const cf = document.getElementById("categoryFilter");
-      if (cf) {
-        const cats = [...new Set(products.map(p => p.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es",{sensitivity:"base"}));
-        const cur = cf.value;
-        cf.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c => '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>').join("");
-        if (cur && cats.includes(cur)) cf.value = cur;
-      }
-      const filtered = products.filter(p => {
-        const matchSearch = !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || (p.description||"").toLowerCase().includes(searchTerm.toLowerCase());
-        const matchCat = !categoryFilter || p.category === categoryFilter;
-        return matchSearch && matchCat;
-      });
-      filtered.sort(SORTERS[sortMode] || SORTERS.name_asc);
-      const countEl = document.getElementById("resultCount");
-      if (countEl) countEl.textContent = filtered.length + (filtered.length === 1 ? " producto" : " productos");
-      const catalog = document.getElementById("catalog");
-      const empty = document.getElementById("emptyMsg");
-      if (filtered.length === 0) {
-        catalog.innerHTML = "";
-        empty.style.display = "block";
-      } else {
-        empty.style.display = "none";
-        catalog.innerHTML = filtered.map(p => `
+    function categoryOf(p) {
+      return (p && p.category && String(p.category).trim()) || "Otros";
+    }
+
+    function cardHtml(p) {
+      return `
           <a class="prod-card" href="producto.html?id=${encodeURIComponent(p.id)}">
             <div class="img">
-              ${p.category ? `<span class="cat">${escapeHtml(p.category)}</span>` : ""}
+              <span class="cat">${escapeHtml(categoryOf(p))}</span>
               ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy">` : `<span class="placeholder">Sin foto</span>`}
             </div>
             <div class="body">
@@ -304,12 +336,101 @@
               </div>
             </div>
           </a>
-        `).join("");
+        `;
+    }
+
+    function render() {
+      const labelCount = n => n + (n === 1 ? " producto" : " productos");
+      const cats = [...new Set(products.map(categoryOf))].sort((a,b) => a.localeCompare(b, "es", { sensitivity: "base" }));
+      const cf = document.getElementById("categoryFilter");
+      if (cf) {
+        const cur = cf.value;
+        cf.innerHTML = '<option value="">Todas las categorías</option>' + cats.map(c => '<option value="'+escapeHtml(c)+'">'+escapeHtml(c)+'</option>').join("");
+        if (cur && cats.includes(cur)) cf.value = cur;
+      }
+      const filtered = products.filter(p => {
+        const matchSearch = !searchTerm || (p.name||"").toLowerCase().includes(searchTerm.toLowerCase()) || (p.description||"").toLowerCase().includes(searchTerm.toLowerCase());
+        const matchCat = !categoryFilter || categoryOf(p) === categoryFilter;
+        return matchSearch && matchCat;
+      });
+      filtered.sort(SORTERS[sortMode] || SORTERS.name_asc);
+
+      const catalog = document.getElementById("catalog");
+      const grouped = document.getElementById("grouped");
+      const categoryGrid = document.getElementById("categoryGrid");
+      const empty = document.getElementById("emptyMsg");
+      const countEl = document.getElementById("resultCount");
+
+      if (viewMode === "categories") {
+        if (categoryGrid) {
+          categoryGrid.innerHTML = '<button class="cat-tile all' + (categoryFilter === "" ? " active" : "") + '" data-cat=""><span class="tile-name">Todas</span><span class="tile-count">' + labelCount(products.length) + '</span></button>' + cats.map(c => {
+            const items = products.filter(p => categoryOf(p) === c);
+            const cover = items.find(p => p.image_url);
+            return '<button class="cat-tile' + (categoryFilter === c ? " active" : "") + '" data-cat="' + escapeHtml(c) + '">' +
+              (cover ? '<img class="tile-img" src="' + escapeHtml(cover.image_url) + '" alt="" loading="lazy">' : "") +
+              '<span class="tile-name">' + escapeHtml(c) + '</span><span class="tile-count">' + labelCount(items.length) + '</span></button>';
+          }).join("");
+        }
+        if (catalog) catalog.innerHTML = "";
+        if (countEl) countEl.textContent = labelCount(filtered.length) + " · " + cats.length + " categorías";
+        if (filtered.length === 0) {
+          if (grouped) grouped.innerHTML = "";
+          empty.style.display = "block";
+        } else {
+          empty.style.display = "none";
+          const groups = cats.map(c => ({ name: c, items: filtered.filter(p => categoryOf(p) === c) })).filter(g => g.items.length);
+          if (countEl) countEl.textContent = labelCount(filtered.length) + " · " + groups.length + (groups.length === 1 ? " categoría" : " categorías");
+          if (grouped) {
+            grouped.innerHTML = groups.map((g, i) => `
+              <section class="group-section" id="group-${i}">
+                <div class="group-head"><h2>${escapeHtml(g.name)}</h2><span class="group-count">${labelCount(g.items.length)}</span></div>
+                <div class="catalog">${g.items.map(cardHtml).join("")}</div>
+              </section>
+            `).join("");
+          }
+        }
+      } else {
+        if (categoryGrid) categoryGrid.innerHTML = "";
+        if (grouped) grouped.innerHTML = "";
+        if (countEl) countEl.textContent = labelCount(filtered.length);
+        if (filtered.length === 0) {
+          catalog.innerHTML = "";
+          empty.style.display = "block";
+        } else {
+          empty.style.display = "none";
+          catalog.innerHTML = filtered.map(cardHtml).join("");
+        }
       }
     }
 
     document.getElementById("searchInput").addEventListener("input", (e) => { searchTerm = e.target.value; render(); });
     document.getElementById("categoryFilter").addEventListener("change", (e) => { categoryFilter = e.target.value; render(); });
+
+    const viewBtn = document.getElementById("viewToggle");
+    if (viewBtn) {
+      viewBtn.addEventListener("click", () => {
+        viewMode = viewMode === "categories" ? "classic" : "categories";
+        try { localStorage.setItem("reymero-store-view", viewMode); } catch (e) {}
+        applyView();
+        render();
+      });
+    }
+    const categoryGrid = document.getElementById("categoryGrid");
+    if (categoryGrid) {
+      categoryGrid.addEventListener("click", (e) => {
+        const tile = e.target.closest(".cat-tile");
+        if (!tile) return;
+        categoryFilter = tile.dataset.cat || "";
+        const cf = document.getElementById("categoryFilter");
+        if (cf) cf.value = categoryFilter;
+        render();
+        const grouped = document.getElementById("grouped");
+        if (grouped && grouped.firstElementChild) {
+          try { grouped.firstElementChild.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (err) {}
+        }
+      });
+    }
+
     const sortSel = document.getElementById("sortSelect");
     if (sortSel) {
       sortSel.value = sortMode;
