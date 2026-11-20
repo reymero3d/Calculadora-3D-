@@ -170,6 +170,10 @@
     /* section numbers */
     .section-num { font-family: "JetBrains Mono", monospace; font-size: .7rem; color: var(--accent); font-weight: 700; }
 
+    /* Acceso administrativo: sin sesión no se muestra la calculadora */
+    body.admin-locked .app { display:none; }
+    body.admin-locked #loginOverlay { display:block !important; }
+    #loginOverlay .admin-lock-link { display:inline-block; margin-top:1rem; color:var(--muted); font-size:.8rem; }
   </style>
 </head>
 <body>
@@ -501,7 +505,7 @@
 
   <div id="loginOverlay" style="display:none;max-width:460px;margin:1.5rem auto;padding:1.5rem;background:var(--surface);border:1px solid var(--border);border-radius:4px;box-shadow:var(--shadow-lg);">
     <h2 style="font-family:'Fraunces',serif;font-weight:700;font-size:1.4rem;margin:0 0 .5rem;">Acceso administrador</h2>
-    <p class="hint" style="margin-bottom:1rem;">Ingresá con tu cuenta de Supabase para subir productos a la tienda. Sin sesión podés seguir usando la calculadora normalmente.</p>
+    <p class="hint" style="margin-bottom:1rem;">Área exclusiva de administración. Ingresá con tu cuenta de Supabase para usar la calculadora y publicar productos.</p>
     <div class="field" style="margin-bottom:.75rem;">
       <label class="label">Email</label>
       <input type="email" id="loginEmail" placeholder="tu@email.com">
@@ -512,6 +516,7 @@
     </div>
     <button class="btn btn-primary btn-full" id="loginBtn" style="margin-top:.5rem;">Ingresar</button>
     <p class="hint" id="loginStatus" style="margin-top:.75rem;"></p>
+    <a class="admin-lock-link" href="tienda.html">&larr; Volver a la tienda</a>
   </div>
   <div class="toast" id="toast"></div>
 
@@ -2065,9 +2070,11 @@
       }
       return supabaseClient.auth.getSession().then(({ data }) => {
         if (data && data.session) {
+          document.body.classList.remove("admin-locked");
           if (loginOverlay) loginOverlay.style.display = "none";
           return true;
         }
+        document.body.classList.add("admin-locked");
         if (loginOverlay) loginOverlay.style.display = "block";
         return false;
       });
@@ -2083,6 +2090,7 @@
           if (error) {
             if (loginStatus) loginStatus.textContent = "✗ " + error.message;
           } else {
+            document.body.classList.remove("admin-locked");
             if (loginOverlay) loginOverlay.style.display = "none";
             toast("Sesión iniciada");
             loadFromSupabase();
