@@ -925,10 +925,10 @@
       }
     },
     {
-      "id": "prod_1795138289240",
+      "id": "sb_2e29f14a-dd0e-4ba6-a2e8-ffda2041bb21",
       "name": "Chucky multipart no AMS",
       "data": {
-        "productName": "Chucky multipart no AMS",
+        "productName": "Chucky",
         "category": "Asesinos",
         "colors": 1,
         "hours": 5,
@@ -943,7 +943,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 11500
-      }
+      },
+      "_sbJustSaved": 1795138289737
     }
   ]
 }
