@@ -1051,10 +1051,10 @@
       }
     },
     {
-      "id": "prod_1795167393946",
+      "id": "sb_71ab998b-41c0-424a-9c76-e70caa9de942",
       "name": "Pikachu Multipiezas de 110mm/60mm de alto",
       "data": {
-        "productName": "Pikachu Multipiezas de 110mm/60mm de alto",
+        "productName": "Pikachu 110mm de alto",
         "category": "Pokemon",
         "colors": 1,
         "hours": 4,
@@ -1069,7 +1069,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 11500
-      }
+      },
+      "_sbJustSaved": 1795167394943
     }
   ]
 }
