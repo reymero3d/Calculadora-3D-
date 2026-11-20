@@ -904,10 +904,10 @@
       }
     },
     {
-      "id": "prod_1795138220116",
+      "id": "sb_9fd46f7f-73b1-4325-9d47-5736f78132d0",
       "name": "Freddy Krueger multipiezas sin AMS",
       "data": {
-        "productName": "Freddy Krueger multipiezas sin AMS ",
+        "productName": "Freddy Krueger",
         "category": "Asesinos",
         "colors": 1,
         "hours": 4,
@@ -922,7 +922,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 10500
-      }
+      },
+      "_sbJustSaved": 1795138220650
     }
   ]
 }
