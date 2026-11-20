@@ -1112,27 +1112,6 @@
         "published": true,
         "inStock": true
       }
-    },
-    {
-      "id": "sb_3d468c79-bbe6-4d8a-aa82-6e09210a6661",
-      "name": "Minecraft Ghast Feliz - Articulado",
-      "data": {
-        "productName": "Accesorios Minecraft Ghast Feliz - Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 3,
-        "minutes": 9,
-        "grams": 70,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd1b24b65b98226/1141926963/instance/005db8d48ea69334.jpg",
-        "rawPrice": 8000,
-        "published": false,
-        "inStock": true
-      }
     }
   ]
 }
