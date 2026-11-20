@@ -273,7 +273,6 @@
       const bar = document.querySelector(".search-bar");
       if (!bar) return;
       let lastY = window.scrollY;
-      let queued = false;
       function setHidden(hidden) {
         bar.classList.toggle("auto-hide", hidden);
         bar.setAttribute("aria-hidden", hidden ? "true" : "false");
@@ -287,13 +286,8 @@
           else setHidden(true);
           lastY = y;
         }
-        queued = false;
       }
-      window.addEventListener("scroll", () => {
-        if (queued) return;
-        queued = true;
-        requestAnimationFrame(update);
-      }, { passive: true });
+      window.addEventListener("scroll", update, { passive: true });
       bar.addEventListener("focusin", () => setHidden(false));
       window.addEventListener("resize", () => { lastY = window.scrollY; });
     })();
