@@ -372,14 +372,13 @@
           }).join("");
         }
         if (catalog) catalog.innerHTML = "";
-        if (countEl) countEl.textContent = labelCount(filtered.length) + " · " + cats.length + " categorías";
+        const groups = cats.map(c => ({ name: c, items: filtered.filter(p => categoryOf(p) === c) })).filter(g => g.items.length);
+        if (countEl) countEl.textContent = labelCount(filtered.length) + " · " + groups.length + (groups.length === 1 ? " categoría" : " categorías");
         if (filtered.length === 0) {
           if (grouped) grouped.innerHTML = "";
           empty.style.display = "block";
         } else {
           empty.style.display = "none";
-          const groups = cats.map(c => ({ name: c, items: filtered.filter(p => categoryOf(p) === c) })).filter(g => g.items.length);
-          if (countEl) countEl.textContent = labelCount(filtered.length) + " · " + groups.length + (groups.length === 1 ? " categoría" : " categorías");
           if (grouped) {
             grouped.innerHTML = groups.map((g, i) => `
               <section class="group-section" id="group-${i}">
