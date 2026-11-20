@@ -49,7 +49,8 @@
     .theme-toggle:hover { background:rgba(255,255,255,.15); border-color:rgba(251,248,243,.6); }
 
     /* Filtros */
-    .search-bar { position:sticky; top:0; z-index:20; display:grid; grid-template-columns:minmax(220px,2fr) minmax(160px,1fr) minmax(200px,1fr); gap:.75rem; margin-top:-1.5rem; padding:1rem; background:rgba(255,253,249,.93); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md); }
+    .search-bar { position:sticky; top:0; z-index:20; display:grid; grid-template-columns:minmax(220px,2fr) minmax(160px,1fr) minmax(200px,1fr); gap:.75rem; margin-top:-1.5rem; padding:1rem; background:rgba(255,253,249,.93); backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow-md); transition:transform .28s ease,opacity .2s ease; }
+    .search-bar.auto-hide { transform:translateY(calc(-100% - 2rem)); opacity:0; pointer-events:none; }
     body.dark .search-bar { background:rgba(33,30,26,.94); }
     .field { display:block; min-width:0; }
     .field > span { display:block; font-size:.64rem; font-weight:800; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:0 0 .4rem .15rem; }
@@ -266,6 +267,36 @@
       if (btn) btn.textContent = viewMode === "categories" ? "▦ Categorías" : "▤ Clásica";
     }
     applyView();
+
+    // Ocultar la barra de filtros al desplazarse hacia abajo; vuelve al subir
+    (function () {
+      const bar = document.querySelector(".search-bar");
+      if (!bar) return;
+      let lastY = window.scrollY;
+      let queued = false;
+      function setHidden(hidden) {
+        bar.classList.toggle("auto-hide", hidden);
+        bar.setAttribute("aria-hidden", hidden ? "true" : "false");
+        if ("inert" in bar) bar.inert = hidden;
+      }
+      function update() {
+        const y = window.scrollY;
+        const delta = y - lastY;
+        if (Math.abs(delta) > 6) {
+          if (y < 140 || delta < 0) setHidden(false);
+          else setHidden(true);
+          lastY = y;
+        }
+        queued = false;
+      }
+      window.addEventListener("scroll", () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(update);
+      }, { passive: true });
+      bar.addEventListener("focusin", () => setHidden(false));
+      window.addEventListener("resize", () => { lastY = window.scrollY; });
+    })();
 
     function money(n, code) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 
