@@ -778,10 +778,10 @@
       }
     },
     {
-      "id": "prod_1795137840154",
+      "id": "sb_28e30cab-8a67-44e2-b2f2-5c439d3d7095",
       "name": "La Monja multipart sin AMS",
       "data": {
-        "productName": "La Monja multipart sin AMS",
+        "productName": "La Monja",
         "category": "Asesinos",
         "colors": 1,
         "hours": 4,
@@ -796,7 +796,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 11000
-      }
+      },
+      "_sbJustSaved": 1795137840700
     }
   ]
 }
