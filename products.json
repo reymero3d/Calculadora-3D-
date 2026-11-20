@@ -820,10 +820,10 @@
       }
     },
     {
-      "id": "prod_1795137952384",
+      "id": "sb_725f350d-b162-4c3b-9fcd-f8069e04c4ca",
       "name": "Leatherface Multipart sin AMS",
       "data": {
-        "productName": "Leatherface Multipart sin AMS",
+        "productName": "Leatherface",
         "category": "Asesinos",
         "colors": 1,
         "hours": 6,
@@ -838,7 +838,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 12500
-      }
+      },
+      "_sbJustSaved": 1795137952906
     }
   ]
 }
