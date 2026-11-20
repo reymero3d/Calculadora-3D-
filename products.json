@@ -988,10 +988,10 @@
       }
     },
     {
-      "id": "prod_1795138432608",
+      "id": "sb_06ff314c-c02a-43bf-ad8a-f57408982dd6",
       "name": "Ghostface Scream multipartes sin AMS",
       "data": {
-        "productName": "Ghostface Scream multipartes sin AMS",
+        "productName": "Ghostface Scream",
         "category": "Asesinos",
         "colors": 1,
         "hours": 2,
@@ -1006,7 +1006,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 7500
-      }
+      },
+      "_sbJustSaved": 1795138433270
     }
   ]
 }
