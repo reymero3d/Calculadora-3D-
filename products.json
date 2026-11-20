@@ -757,10 +757,10 @@
       }
     },
     {
-      "id": "prod_1795137766793",
+      "id": "sb_2c8b1cab-8f0b-47e3-bb8b-2c5ce3fcded0",
       "name": "Art el Payaso multiparte sin AMS",
       "data": {
-        "productName": "Art el Payaso multiparte sin AMS",
+        "productName": "Art el Payaso",
         "category": "Asesinos",
         "colors": 1,
         "hours": 5,
@@ -775,7 +775,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 9500
-      }
+      },
+      "_sbJustSaved": 1795137767380
     }
   ]
 }
