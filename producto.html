@@ -11,15 +11,20 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root { --bg:#f2eee7; --surface:#fbf8f3; --surface-2:#ece7de; --border:#d9d2c5; --text:#26221d; --muted:#6b6359; --muted-2:#a09688; --accent:#b91c1c; --accent-dark:#991b1b; --shadow:0 1px 0 rgba(38,34,29,0.04); --shadow-lg:0 1px 2px rgba(38,34,29,0.06),0 12px 32px rgba(38,34,29,0.08); }
+    body.dark { --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33; --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70; --accent:#ef4444; --accent-dark:#dc2626; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 18px 40px rgba(0,0,0,.5); }
     * { box-sizing: border-box; }
     html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Inter","Segoe UI",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
     body { min-height:100vh; background-image:radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size:24px 24px; }
+    body.dark { background-image:radial-gradient(circle at 1px 1px, rgba(251,248,243,0.045) 1px, transparent 0); }
     .app { max-width:900px; margin:0 auto; padding:0 1.5rem 4rem; }
     .hero { background:#1c1917; color:#fbf8f3; padding:2rem 2.25rem; margin:1.5rem -1.5rem 0; border-bottom:3px solid var(--accent); }
     .hero h1 { margin:0; font-family:"Fraunces",serif; font-size:2rem; font-weight:700; }
     .hero-nav { display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap; }
     .hero-nav a { color:#fbf8f3; text-decoration:none; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding:.35rem .7rem; border:1px solid rgba(251,248,243,0.3); border-radius:2px; font-family:'JetBrains Mono',monospace; }
     .hero-nav a:hover, .hero-nav a.active { background:var(--accent); border-color:var(--accent); }
+    .hero-meta { display:flex; flex-direction:column; align-items:flex-end; gap:.8rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; opacity:.85; text-align:right; }
+    .theme-toggle { display:inline-flex; align-items:center; gap:.4rem; background:rgba(255,255,255,.06); color:#fbf8f3; border:1px solid rgba(251,248,243,.3); border-radius:99px; padding:.4rem .8rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:600; cursor:pointer; transition:background .15s,border-color .15s; opacity:1; }
+    .theme-toggle:hover { background:rgba(255,255,255,.15); border-color:rgba(251,248,243,.6); }
     .detail { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:2rem; }
     @media (max-width:768px) { .detail { grid-template-columns:1fr; } }
     .img { background:var(--surface-2); border-radius:4px; overflow:hidden; aspect-ratio:1; display:flex; align-items:center; justify-content:center; }
@@ -35,7 +40,8 @@
     .empty { text-align:center; padding:3rem 1rem; color:var(--muted); font-style:italic; }
     .toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:3px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; }
     .toast.show { transform:translateY(0); }
-    @media (max-width:640px) { .app { padding:0 1rem 3rem; } .hero { padding:1.5rem 1rem; margin:1rem -1rem 0; } .hero h1 { font-size:1.6rem; } }
+    body.dark .toast { background:#0f0d0b; }
+    @media (max-width:640px) { .app { padding:0 1rem 3rem; } .hero { padding:1.5rem 1rem; margin:1rem -1rem 0; } .hero h1 { font-size:1.6rem; } .hero-meta { align-items:flex-start; text-align:left; } }
   </style>
 </head>
 <body>
@@ -48,7 +54,10 @@
             <a href="tienda.html">← Volver al catálogo</a>
           </div>
         </div>
-        <div class="hero-meta">Reymero3d<br>Impresión 3D</div>
+        <div class="hero-meta">
+          <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">☾ Oscuro</button>
+          <div>Reymero3d<br>Impresión 3D</div>
+        </div>
       </div>
     </div>
     <div id="content"></div>
@@ -59,6 +68,23 @@
     const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
     const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     const WHATSAPP = "5491167994767";
+
+    let theme = "light";
+    try { theme = localStorage.getItem("reymero-theme") || "light"; } catch (e) {}
+    function applyTheme() {
+      document.body.classList.toggle("dark", theme === "dark");
+      const btn = document.getElementById("themeToggle");
+      if (btn) btn.textContent = theme === "dark" ? "☀ Claro" : "☾ Oscuro";
+    }
+    applyTheme();
+    const themeBtn = document.getElementById("themeToggle");
+    if (themeBtn) {
+      themeBtn.addEventListener("click", () => {
+        theme = theme === "dark" ? "light" : "dark";
+        try { localStorage.setItem("reymero-theme", theme); } catch (e) {}
+        applyTheme();
+      });
+    }
 
     function money(n) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
