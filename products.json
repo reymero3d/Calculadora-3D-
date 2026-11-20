@@ -1072,10 +1072,10 @@
       }
     },
     {
-      "id": "prod_1795167637043",
+      "id": "sb_c645f3a5-50b0-4aa6-9d8a-cf75b33c2c8b",
       "name": "Umbreon VMAX sin AMS",
       "data": {
-        "productName": "Umbreon VMAX sin AMS",
+        "productName": "Umbreon VMAX",
         "category": "Pokemon",
         "colors": 1,
         "hours": 13,
@@ -1083,14 +1083,15 @@
         "grams": 410,
         "insumos": 0,
         "quantity": 1,
-        "profitMultiplier": 4,
+        "profitMultiplier": 3.5,
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USc4075fa85826ae/1161582667/instance/be27ae575554b90a.png",
         "published": true,
         "inStock": true,
-        "rawPrice": 45500
-      }
+        "rawPrice": 40000
+      },
+      "_sbJustSaved": 1795167637571
     }
   ]
 }
