@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="offline-store.js"></script>
   <style>
     :root {
       --bg:#f4f0e9; --surface:#fffdf9; --surface-2:#efe9df; --border:#ded6c8;
@@ -60,12 +61,20 @@
     .search-bar input::placeholder { color:var(--muted-2); }
 
     .toolbar { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-top:1.75rem; padding-bottom:.7rem; border-bottom:1px solid var(--border); }
+    .toolbar-left { display:flex; align-items:center; gap:.85rem; flex-wrap:wrap; }
     .toolbar .count { font-family:"JetBrains Mono",monospace; font-size:.72rem; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
     .toolbar .count::before { content:""; display:inline-block; width:18px; height:2px; background:var(--accent); vertical-align:middle; margin-right:.55rem; }
     .toolbar .hint { font-size:.75rem; color:var(--muted-2); }
     .toolbar-actions { display:flex; align-items:center; gap:1rem; }
     .view-toggle { display:inline-flex; align-items:center; gap:.45rem; background:var(--surface); color:var(--text); border:1.5px solid var(--border); border-radius:99px; padding:.45rem .85rem; font-family:"JetBrains Mono",monospace; font-size:.72rem; font-weight:700; cursor:pointer; transition:border-color .15s,color .15s; white-space:nowrap; }
     .view-toggle:hover { border-color:var(--accent); color:var(--accent); }
+    .sync-toggle { display:inline-flex; align-items:center; gap:.4rem; background:transparent; color:var(--muted); border:1px dashed var(--border); border-radius:99px; padding:.42rem .8rem; font-family:"JetBrains Mono",monospace; font-size:.7rem; font-weight:700; cursor:pointer; transition:border-color .15s,color .15s; white-space:nowrap; }
+    .sync-toggle:hover { border-color:var(--accent); color:var(--accent); }
+    .sync-toggle:disabled { opacity:.55; cursor:default; }
+    .sync-status { font-family:"JetBrains Mono",monospace; font-size:.66rem; color:var(--muted-2); white-space:nowrap; }
+    .sync-status.online { color:var(--green); }
+    .sync-status.offline { color:var(--amber,#a16207); }
+    .sync-status.syncing { color:var(--accent); }
 
     /* Vista por categorías */
     .category-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(170px,1fr)); gap:.9rem; margin-top:1.5rem; }
@@ -156,6 +165,8 @@
       .cat-tile { min-height:105px; padding:.8rem; }
       .group-head h2 { font-size:1.35rem; }
       .prod-card .img, .skeleton-card .sk-img { height:190px; }
+      .toolbar { flex-direction:column; align-items:flex-start; gap:.6rem; }
+      .toolbar-actions { flex-wrap:wrap; }
       .toolbar .hint { display:none; }
       .site-footer { margin-top:2.5rem; }
     }
@@ -193,8 +204,12 @@
     </div>
 
     <div class="toolbar">
-      <span class="count" id="resultCount">Cargando…</span>
+      <div class="toolbar-left">
+        <span class="count" id="resultCount">Cargando…</span>
+        <span class="sync-status" id="syncStatus">Preparando catálogo…</span>
+      </div>
       <div class="toolbar-actions">
+        <button class="sync-toggle" id="syncBtn" type="button" title="Descargar cambios con internet">↻ Actualizar</button>
         <button class="view-toggle" id="viewToggle" type="button" aria-label="Cambiar vista">▦ Categorías</button>
         <span class="hint">Consultá disponibilidad por WhatsApp</span>
       </div>
@@ -323,21 +338,93 @@
       if (s) s.style.display = "none";
     }
 
-    async function loadProducts() {
+    function setProducts(rows) {
+      StoreOffline.revokeObjectUrls(products);
+      products = StoreOffline.withObjectUrls(rows);
+    }
+
+    function setSyncStatus(text, state) {
+      const el = document.getElementById("syncStatus");
+      if (!el) return;
+      el.textContent = text;
+      el.className = "sync-status" + (state ? " " + state : "");
+    }
+
+    function timeAgo(ts) {
+      if (!ts) return "nunca";
+      const mins = Math.max(0, Math.round((Date.now() - ts) / 60000));
+      if (mins < 1) return "ahora";
+      if (mins < 60) return "hace " + mins + " min";
+      const hours = Math.round(mins / 60);
+      if (hours < 24) return "hace " + hours + " h";
+      return "hace " + Math.round(hours / 24) + " d";
+    }
+
+    async function loadCached() {
+      try {
+        const rows = await StoreOffline.readAll();
+        if (rows.length) {
+          setProducts(rows);
+          render();
+          setSyncStatus("Datos guardados · " + timeAgo(StoreOffline.lastSync()), "offline");
+          return true;
+        }
+      } catch (e) { console.warn("No se pudo leer la cache offline", e); }
+      return false;
+    }
+
+    async function loadProducts(force) {
       const grid = document.getElementById("categoryGrid");
-      if (grid && viewMode === "categories") grid.innerHTML = '<p class="cat-loading">Cargando categorías…</p>';
-      const { data, error } = await sb.from("products").select("id,name,description,category,price,image_url,published,in_stock,created_at").eq("published", true).eq("in_stock", true).order("name");
-      hideSkeleton();
-      if (error) {
-        console.error(error);
-        const txt = document.getElementById("emptyText");
-        if (txt) txt.textContent = "No se pudo cargar el catálogo. Error: " + error.message;
-        document.getElementById("emptyMsg").style.display = "block";
-        document.getElementById("resultCount").textContent = "Error";
+      if (grid && viewMode === "categories" && !products.length) {
+        grid.innerHTML = '<p class="cat-loading">Cargando categorías…</p>';
+      }
+      const btn = document.getElementById("syncBtn");
+      if (btn) btn.disabled = true;
+
+      if (!navigator.onLine && !force) {
+        hideSkeleton();
+        const hadCache = products.length ? true : await loadCached();
+        if (!hadCache) {
+          const txt = document.getElementById("emptyText");
+          if (txt) txt.textContent = "Sin internet y todavía no hay catálogo guardado. Conectate una vez para descargarlo.";
+          document.getElementById("emptyMsg").style.display = "block";
+          document.getElementById("resultCount").textContent = "Sin conexión";
+        }
+        setSyncStatus("Sin conexión · datos guardados", "offline");
+        if (btn) btn.disabled = false;
         return;
       }
-      products = data || [];
-      render();
+
+      setSyncStatus("Actualizando…", "syncing");
+      try {
+        const { data, error } = await sb.from("products")
+          .select("id,name,description,category,price,image_url,published,in_stock,created_at")
+          .eq("published", true).eq("in_stock", true).order("name");
+        if (error) throw error;
+        const rows = data || [];
+        let toUse = rows;
+        try {
+          toUse = await StoreOffline.writeAll(rows);
+          StoreOffline.setLastSync(Date.now());
+        } catch (e) { console.warn("No se pudo guardar la cache offline", e); }
+        hideSkeleton();
+        setProducts(toUse);
+        render();
+        setSyncStatus("Actualizado " + timeAgo(Date.now()), "online");
+      } catch (e) {
+        console.warn("No se pudo actualizar desde Supabase", e);
+        hideSkeleton();
+        const hadCache = products.length ? true : await loadCached();
+        if (!hadCache) {
+          const txt = document.getElementById("emptyText");
+          if (txt) txt.textContent = "No se pudo cargar el catálogo. Conectate a internet y tocá Actualizar.";
+          document.getElementById("emptyMsg").style.display = "block";
+          document.getElementById("resultCount").textContent = "Sin conexión";
+        }
+        setSyncStatus("Sin conexión · datos guardados", "offline");
+      } finally {
+        if (btn) btn.disabled = false;
+      }
     }
 
     function categoryOf(p) {
@@ -345,11 +432,12 @@
     }
 
     function cardHtml(p) {
+      const img = StoreOffline.imageOf(p);
       return `
           <a class="prod-card" href="producto.html?id=${encodeURIComponent(p.id)}">
             <div class="img">
               <span class="cat">${escapeHtml(categoryOf(p))}</span>
-              ${p.image_url ? `<img src="${escapeHtml(p.image_url)}" alt="${escapeHtml(p.name)}" loading="lazy">` : `<span class="placeholder">Sin foto</span>`}
+              ${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" loading="lazy">` : `<span class="placeholder">Sin foto</span>`}
             </div>
             <div class="body">
               <h3 class="name">${escapeHtml(p.name)}</h3>
@@ -390,9 +478,10 @@
         if (categoryGrid) {
           categoryGrid.innerHTML = '<button class="cat-tile all' + (categoryFilter === "" ? " active" : "") + '" data-cat=""><span class="tile-name">Todas</span><span class="tile-count">' + labelCount(products.length) + '</span></button>' + cats.map(c => {
             const items = products.filter(p => categoryOf(p) === c);
-            const cover = items.find(p => p.image_url);
+            const cover = items.find(p => StoreOffline.imageOf(p));
+            const coverSrc = cover ? StoreOffline.imageOf(cover) : "";
             return '<button class="cat-tile' + (categoryFilter === c ? " active" : "") + '" data-cat="' + escapeHtml(c) + '">' +
-              (cover ? '<img class="tile-img" src="' + escapeHtml(cover.image_url) + '" alt="" loading="lazy">' : "") +
+              (coverSrc ? '<img class="tile-img" src="' + escapeHtml(coverSrc) + '" alt="" loading="lazy">' : "") +
               '<span class="tile-name">' + escapeHtml(c) + '</span><span class="tile-count">' + labelCount(items.length) + '</span></button>';
           }).join("");
         }
@@ -439,6 +528,8 @@
         render();
       });
     }
+    const syncBtn = document.getElementById("syncBtn");
+    if (syncBtn) syncBtn.addEventListener("click", () => loadProducts(true));
     const categoryGrid = document.getElementById("categoryGrid");
     if (categoryGrid) {
       categoryGrid.addEventListener("click", (e) => {
@@ -465,7 +556,10 @@
       });
     }
 
-    loadProducts();
+    (async function init() {
+      await loadCached();
+      await loadProducts(false);
+    })();
   </script>
 </body>
 </html>

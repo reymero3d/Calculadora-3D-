@@ -9,6 +9,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="offline-store.js"></script>
   <style>
     :root { --bg:#f2eee7; --surface:#fbf8f3; --surface-2:#ece7de; --border:#d9d2c5; --text:#26221d; --muted:#6b6359; --muted-2:#a09688; --accent:#b91c1c; --accent-dark:#991b1b; --shadow:0 1px 0 rgba(38,34,29,0.04); --shadow-lg:0 1px 2px rgba(38,34,29,0.06),0 12px 32px rgba(38,34,29,0.08); }
     body.dark { --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33; --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70; --accent:#ef4444; --accent-dark:#dc2626; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 18px 40px rgba(0,0,0,.5); }
@@ -89,28 +90,29 @@
     function money(n) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
 
-    async function loadProduct() {
-      const params = new URLSearchParams(location.search);
-      const id = params.get("id");
-      const content = document.getElementById("content");
-      if (!id) { content.innerHTML = '<p class="empty">Producto no encontrado.</p>'; return; }
-      const { data, error } = await sb.from("products").select("*").eq("id", id).eq("published", true).single();
-      if (error || !data) {
-        content.innerHTML = '<p class="empty">' + (error ? 'No se pudo cargar el producto. Error: ' + error.message : 'Producto no encontrado o no disponible.') + '</p>';
-        return;
-      }
-      document.getElementById("pageTitle").textContent = data.name;
-      document.title = data.name + " · Reymero3d";
-      content.innerHTML = `
+    function escapeHtml(v) {
+      return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    }
+
+    let lastProductUrls = [];
+    function renderProduct(data) {
+      StoreOffline.revokeObjectUrls(lastProductUrls);
+      const rows = StoreOffline.withObjectUrls([data]);
+      lastProductUrls = rows;
+      const p = rows[0];
+      document.getElementById("pageTitle").textContent = p.name;
+      document.title = p.name + " · Reymero3d";
+      const img = StoreOffline.imageOf(p);
+      document.getElementById("content").innerHTML = `
         <div class="detail">
-          <div class="img">${data.image_url ? `<img src="${data.image_url}" alt="${data.name}">` : `<span class="placeholder">Sin foto</span>`}</div>
+          <div class="img">${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}">` : `<span class="placeholder">Sin foto</span>`}</div>
           <div class="info">
-            ${data.category ? `<div class="cat">${data.category}</div>` : ""}
-            <h2>${data.name}</h2>
-            ${data.description ? `<div class="desc">${data.description}</div>` : ""}
-            <div class="price">${money(data.price)}</div>
-            <div class="stock">${data.in_stock ? "Disponible" : "Sin stock"}</div>
-            <a class="whatsapp-btn" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, me interesa el producto: " + data.name + " a " + money(data.price))}" target="_blank">
+            ${p.category ? `<div class="cat">${escapeHtml(p.category)}</div>` : ""}
+            <h2>${escapeHtml(p.name)}</h2>
+            ${p.description ? `<div class="desc">${escapeHtml(p.description)}</div>` : ""}
+            <div class="price">${money(p.price)}</div>
+            <div class="stock">${p.in_stock ? "Disponible" : "Sin stock"}</div>
+            <a class="whatsapp-btn" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, me interesa el producto: " + p.name + " a " + money(p.price))}" target="_blank">
               Consultar por WhatsApp
             </a>
             <br>
@@ -118,6 +120,32 @@
           </div>
         </div>
       `;
+    }
+
+    async function loadProduct() {
+      const params = new URLSearchParams(location.search);
+      const id = params.get("id");
+      const content = document.getElementById("content");
+      if (!id) { content.innerHTML = '<p class="empty">Producto no encontrado.</p>'; return; }
+
+      let cached = null;
+      try { cached = await StoreOffline.readOne(id); } catch (e) {}
+      if (cached) renderProduct(cached);
+
+      if (!navigator.onLine) {
+        if (!cached) content.innerHTML = '<p class="empty">Sin internet y este producto no está guardado. Volvé al catálogo para descargarlo.</p>';
+        return;
+      }
+
+      try {
+        const { data, error } = await sb.from("products").select("*").eq("id", id).eq("published", true).single();
+        if (error || !data) throw new Error(error ? error.message : "Producto no encontrado o no disponible");
+        let toRender = data;
+        try { toRender = await StoreOffline.upsert(data); StoreOffline.setLastSync(Date.now()); } catch (e) {}
+        renderProduct(toRender);
+      } catch (e) {
+        if (!cached) content.innerHTML = '<p class="empty">No se pudo cargar el producto. ' + escapeHtml(e.message || "") + '</p>';
+      }
     }
     loadProduct();
   </script>
