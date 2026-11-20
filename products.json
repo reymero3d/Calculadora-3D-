@@ -1009,10 +1009,10 @@
       }
     },
     {
-      "id": "prod_1795138479591",
+      "id": "sb_6560f139-ce2e-446f-b3be-982a7aaafc1f",
       "name": "Jason multiparte sin AMS",
       "data": {
-        "productName": "Jason multiparte sin AMS",
+        "productName": "Jason",
         "category": "Asesinos",
         "colors": 1,
         "hours": 3,
@@ -1027,7 +1027,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 9000
-      }
+      },
+      "_sbJustSaved": 1795138480121
     }
   ]
 }
