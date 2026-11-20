@@ -110,6 +110,8 @@
     .btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
     .btn-ghost { background: transparent; color: var(--muted); border-color: var(--border); }
     .btn-ghost:hover { background: var(--surface-2); color: var(--text); }
+    .btn-danger { background: transparent; color: #dc2626; border-color: #fca5a5; }
+    .btn-danger:hover { background: #fef2f2; border-color: #dc2626; }
     .btn-outline { background: var(--surface); color: var(--text); border-color: var(--border); }
     .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
     .btn-full { width: 100%; }
@@ -202,10 +204,16 @@
         <div class="card">
           <div class="header-row">
             <h3 class="card-title" style="margin:0;"><span class="dot"></span>Productos</h3>
-            <button class="btn btn-ghost" id="newProductBtn">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
-              Nuevo
-            </button>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+              <button class="btn btn-ghost" id="newProductBtn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                Nuevo
+              </button>
+              <button class="btn btn-danger" id="deleteProductBtn" title="Eliminar el producto seleccionado">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v5"/><path d="M14 11v5"/></svg>
+                Eliminar
+              </button>
+            </div>
           </div>
           <div class="profile-bar">
             <div class="dropdown" style="flex:1;min-width:180px;">
@@ -1084,6 +1092,16 @@
       toast("Producto sincronizado con Supabase");
     }
 
+    async function deleteProductFromSupabase(pr) {
+      if (!supabaseClient || !pr || !pr.id || !String(pr.id).startsWith("sb_")) return;
+      const { data: sess } = await supabaseClient.auth.getSession();
+      if (!sess || !sess.session) return;
+      const sbId = pr.id.slice(3);
+      await supabaseClient.from("product_costs").delete().eq("product_id", sbId);
+      const { error } = await supabaseClient.from("products").delete().eq("id", sbId);
+      if (error) console.error(error);
+    }
+
     function saveProduct() {
       sbSaveVersion++;
       let savedPr = null;
@@ -1153,6 +1171,29 @@
       recalc();
       savePiece();
       toast("Nuevo producto");
+    });
+
+    document.getElementById("deleteProductBtn").addEventListener("click", () => {
+      const pr = state.products.find(p => p.id === state.activeProductId);
+      if (!pr) { toast("Elegí un producto para eliminar"); return; }
+      if (!confirm('¿Eliminar "' + (pr.name || "Sin nombre") + '"? Se borrará también de la tienda.')) return;
+      state.products = state.products.filter(p => p.id !== pr.id);
+      state.activeProductId = null;
+      state.productName = "";
+      state.productImage = "";
+      state.productCategory = "";
+      state.published = true;
+      state.inStock = true;
+      syncInputs();
+      recalc();
+      savePiece();
+      saveProducts();
+      refreshProductMenu();
+      document.getElementById("productSelectLabel").textContent = "-- Nuevo producto --";
+      sbSaveVersion++;
+      if (state.ghToken) ghPushProducts(state.ghToken, state.products);
+      sbSaveQueue = sbSaveQueue.then(() => deleteProductFromSupabase(pr)).catch(e => console.error(e));
+      toast("Producto eliminado");
     });
 
     document.getElementById("saveProductBtn").addEventListener("click", saveProduct);
