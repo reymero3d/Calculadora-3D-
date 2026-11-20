@@ -373,9 +373,9 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USbd2dbb8124e56b/1105309511/instance/24590333ea898ec8.jpg",
+        "rawPrice": 8500,
         "published": true,
-        "inStock": true,
-        "rawPrice": 8500
+        "inStock": true
       }
     },
     {
@@ -733,6 +733,27 @@
         "rawPrice": 15000,
         "published": true,
         "inStock": true
+      }
+    },
+    {
+      "id": "prod_1795134068743",
+      "name": "Minecraft Warden Full Color",
+      "data": {
+        "productName": "Minecraft Warden Full Color",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 18,
+        "grams": 30,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US822f1862f9cf1a/65938479/instance/2024-04-07_1f95e6a1165cc8.png",
+        "published": true,
+        "inStock": true,
+        "rawPrice": 3500
       }
     }
   ]
