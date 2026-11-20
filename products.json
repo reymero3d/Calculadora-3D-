@@ -841,25 +841,26 @@
       }
     },
     {
-      "id": "prod_1795138017409",
+      "id": "sb_c2bad1b1-b252-43ee-9443-548a389a34ae",
       "name": "Tiffany la Novia de Chucky multipart sin AMS",
       "data": {
         "productName": "Tiffany la Novia de Chucky multipart sin AMS",
         "category": "Asesinos",
         "colors": 1,
-        "hours": 5,
-        "minutes": 12,
-        "grams": 114,
+        "hours": 4,
+        "minutes": 58,
+        "grams": 70,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US20b543e59b5de8/579267834/instance/dbc99bc72f9ca38e.jpeg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US20b543e59b5de8/579284403/instance/514e939efb4028be.jpeg",
         "published": true,
         "inStock": true,
-        "rawPrice": 13000
-      }
+        "rawPrice": 8500
+      },
+      "_sbJustSaved": 1795138018110
     }
   ]
 }
