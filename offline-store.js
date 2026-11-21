@@ -81,6 +81,13 @@
     return "image/jpeg";
   }
 
+  function base64ToBlob(data, mime) {
+    const bin = atob(data || "");
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new Blob([bytes], { type: mime || "application/octet-stream" });
+  }
+
   function nativeBlob(url) {
     const FS = global.Capacitor && global.Capacitor.Plugins && global.Capacitor.Plugins.Filesystem;
     if (!FS || !FS.downloadFile || !FS.readFile) return Promise.reject(new Error("Filesystem no disponible"));
@@ -88,10 +95,10 @@
     const dir = "CACHE";
     return FS.downloadFile({ url, path, directory: dir })
       .then((res) => FS.readFile({ path: (res && res.path) || path, directory: dir, encoding: "base64" })
-        .then(async (file) => {
-          const dataUrl = "data:" + mimeFromUrl(url) + ";base64," + ((file && file.data) || "");
-          const blob = await fetch(dataUrl).then((r) => r.blob());
-          try { await FS.deleteFile({ path: (res && res.path) || path, directory: dir }); } catch (e) {}
+        .then((file) => {
+          if (!file || !file.data) throw new Error("Archivo de imagen vacío");
+          const blob = base64ToBlob(file.data, mimeFromUrl(url));
+          try { FS.deleteFile({ path: (res && res.path) || path, directory: dir }).catch(() => {}); } catch (e) {}
           return blob;
         }));
   }
@@ -113,26 +120,53 @@
     return await res.blob();
   }
 
-  async function enrich(p) {
+  /* Reutiliza el blob guardado si la foto no cambió. Si cambió o no hay cache,
+     la descarga. image_cached_url indica qué URL corresponde al blob. */
+  async function enrich(p, existing) {
     const copy = Object.assign({}, p);
-    if (p && p.image_url) {
-      try { copy.image_blob = await blobFromUrl(p.image_url); }
-      catch (e) { /* sin foto offline, se usa la URL si hay internet */ }
+    if (!p || !p.image_url) return copy;
+
+    const samePhoto = existing && existing.image_blob &&
+      ((existing.image_cached_url || existing.image_url) === p.image_url);
+    if (samePhoto) {
+      copy.image_blob = existing.image_blob;
+      copy.image_cached_url = p.image_url;
+      return copy;
     }
+
+    try {
+      const blob = await blobFromUrl(p.image_url);
+      if (blob) {
+        copy.image_blob = blob;
+        copy.image_cached_url = p.image_url;
+      }
+    } catch (e) { /* sin foto offline, se usa la URL si hay internet */ }
     return copy;
   }
 
   async function writeAll(rows) {
     const list = Array.isArray(rows) ? rows : [];
-    // Descargamos las fotos con un límite para no saturar la conexión.
-    const enriched = await mapLimit(list, 5, enrich);
+
+    // Leemos lo ya guardado para no volver a bajar las fotos que no cambiaron.
+    let previous = [];
+    try { previous = await readAll(); } catch (e) {}
+    const byId = Object.create(null);
+    previous.forEach((p) => { if (p && p.id) byId[p.id] = p; });
+
+    const enriched = await mapLimit(list, 8, (p) => enrich(p, p && byId[p.id]));
 
     const db = await open();
     try {
       const tx = db.transaction(STORE, "readwrite");
       const st = tx.objectStore(STORE);
-      st.clear();
-      enriched.forEach((p) => { if (p && p.id) st.put(p); });
+      const keep = Object.create(null);
+      enriched.forEach((p) => {
+        if (!p || !p.id) return;
+        keep[p.id] = true;
+        st.put(p);
+      });
+      // Borramos solo los productos que ya no están publicados.
+      previous.forEach((p) => { if (p && p.id && !keep[p.id]) st.delete(p.id); });
       await txDone(tx);
     } finally { db.close(); }
     return enriched;
@@ -140,7 +174,9 @@
 
   async function upsert(row) {
     if (!row || !row.id) return row;
-    const stored = await enrich(row);
+    let existing = null;
+    try { existing = await readOne(row.id); } catch (e) {}
+    const stored = await enrich(row, existing);
     const db = await open();
     try {
       const tx = db.transaction(STORE, "readwrite");
