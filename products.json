@@ -1177,7 +1177,7 @@
       }
     },
     {
-      "id": "prod_1795228565612",
+      "id": "sb_77996d77-37d0-4f41-9415-100849e5adb1",
       "name": "Zombie Ahogado de Minecraft - Articulado",
       "data": {
         "productName": "Zombie Ahogado de Minecraft - Articulado",
@@ -1195,7 +1195,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 7000
-      }
+      },
+      "_sbJustSaved": 1795228566648
     }
   ]
 }
