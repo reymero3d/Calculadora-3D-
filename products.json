@@ -1192,11 +1192,31 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USfc457c73c54668/878972122/instance/cd782bd459f57bd2.jpg",
+        "rawPrice": 7000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
+      "id": "prod_1795298919025",
+      "name": "Escultura en capas - Adorno navideño de gato",
+      "data": {
+        "productName": "Escultura en capas - Adorno navideño de gato",
+        "category": "Cuadro",
+        "colors": 1,
+        "hours": 7,
+        "minutes": 1,
+        "grams": 150,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US2f40cdca4cbdd6/1134479097/instance/d6363839a0ba9e61.png",
         "published": true,
         "inStock": true,
-        "rawPrice": 7000
-      },
-      "_sbJustSaved": 1795228566648
+        "rawPrice": 17000
+      }
     }
   ]
 }
