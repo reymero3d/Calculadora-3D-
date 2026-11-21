@@ -1198,7 +1198,7 @@
       }
     },
     {
-      "id": "prod_1795298919025",
+      "id": "sb_69aff25c-061e-4986-914b-7fe581bd903c",
       "name": "Escultura en capas - Adorno navideño de gato",
       "data": {
         "productName": "Escultura en capas - Adorno navideño de gato",
@@ -1216,7 +1216,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 17000
-      }
+      },
+      "_sbJustSaved": 1795298919603
     }
   ]
 }
