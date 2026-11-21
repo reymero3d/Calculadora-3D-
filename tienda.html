@@ -283,27 +283,28 @@
     }
     applyView();
 
-    // Ocultar la barra de filtros al desplazarse hacia abajo; vuelve al subir
+    // Ocultar la barra al bajar. No reaparece al subir: solo al llegar arriba del todo.
     (function () {
       const bar = document.querySelector(".search-bar");
       if (!bar) return;
       let lastY = window.scrollY;
-      function setHidden(hidden) {
+      let hidden = false;
+      function setHidden(next) {
+        if (hidden === next) return;
+        hidden = next;
         bar.classList.toggle("auto-hide", hidden);
         bar.setAttribute("aria-hidden", hidden ? "true" : "false");
         if ("inert" in bar) bar.inert = hidden;
       }
       function update() {
-        const y = window.scrollY;
+        const y = Math.max(0, window.scrollY);
         const delta = y - lastY;
-        if (Math.abs(delta) > 6) {
-          if (y < 140 || delta < 0) setHidden(false);
-          else setHidden(true);
-          lastY = y;
-        }
+        if (Math.abs(delta) < 4) return;
+        if (y <= 8) setHidden(false);           // solo vuelve al estar arriba del todo
+        else if (y > 140 && delta > 0) setHidden(true); // se oculta al bajar
+        lastY = y;
       }
       window.addEventListener("scroll", update, { passive: true });
-      bar.addEventListener("focusin", () => setHidden(false));
       window.addEventListener("resize", () => { lastY = window.scrollY; });
     })();
 
