@@ -526,6 +526,27 @@
       }
     },
     {
+      "id": "sb_bf77712c-702f-4b6a-940a-b17eccccd4dc",
+      "name": "Iron Man",
+      "data": {
+        "productName": "Iron Man",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 4,
+        "minutes": 27,
+        "grams": 59,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd867fea74763ec/1021499744/instance/560e7b26b4053312.jpg",
+        "rawPrice": 7000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_6560f139-ce2e-446f-b3be-982a7aaafc1f",
       "name": "Jason",
       "data": {
@@ -1240,32 +1261,31 @@
       }
     },
     {
-      "id": "sb_bf77712c-702f-4b6a-940a-b17eccccd4dc",
-      "name": "Iron Man",
+      "id": "prod_1795383853977",
+      "name": "Nueva versión del dragón de fuego sin necesidad de soportes",
       "data": {
-        "productName": "Iron Man",
-        "category": "Minecraft",
+        "productName": "Nueva versión del dragón de fuego sin necesidad de soportes",
+        "category": "Dragones",
         "colors": 1,
         "hours": 4,
-        "minutes": 27,
-        "grams": 59,
+        "minutes": 50,
+        "grams": 88,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd867fea74763ec/1021499744/instance/560e7b26b4053312.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USd867fea74763ec/1021499744/instance/560e7b26b4053312.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 7000
-      },
-      "_sbJustSaved": 1795383658432
+        "rawPrice": 10000
+      }
     }
   ]
 }
