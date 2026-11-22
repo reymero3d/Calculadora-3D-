@@ -359,7 +359,7 @@
             <textarea id="jsonInput" rows="5" placeholder='{"name": "...", "grams": 0, "hours": 0, "minutes": 0}'></textarea>
           </div>
           <div id="importImagePreview" style="display:none;margin-top:.5rem;text-align:center;">
-            <div id="importMediaRow" style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;"></div>
+            <div id="importMediaRow" style="display:flex;gap:.5rem;justify-content:flex-start;overflow-x:auto;padding-bottom:.25rem;"></div>
             <img id="importImageImg" src="" alt="Foto" style="display:none;max-width:100%;max-height:140px;border-radius:4px;border:1px solid var(--border);">
           </div>
           <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
@@ -945,7 +945,7 @@
         roundTo: state.roundTo || 0,
         currency: state.currency,
         productImage: state.productImage || "",
-        productMedia: Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : [],
+        productMedia: Array.isArray(state.productMedia) ? state.productMedia : [],
         published: state.published !== false,
         inStock: state.inStock !== false,
         rawPrice: M(v) || 0,
@@ -1011,7 +1011,7 @@
           state.insumos = d.insumos || 0;
           state.quantity = d.quantity || 1;
           state.productImage = d.productImage || state.productImage || "";
-          state.productMedia = Array.isArray(d.productMedia) ? d.productMedia.slice(0,2) : (d.productImage ? [{type:'image',url:d.productImage}] : []);
+          state.productMedia = Array.isArray(d.productMedia) ? d.productMedia : (d.productImage ? [{type:'image',url:d.productImage}] : []);
           if (state.productMedia.length && !state.productImage) { const im = state.productMedia.find(m=>m.type==='image'); if (im) state.productImage = im.url; }
           state.published = d.published !== false;
           state.inStock = d.inStock !== false;
@@ -1049,7 +1049,7 @@
           .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
-      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')).slice(0,2) : [];
+      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')) : [];
       const cover = (mediaArr.find(m=>m.type==='image')||{}).url || d.productImage || null;
       const productRow = {
         name: pr.name,
@@ -1141,7 +1141,7 @@
         state.productImage = lastImportedJson.image;
       }
       if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
-        state.productMedia = lastImportedJson.media.slice(0,2);
+        state.productMedia = lastImportedJson.media.slice();
       }
       const data = productData();
       if (state.activeProductId) {
@@ -1565,16 +1565,19 @@
       row.innerHTML = "";
       if (legacyImg) legacyImg.style.display = "none";
       if (!media.length) { previewWrap.style.display = "none"; return; }
-      media.slice(0,2).forEach(m => {
+      media.forEach(m => {
+        const multi = media.length > 1;
+        const w = multi ? '140px' : '100%';
+        const h = multi ? '140px' : '140px';
         if (m.type === 'video') {
           const v = document.createElement('video');
           v.src = m.url; v.controls = true; v.muted = true; v.playsInline = true;
-          v.style.cssText = 'max-width:48%;max-height:140px;border-radius:4px;border:1px solid var(--border);background:#000';
+          v.style.cssText = `flex:0 0 ${w};width:${w};max-width:${w};height:${h};object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#000`;
           row.appendChild(v);
         } else {
           const img = document.createElement('img');
           img.src = m.url; img.alt = 'Media';
-          img.style.cssText = 'max-width:' + (media.length>1?'48%':'100%') + ';max-height:140px;border-radius:4px;border:1px solid var(--border);object-fit:cover';
+          img.style.cssText = `flex:0 0 ${w};width:${w};max-width:${multi?w:'100%'};height:${h};object-fit:cover;border-radius:4px;border:1px solid var(--border)`;
           row.appendChild(img);
         }
       });
@@ -1584,7 +1587,7 @@
     function persistActiveImage(url, media) {
       const active = state.products.find(p => p.id === state.activeProductId);
       if (!active) return;
-      const nextMedia = Array.isArray(media) ? media.slice(0,2) : (Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : []);
+      const nextMedia = Array.isArray(media) ? media.slice() : (Array.isArray(state.productMedia) ? state.productMedia.slice() : []);
       active.data = { ...(active.data || {}), productImage: url, productMedia: nextMedia };
       saveProducts();
       sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
@@ -1593,12 +1596,12 @@
     function setImportImage(url) {
       if (!url) return;
       state.productImage = url;
-      const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : [];
+      const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice() : [];
       // Preservar el segundo ítem existente (video o segunda imagen) para no perder media importada.
       const second = baseMedia.find(m => m && m.url && m.url !== url && (m.type === 'video' || m.type === 'image'));
       const next = [{ type: 'image', url }];
       if (second) next.push({ type: second.type === 'video' ? 'video' : 'image', url: second.url });
-      state.productMedia = next.slice(0,2);
+      state.productMedia = next.slice();
       renderImportMedia();
       persistActiveImage(url, state.productMedia);
       imageToDataUrl(url).then((dataUrl) => {
@@ -1617,7 +1620,7 @@
     }
 
     function setImportMedia(media) {
-      const arr = Array.isArray(media) ? media.filter(m => m && m.url).slice(0,2) : [];
+      const arr = Array.isArray(media) ? media.filter(m => m && m.url) : [];
       state.productMedia = arr;
       const img = (arr.find(m => m.type === 'image') || {}).url || "";
       state.productImage = img;
@@ -1655,11 +1658,11 @@
       const colors = d.colors ?? d.colores;
       const quantity = d.quantity ?? d.cantidad ?? d.qty;
       const insumos = d.insumos ?? d.extras ?? d.extraCosts;
-      let media = Array.isArray(d.media) ? d.media.filter(m => m && typeof m.url === 'string' && /^https?:\/\//i.test(m.url)).slice(0,2).map(m => ({ type: m.type === 'video' ? 'video' : 'image', url: m.url })) : [];
+      let media = Array.isArray(d.media) ? d.media.filter(m => m && typeof m.url === 'string' && /^https?:\/\//i.test(m.url)).map(m => ({ type: m.type === 'video' ? 'video' : 'image', url: m.url })) : [];
       const img = d.image || d.coverUrl || d.cover || d.coverPortrait || d.previewUrl || d.thumbnail || "";
       if (!media.length && img) media = [{ type: 'image', url: img }];
       if (media.length && !media.some(m => m.type === 'image') && img) media.unshift({ type: 'image', url: img });
-      media = media.slice(0,2);
+      media = media.slice();
       return {
         name: String(name || ""),
         grams: Number(grams) || 0,
@@ -1734,15 +1737,15 @@
         ? imp.allInstances[profileIndex] : null;
       lastEffectiveImage = profileImage(chosenProfile) || imp.image || "";
       if (lastEffectiveImage) state.productImage = lastEffectiveImage;
-      const baseMedia = Array.isArray(imp.media) ? imp.media.slice(0,2) : [];
+      const baseMedia = Array.isArray(imp.media) ? imp.media.slice() : [];
       const originalVideo = baseMedia.find(m => m && m.type === 'video');
       const secondImage = baseMedia.find(m => m && m.type === 'image' && m.url !== lastEffectiveImage);
       let nextMedia = [];
       if (lastEffectiveImage) nextMedia.push({ type: 'image', url: lastEffectiveImage });
       if (originalVideo) nextMedia.push({ type: 'video', url: originalVideo.url });
       else if (secondImage) nextMedia.push({ type: 'image', url: secondImage.url });
-      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice(0,2);
-      state.productMedia = nextMedia.slice(0,2);
+      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice();
+      state.productMedia = nextMedia.slice();
       syncInputs();
       recalc();
       savePiece();
@@ -2296,7 +2299,7 @@
           state.productImage = lastImportedJson.image;
         }
         if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
-          state.productMedia = lastImportedJson.media.slice(0,2);
+          state.productMedia = lastImportedJson.media.slice();
         }
         saveProduct();
         toast("Producto guardado automáticamente");

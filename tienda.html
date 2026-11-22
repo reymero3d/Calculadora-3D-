@@ -476,7 +476,7 @@
     function mediaItemsOf(p) {
       const primary = StoreOffline.imageOf(p);
       const arr = Array.isArray(p.media) ? p.media.filter(m => m && m.url && (m.type === 'image' || m.type === 'video')) : [];
-      if (arr.length) return arr.slice(0, 2);
+      if (arr.length) return arr.slice();
       return primary ? [{ type: 'image', url: primary }] : [];
     }
 

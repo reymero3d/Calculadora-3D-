@@ -638,7 +638,7 @@
           roundTo: c.round_to || 0,
           currency: c.currency || "ARS",
           productImage: r.image_url || "",
-          productMedia: Array.isArray(r.media) ? r.media.slice(0,2) : (r.image_url ? [{type:'image',url:r.image_url}] : []),
+          productMedia: Array.isArray(r.media) ? r.media.slice() : (r.image_url ? [{type:'image',url:r.image_url}] : []),
           rawPrice: c.raw_price || r.price || 0,
           published: r.published,
           inStock: r.in_stock,
@@ -667,7 +667,7 @@
         const { data: same } = await sb.from("products").select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
-      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')).slice(0,2) : [];
+      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')) : [];
       const cover = (mediaArr.find(m=>m.type==='image')||{}).url || d.productImage || null;
       const productRow = {
         name: pr.name,
