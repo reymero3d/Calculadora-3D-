@@ -22,6 +22,27 @@
       }
     },
     {
+      "id": "sb_5636a25c-3ff4-4c71-9485-d134d225b37c",
+      "name": "Anya y Bond Spy X Family Hueforge",
+      "data": {
+        "productName": "Anya y Bond Spy X Family Hueforge",
+        "category": "Cuadro",
+        "colors": 1,
+        "hours": 3,
+        "minutes": 55,
+        "grams": 69,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USb377760b153338/1164097150/instance/1375aef025c15366.png",
+        "rawPrice": 8000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_2c8b1cab-8f0b-47e3-bb8b-2c5ce3fcded0",
       "name": "Art el Payaso",
       "data": {
@@ -1219,32 +1240,31 @@
       }
     },
     {
-      "id": "sb_5636a25c-3ff4-4c71-9485-d134d225b37c",
-      "name": "Anya y Bond Spy X Family Hueforge",
+      "id": "prod_1795383469653",
+      "name": "（sin AMS）Psyduck golpeado por pokebola",
       "data": {
-        "productName": "Anya y Bond Spy X Family Hueforge",
-        "category": "Cuadro",
+        "productName": "（sin AMS）Psyduck golpeado por pokebola",
+        "category": "Pokemon",
         "colors": 1,
-        "hours": 3,
-        "minutes": 55,
-        "grams": 69,
+        "hours": 4,
+        "minutes": 8,
+        "grams": 98,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USb377760b153338/1164097150/instance/1375aef025c15366.png",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1155617821/instance/ce7035e1c7d4a5aa.png",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USb377760b153338/1164097150/instance/1375aef025c15366.png"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1155617821/instance/ce7035e1c7d4a5aa.png"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 8000
-      },
-      "_sbJustSaved": 1795382914154
+        "rawPrice": 11000
+      }
     }
   ]
 }
