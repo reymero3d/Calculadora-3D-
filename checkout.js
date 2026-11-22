@@ -1,6 +1,6 @@
 /* Resumen del pedido de Reymero 3D (Etapa 2).
    Verifica precio, published e in_stock contra Supabase antes de habilitar el resumen.
-   No envía nada por WhatsApp: solo emite "reymero:checkout-validated" para la próxima etapa. */
+   Al confirmar emite "reymero:checkout-validated"; receipt.js abre el comprobante. */
 (function () {
   "use strict";
 
@@ -415,9 +415,6 @@
         validatedAt: new Date().toISOString()
       };
       window.dispatchEvent(new CustomEvent("reymero:checkout-validated", { detail: detail }));
-      if (typeof window.toast === "function") {
-        window.toast("Resumen listo. El envío por WhatsApp se habilita en la próxima etapa.");
-      }
     });
 
     window.ReymeroCheckout = Object.freeze({
