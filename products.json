@@ -946,6 +946,33 @@
       }
     },
     {
+      "id": "sb_d1459874-df1b-46be-b54d-68f0396192d5",
+      "name": "Nueva versión del dragón de fuego sin necesidad de soportes",
+      "data": {
+        "productName": "Nueva versión del dragón de fuego sin necesidad de soportes",
+        "category": "Dragones",
+        "colors": 1,
+        "hours": 4,
+        "minutes": 50,
+        "grams": 88,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg",
+        "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg"
+          }
+        ],
+        "published": true,
+        "inStock": true,
+        "rawPrice": 10000
+      }
+    },
+    {
       "id": "sb_f0cb2c53-51f4-47a4-a23b-3cacd6e8e235",
       "name": "Pain Naruto Hueforge",
       "data": {
@@ -1258,33 +1285,6 @@
         "rawPrice": 7000,
         "published": true,
         "inStock": true
-      }
-    },
-    {
-      "id": "prod_1795383853977",
-      "name": "Nueva versión del dragón de fuego sin necesidad de soportes",
-      "data": {
-        "productName": "Nueva versión del dragón de fuego sin necesidad de soportes",
-        "category": "Dragones",
-        "colors": 1,
-        "hours": 4,
-        "minutes": 50,
-        "grams": 88,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg",
-        "productMedia": [
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg"
-          }
-        ],
-        "published": true,
-        "inStock": true,
-        "rawPrice": 10000
       }
     }
   ]
