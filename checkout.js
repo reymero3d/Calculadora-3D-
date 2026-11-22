@@ -42,12 +42,19 @@
     .rm-checkout-line-notice { margin-top:.35rem; font-size:.72rem; color:var(--green); }
     .rm-checkout-line-error { margin-top:.35rem; font-size:.72rem; color:var(--accent); font-weight:700; }
     .rm-checkout-remove { margin-top:.45rem; background:none; border:0; padding:0; color:var(--accent); font-size:.72rem; text-decoration:underline; cursor:pointer; font-family:inherit; }
+    .rm-note-toggle { margin-top:.35rem; background:none; border:0; padding:0; color:var(--muted); font-size:.72rem; text-decoration:underline; cursor:pointer; font-family:inherit; }
+    .rm-note-toggle:hover { color:var(--accent); }
     .rm-checkout-note, .rm-ck-input, .rm-ck-select, .rm-ck-textarea { width:100%; padding:.6rem .7rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); font-family:inherit; font-size:.85rem; }
-    .rm-checkout-note { margin-top:.45rem; font-size:.8rem; }
+    .rm-checkout-note { margin-top:.45rem; font-size:.8rem; display:none; }
+    .rm-checkout-note.open { display:block; }
     .rm-ck-textarea { min-height:72px; resize:vertical; line-height:1.45; }
     .rm-checkout-note:focus, .rm-ck-input:focus, .rm-ck-select:focus, .rm-ck-textarea:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(185,28,28,.12); }
     .rm-ck-section { margin-top:1rem; padding-top:1rem; border-top:1px solid var(--border); }
     .rm-ck-title { margin:0 0 .75rem; font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .rm-more-toggle { background:none; border:0; padding:0; color:var(--muted); font-size:.78rem; text-decoration:underline; cursor:pointer; font-family:inherit; }
+    .rm-more-toggle:hover { color:var(--accent); }
+    .rm-more-box { display:none; margin-top:.75rem; }
+    .rm-more-box.open { display:block; }
     .rm-ck-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
     .rm-ck-field { display:flex; flex-direction:column; gap:.3rem; }
     .rm-ck-field.full { grid-column:1/-1; }
@@ -215,7 +222,11 @@
       row.appendChild(el("div", "rm-checkout-line-error", line.reason));
       const remove = el("button", "rm-checkout-remove", "Quitar del pedido"); remove.type = "button"; remove.dataset.checkoutRemove = line.id; row.appendChild(remove);
     }
-    const note = el("input", "rm-checkout-note"); note.type = "text"; note.maxLength = 1000; note.placeholder = "Observación del producto (opcional)"; note.value = line.note; note.dataset.checkoutNote = line.id; note.setAttribute("aria-label", "Observación para " + line.name);
+    const hasNote = !!(line.note && String(line.note).trim());
+    const noteToggle = el("button", "rm-note-toggle", hasNote ? "Editar observación" : "+ Agregar observación");
+    noteToggle.type = "button"; noteToggle.dataset.noteToggle = line.id;
+    const note = el("input", "rm-checkout-note" + (hasNote ? " open" : "")); note.type = "text"; note.maxLength = 1000; note.placeholder = "Observación del producto (opcional)"; note.value = line.note; note.dataset.checkoutNote = line.id; note.setAttribute("aria-label", "Observación para " + line.name);
+    row.appendChild(noteToggle);
     row.appendChild(note);
     return row;
   }
@@ -254,6 +265,12 @@
     const box = document.getElementById("rmBillingBox");
     if (box) box.classList.toggle("open", checked);
   }
+  function syncMoreUI() {
+    const hasMore = ["rmEmail","rmRefs","rmBillName","rmBillTax","rmBillAddr","rmCheckoutGeneralNote"].some(function (id) { const n = document.getElementById(id); return n && String(n.value || "").trim(); }) || !!(document.getElementById("rmBillingRequested") && document.getElementById("rmBillingRequested").checked);
+    const box = document.getElementById("rmMoreBox"); const toggle = document.getElementById("rmMoreToggle");
+    if (box) box.classList.toggle("open", hasMore);
+    if (toggle) toggle.textContent = hasMore ? "− Ocultar opciones" : "+ Más opciones (email, facturación, observaciones)";
+  }
 
   function fillForm(d) {
     const set = function (id, v) { const n = document.getElementById(id); if (n && v != null) n.value = v; };
@@ -265,7 +282,7 @@
     const bill = document.getElementById("rmBillingRequested"); if (bill) bill.checked = !!d.billing_requested;
     set("rmBillName", d.billing_full_name || ""); set("rmBillTax", d.billing_tax_id || ""); set("rmBillAddr", d.billing_address || "");
     if (d.general_notes != null) set("rmCheckoutGeneralNote", d.general_notes);
-    syncDeliveryUI(); syncBillingUI();
+    syncDeliveryUI(); syncBillingUI(); syncMoreUI();
   }
 
   async function getResumablePending() {
@@ -422,11 +439,10 @@
 
     formEl = document.createElement("form"); formEl.id = "rmCheckoutForm"; formEl.noValidate = true;
     // Contacto
-    const sec1 = el("div", "rm-ck-section"); sec1.appendChild(el("h3", "rm-ck-title", "Datos de contacto"));
+    const sec1 = el("div", "rm-ck-section"); sec1.appendChild(el("h3", "rm-ck-title", "Tus datos"));
     const g1 = el("div", "rm-ck-grid");
-    const fName = field("rmName", "Nombre y apellido", { required: true, autocomplete: "name", maxLength: 120 }); g1.appendChild(fName.wrap);
-    const fPhone = field("rmPhone", "Teléfono de contacto", { required: true, autocomplete: "tel", maxLength: 30, placeholder: "Ej.: 11 1234 5678" }); g1.appendChild(fPhone.wrap);
-    const fEmail = field("rmEmail", "Correo electrónico (opcional)", { type: "email", autocomplete: "email", maxLength: 254 }); fEmail.wrap.classList.add("full"); g1.appendChild(fEmail.wrap);
+    g1.appendChild(field("rmName", "Nombre y apellido", { required: true, autocomplete: "name", maxLength: 120 }).wrap);
+    g1.appendChild(field("rmPhone", "Teléfono", { required: true, autocomplete: "tel", maxLength: 30, placeholder: "Ej.: 11 1234 5678" }).wrap);
     sec1.appendChild(g1); formEl.appendChild(sec1);
 
     // Entrega
@@ -441,25 +457,30 @@
     g2.appendChild(field("rmCity", "Localidad", { required: true, maxLength: 120 }).wrap);
     g2.appendChild(field("rmAddress", "Dirección", { required: true, maxLength: 200, full: true }).wrap);
     g2.appendChild(field("rmPostal", "Código postal", { required: true, maxLength: 20 }).wrap);
-    g2.appendChild(field("rmRefs", "Referencias adicionales (opcional)", { maxLength: 500, full: true, placeholder: "Ej.: timbre, horario, punto de referencia" }).wrap);
     sec2.appendChild(g2); formEl.appendChild(sec2);
 
-    // Facturación opcional
-    const sec3 = el("div", "rm-ck-section"); sec3.appendChild(el("h3", "rm-ck-title", "Facturación (opcional)"));
-    const billCheck = el("label", "rm-ck-check"); const billCb = document.createElement("input"); billCb.type = "checkbox"; billCb.id = "rmBillingRequested"; billCheck.appendChild(billCb); billCheck.appendChild(document.createTextNode(" Necesito datos de facturación en el pedido")); sec3.appendChild(billCheck);
+    // Opciones adicionales (colapsadas)
+    const secMore = el("div", "rm-ck-section");
+    const moreToggle = el("button", "rm-more-toggle", "+ Más opciones (email, facturación, observaciones)"); moreToggle.type = "button"; moreToggle.id = "rmMoreToggle";
+    secMore.appendChild(moreToggle);
+    const moreBox = el("div", "rm-more-box"); moreBox.id = "rmMoreBox";
+    const gMore = el("div", "rm-ck-grid");
+    gMore.appendChild(field("rmEmail", "Correo electrónico (opcional)", { type: "email", autocomplete: "email", maxLength: 254, full: true }).wrap);
+    gMore.appendChild(field("rmRefs", "Referencias de entrega (opcional)", { maxLength: 500, full: true, placeholder: "Ej.: timbre, horario, punto de referencia" }).wrap);
+    moreBox.appendChild(gMore);
+    const billCheck = el("label", "rm-ck-check"); billCheck.style.marginTop = ".75rem";
+    const billCb = document.createElement("input"); billCb.type = "checkbox"; billCb.id = "rmBillingRequested"; billCheck.appendChild(billCb); billCheck.appendChild(document.createTextNode(" Necesito datos de facturación")); moreBox.appendChild(billCheck);
     const billBox = el("div", "rm-ck-billing"); billBox.id = "rmBillingBox";
     const g3 = el("div", "rm-ck-grid");
     g3.appendChild(field("rmBillName", "Nombre / Razón social", { maxLength: 120, full: true }).wrap);
     g3.appendChild(field("rmBillTax", "CUIT / DNI (opcional)", { maxLength: 32 }).wrap);
     g3.appendChild(field("rmBillAddr", "Domicilio fiscal (opcional)", { maxLength: 200 }).wrap);
-    billBox.appendChild(g3); sec3.appendChild(billBox); formEl.appendChild(sec3);
-
-    // Observaciones
-    const sec4 = el("div", "rm-ck-section"); sec4.appendChild(el("h3", "rm-ck-title", "Observaciones"));
-    const noteLabel = el("label", "rm-ck-label", "Observaciones generales (opcional)"); noteLabel.setAttribute("for", "rmCheckoutGeneralNote"); noteLabel.style.display = "block"; noteLabel.style.marginBottom = ".3rem"; sec4.appendChild(noteLabel);
-    noteEl = el("textarea", "rm-ck-textarea"); noteEl.id = "rmCheckoutGeneralNote"; noteEl.maxLength = 2000; noteEl.placeholder = "Ej.: entregar por la tarde, avisar antes de enviar…"; sec4.appendChild(noteEl);
-    sec4.appendChild(el("p", "rm-ck-hint", "Al confirmar, el pedido se registra como pendiente y no pagado. La confirmación final se coordina por WhatsApp."));
-    formEl.appendChild(sec4);
+    billBox.appendChild(g3); moreBox.appendChild(billBox);
+    const noteLabel = el("label", "rm-ck-label", "Observaciones (opcional)"); noteLabel.setAttribute("for", "rmCheckoutGeneralNote"); noteLabel.style.display = "block"; noteLabel.style.marginTop = ".75rem"; noteLabel.style.marginBottom = ".3rem"; moreBox.appendChild(noteLabel);
+    noteEl = el("textarea", "rm-ck-textarea"); noteEl.id = "rmCheckoutGeneralNote"; noteEl.maxLength = 2000; noteEl.placeholder = "Ej.: entregar por la tarde, avisar antes de enviar…"; moreBox.appendChild(noteEl);
+    secMore.appendChild(moreBox);
+    secMore.appendChild(el("p", "rm-ck-hint", "Al confirmar se registra el pedido como pendiente. El pago se verifica después de subir el comprobante."));
+    formEl.appendChild(secMore);
 
     body.appendChild(formEl); modal.appendChild(body);
 
@@ -477,6 +498,11 @@
     document.addEventListener("keydown", function (e) { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
     window.addEventListener("reymero:checkout-request", open);
     backBtn.addEventListener("click", function () { close(); if (window.ReymeroCartUI) window.ReymeroCartUI.open(); });
+    moreToggle.addEventListener("click", function () {
+      const box = document.getElementById("rmMoreBox");
+      const open = box.classList.toggle("open");
+      moreToggle.textContent = open ? "− Ocultar opciones" : "+ Más opciones (email, facturación, observaciones)";
+    });
 
     function clearError() { if (state.error) { state.error = ""; render(); } }
     formEl.addEventListener("change", function (e) {
@@ -497,6 +523,12 @@
       if (state.result) { const line = state.result.lines.find(function (l) { return l.id === input.dataset.checkoutNote; }); if (line) line.note = input.value; }
     });
     linesEl.addEventListener("click", function (e) {
+      const toggle = e.target.closest("[data-note-toggle]");
+      if (toggle) {
+        const note = linesEl.querySelector('[data-checkout-note="' + toggle.dataset.noteToggle + '"]');
+        if (note) { note.classList.add("open"); note.focus(); toggle.textContent = "Editar observación"; }
+        return;
+      }
       const remove = e.target.closest("[data-checkout-remove]"); if (!remove) return;
       window.ReymeroCart.remove(remove.dataset.checkoutRemove); validate();
     });
