@@ -1240,7 +1240,7 @@
       }
     },
     {
-      "id": "prod_1795383657511",
+      "id": "sb_bf77712c-702f-4b6a-940a-b17eccccd4dc",
       "name": "Iron Man",
       "data": {
         "productName": "Iron Man",
@@ -1264,7 +1264,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 7000
-      }
+      },
+      "_sbJustSaved": 1795383658432
     }
   ]
 }
