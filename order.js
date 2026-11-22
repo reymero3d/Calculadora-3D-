@@ -27,10 +27,24 @@
     });
   }
 
+  function deliveryLabel(method) {
+    return method === "pickup_agreed" ? "Retiro acordado" : "Envío";
+  }
+
+  function formatOrderId(id, detail) {
+    if (id && /^RM-/.test(String(id))) return String(id);
+    const num = detail && detail.orderNumber != null ? detail.orderNumber : (/^\d+$/.test(String(id || "")) ? id : null);
+    if (num != null && num !== "") return "RM-" + String(num).padStart(6, "0");
+    return id ? String(id) : createOrderId((detail && (detail.createdAt || detail.validatedAt)) || undefined);
+  }
+
   function buildOrderText(detail, id) {
     const d = detail || {};
     const items = d.items || [];
-    const orderId = id || d.id || createOrderId(d.validatedAt);
+    const orderId = formatOrderId(id, d);
+    const date = d.createdAt || d.validatedAt;
+    const customer = d.customer || {};
+    const shipping = d.shipping || {};
     const lines = items.map(function (item, i) {
       const qty = Number(item.qty) || 1;
       const price = Number(item.price) || 0;
@@ -39,19 +53,38 @@
       return item.note ? text + "\n    Obs: " + String(item.note) : text;
     });
 
-    return [
+    const delivery = [];
+    delivery.push("Método: " + deliveryLabel(d.deliveryMethod));
+    if (d.deliveryMethod === "shipping") {
+      const addr = [shipping.address, shipping.city, shipping.province, shipping.postalCode].filter(Boolean).join(", ");
+      if (addr) delivery.push("Dirección: " + addr);
+      if (shipping.references) delivery.push("Referencias: " + shipping.references);
+    }
+
+    const out = [
       "Hola Reymero3d! Quiero confirmar este pedido:",
       "",
       "Pedido: " + orderId,
-      "Fecha: " + formatDate(d.validatedAt),
+      "Fecha: " + formatDate(date),
+      "Estado: Pendiente de confirmación",
+      "Pago: No pagado",
       "",
-      ...lines,
-      "",
-      "Observaciones generales: " + (d.notes ? String(d.notes) : "-"),
-      "Total: " + money(d.subtotal),
-      "",
-      "Precios y stock verificados al generar el pedido."
-    ].join("\n");
+      "Cliente: " + (customer.fullName || "-"),
+      "Teléfono: " + (customer.phone || "-"),
+    ];
+    if (customer.email) out.push("Email: " + customer.email);
+    out.push("");
+    out.push("Entrega:");
+    delivery.forEach(function (l) { out.push("- " + l); });
+    out.push("");
+    out.push("Productos:");
+    out.push(...lines);
+    out.push("");
+    out.push("Observaciones generales: " + (d.notes ? String(d.notes) : "-"));
+    out.push("Total estimado: " + money(d.total != null ? d.total : d.subtotal));
+    out.push("");
+    out.push("Precios y stock verificados al generar el pedido. Este mensaje no confirma el pago ni la aceptación final del pedido.");
+    return out.join("\n");
   }
 
   global.ReymeroOrder = Object.freeze({

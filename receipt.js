@@ -75,110 +75,127 @@
   function makePdf() {
     if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("jsPDF no disponible");
     const d = current.detail;
+    const customer = d.customer || {};
+    const shipping = d.shipping || {};
     const doc = new window.jspdf.jsPDF({ unit: "pt", format: "a4" });
     const left = 50;
     const right = 545;
-    let y = 60;
+    let y = 56;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("Reymero3d", left, y);
-    y += 22;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-    doc.text("Comprobante de pedido", left, y);
-    y += 26;
+    function ensure(h) { if (y + (h || 20) > 760) { doc.addPage(); y = 56; } }
+    function line(text, opts) {
+      opts = opts || {};
+      doc.setFont("helvetica", opts.bold ? "bold" : "normal");
+      doc.setFontSize(opts.size || 10);
+      const lines = doc.splitTextToSize(String(text || ""), opts.width || 495);
+      ensure(lines.length * (opts.lh || 13) + 2);
+      doc.text(lines, left, y);
+      y += lines.length * (opts.lh || 13);
+    }
 
-    doc.setFontSize(10);
-    doc.text("Pedido: " + current.id, left, y);
-    y += 16;
-    doc.text("Fecha: " + window.ReymeroOrder.formatDate(d.validatedAt), left, y);
-    y += 18;
-    doc.setDrawColor(200);
-    doc.line(left, y, right, y);
-    y += 24;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("Reymero3d", left, y); y += 20;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(11); doc.text("Comprobante de pedido", left, y); y += 20;
+    line("Pedido: " + current.id);
+    line("Fecha: " + window.ReymeroOrder.formatDate(d.createdAt || d.validatedAt));
+    line("Estado: " + (d.statusLabel || "Pendiente de confirmación"));
+    line("Pago: No pagado");
+    y += 4; doc.setDrawColor(200); doc.line(left, y, right, y); y += 16;
+
+    line("Cliente", { bold: true, size: 11, lh: 14 });
+    line("Nombre: " + (customer.fullName || "-"));
+    line("Teléfono: " + (customer.phone || "-"));
+    if (customer.email) line("Email: " + customer.email);
+    y += 6;
+    line("Entrega", { bold: true, size: 11, lh: 14 });
+    line("Método: " + (d.deliveryMethod === "pickup_agreed" ? "Retiro acordado" : "Envío"));
+    if (d.deliveryMethod === "shipping") {
+      const addr = [shipping.address, shipping.city, shipping.province, shipping.postalCode].filter(Boolean).join(", ");
+      if (addr) line("Dirección: " + addr);
+      if (shipping.references) line("Referencias: " + shipping.references);
+    }
+    y += 6; doc.setDrawColor(200); doc.line(left, y, right, y); y += 16;
+    line("Productos", { bold: true, size: 11, lh: 14 });
 
     (d.items || []).forEach(function (item, i) {
       const qty = Number(item.qty) || 1;
       const price = Number(item.price) || 0;
       const sub = Number(item.subtotal != null ? item.subtotal : price * qty);
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(10);
+      ensure(40);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10);
       const nameLines = doc.splitTextToSize((i + 1) + ") " + String(item.name || "Producto"), 360);
-      doc.text(nameLines, left, y);
-      y += nameLines.length * 13;
+      doc.text(nameLines, left, y); y += nameLines.length * 13;
       doc.setFont("helvetica", "normal");
       doc.text(qty + " x " + money(price) + " c/u", left + 12, y);
-      doc.text(money(sub), right, y, { align: "right" });
-      y += 15;
-      if (item.note) {
-        const noteLines = doc.splitTextToSize("Obs: " + String(item.note), 400);
-        doc.setFontSize(9);
-        doc.text(noteLines, left + 12, y);
-        y += noteLines.length * 12 + 4;
-        doc.setFontSize(10);
-      }
-      y += 6;
-      if (y > 720) { doc.addPage(); y = 60; }
+      doc.text(money(sub), right, y, { align: "right" }); y += 14;
+      if (item.note) { line("Obs: " + String(item.note), { size: 9, lh: 11, width: 470 }); }
+      y += 4;
     });
 
     if (d.notes) {
-      y += 8;
-      doc.setFont("helvetica", "bold");
-      doc.text("Observaciones generales", left, y);
-      y += 15;
-      doc.setFont("helvetica", "normal");
-      const noteLines = doc.splitTextToSize(String(d.notes), 480);
-      doc.text(noteLines, left, y);
-      y += noteLines.length * 13 + 10;
+      y += 4; line("Observaciones generales", { bold: true, size: 11, lh: 14 });
+      line(String(d.notes), { width: 495 });
     }
 
-    if (y > 720) { doc.addPage(); y = 60; }
-    doc.setDrawColor(200);
-    doc.line(left, y, right, y);
-    y += 24;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(14);
-    doc.text("Total", left, y);
-    doc.setFontSize(17);
-    doc.text(money(d.subtotal), right, y, { align: "right" });
-    y += 28;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.text("Precios y stock verificados al generar el pedido.", left, y);
-
+    ensure(60);
+    doc.setDrawColor(200); doc.line(left, y, right, y); y += 22;
+    doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("Total estimado", left, y);
+    doc.setFontSize(16); doc.text(money(d.total != null ? d.total : d.subtotal), right, y, { align: "right" }); y += 24;
+    doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+    const disclaimer = "Pedido registrado como pendiente. No pagado. La apertura de WhatsApp no confirma la aceptación final del pedido. Precios y stock verificados al generar el pedido.";
+    const dLines = doc.splitTextToSize(disclaimer, 495);
+    doc.text(dLines, left, y);
     return doc;
   }
 
   function render() {
     if (!bodyEl) return;
     const d = current.detail;
+    const customer = d.customer || {};
+    const shipping = d.shipping || {};
     bodyEl.textContent = "";
 
     bodyEl.appendChild(el("div", "rm-receipt-brand", "Reymero3d · Impresión 3D"));
     bodyEl.appendChild(el("h3", "rm-receipt-title", "Comprobante de pedido"));
 
     const meta = el("div", "rm-receipt-meta");
-    const idBox = el("div");
-    idBox.appendChild(el("span", null, "Número de pedido"));
-    idBox.appendChild(el("b", null, current.id));
-    const dateBox = el("div");
-    dateBox.appendChild(el("span", null, "Generado"));
-    dateBox.appendChild(el("b", null, window.ReymeroOrder.formatDate(d.validatedAt)));
-    meta.appendChild(idBox);
-    meta.appendChild(dateBox);
+    [
+      ["Número de pedido", current.id],
+      ["Fecha", window.ReymeroOrder.formatDate(d.createdAt || d.validatedAt)],
+      ["Estado", d.statusLabel || "Pendiente de confirmación"],
+      ["Pago", "No pagado"]
+    ].forEach(function (pair) {
+      const box = el("div");
+      box.appendChild(el("span", null, pair[0]));
+      box.appendChild(el("b", null, pair[1]));
+      meta.appendChild(box);
+    });
     bodyEl.appendChild(meta);
+
+    const infoBlock = el("div", "rm-receipt-notes");
+    infoBlock.appendChild(el("b", null, "Datos del cliente / entrega"));
+    const info = [];
+    info.push("Cliente: " + (customer.fullName || "-"));
+    info.push("Teléfono: " + (customer.phone || "-"));
+    if (customer.email) info.push("Email: " + customer.email);
+    info.push("Entrega: " + (d.deliveryMethod === "pickup_agreed" ? "Retiro acordado" : "Envío"));
+    if (d.deliveryMethod === "shipping") {
+      const addr = [shipping.address, shipping.city, shipping.province, shipping.postalCode].filter(Boolean).join(", ");
+      if (addr) info.push("Dirección: " + addr);
+      if (shipping.references) info.push("Referencias: " + shipping.references);
+    }
+    infoBlock.appendChild(el("p", null, info.join("\n")));
+    bodyEl.appendChild(infoBlock);
 
     (d.items || []).forEach(function (item, i) {
       const qty = Number(item.qty) || 1;
       const price = Number(item.price) || 0;
       const sub = Number(item.subtotal != null ? item.subtotal : price * qty);
       const row = el("div", "rm-receipt-line");
-      const info = el("div");
-      info.appendChild(el("div", "rm-receipt-line-name", (i + 1) + ") " + String(item.name || "Producto")));
-      info.appendChild(el("div", "rm-receipt-line-meta", qty + " × " + money(price) + " c/u"));
-      if (item.note) info.appendChild(el("div", "rm-receipt-line-note", "Obs: " + String(item.note)));
-      row.appendChild(info);
+      const leftInfo = el("div");
+      leftInfo.appendChild(el("div", "rm-receipt-line-name", (i + 1) + ") " + String(item.name || "Producto")));
+      leftInfo.appendChild(el("div", "rm-receipt-line-meta", qty + " × " + money(price) + " c/u"));
+      if (item.note) leftInfo.appendChild(el("div", "rm-receipt-line-note", "Obs: " + String(item.note)));
+      row.appendChild(leftInfo);
       row.appendChild(el("div", "rm-receipt-line-sub", money(sub)));
       bodyEl.appendChild(row);
     });
@@ -191,11 +208,11 @@
     }
 
     const total = el("div", "rm-receipt-total");
-    total.appendChild(el("span", null, "Total"));
-    total.appendChild(el("b", null, money(d.subtotal)));
+    total.appendChild(el("span", null, "Total estimado"));
+    total.appendChild(el("b", null, money(d.total != null ? d.total : d.subtotal)));
     bodyEl.appendChild(total);
     bodyEl.appendChild(el("p", "rm-receipt-disclaimer",
-      "Este comprobante es una vista previa del pedido. Revisá los datos antes de enviarlo por WhatsApp."));
+      "Pedido registrado como pendiente. No pagado. La apertura de WhatsApp no confirma la aceptación final del pedido. Precios y stock verificados al generar el pedido."));
   }
 
   function open() {
@@ -236,9 +253,11 @@
   function onValidated(e) {
     const detail = e && e.detail;
     if (!detail || !(detail.items || []).length) return;
+    const displayId = detail.orderNumber ? ("RM-" + String(detail.orderNumber).padStart(6, "0")) : (detail.id || window.ReymeroOrder.createOrderId(detail.validatedAt));
     current = {
       detail: detail,
-      id: detail.id || window.ReymeroOrder.createOrderId(detail.validatedAt)
+      id: displayId,
+      orderId: detail.orderId || detail.id || null
     };
     open();
   }
