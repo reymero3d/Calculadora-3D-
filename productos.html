@@ -118,6 +118,7 @@
           <div class="hero-nav">
             <a href="index.html">Costos 3D</a>
             <a href="productos.html" class="active">Productos</a>
+            <a href="pedidos.html">Pedidos</a>
             <button id="themeToggle" style="color:#fbf8f3;background:transparent;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;cursor:pointer;">☾ Oscuro</button>
           </div>
         </div>
@@ -1018,16 +1019,28 @@
       render();
     }
 
+    async function isAdminUser() {
+      if (!sb) return true;
+      const { data, error } = await sb.rpc("is_admin");
+      if (error) { console.warn("is_admin check failed", error); return false; }
+      return !!data;
+    }
+
     if (sb) {
       sb.auth.getSession().then(async ({ data }) => {
         if (data && data.session) {
-          document.body.classList.remove("admin-locked");
-          if (loginOverlay) loginOverlay.style.display = "none";
-          applySupabaseRows(await fetchSupabaseProducts());
-        } else {
-          document.body.classList.add("admin-locked");
-          if (loginOverlay) loginOverlay.style.display = "block";
+          const admin = await isAdminUser();
+          if (admin) {
+            document.body.classList.remove("admin-locked");
+            if (loginOverlay) loginOverlay.style.display = "none";
+            applySupabaseRows(await fetchSupabaseProducts());
+            return;
+          }
+          await sb.auth.signOut();
+          if (loginStatus) loginStatus.textContent = "✗ Tu cuenta no tiene permisos de administrador.";
         }
+        document.body.classList.add("admin-locked");
+        if (loginOverlay) loginOverlay.style.display = "block";
       });
     } else if (loginOverlay) {
       loginOverlay.style.display = "none";
@@ -1042,12 +1055,18 @@
         const { data, error } = await sb.auth.signInWithPassword({ email, password });
         if (error) {
           if (loginStatus) loginStatus.textContent = "✗ " + error.message;
-        } else {
-          document.body.classList.remove("admin-locked");
-          if (loginOverlay) loginOverlay.style.display = "none";
-          applySupabaseRows(await fetchSupabaseProducts());
-          toast("Sesión iniciada");
+          return;
         }
+        const admin = await isAdminUser();
+        if (!admin) {
+          await sb.auth.signOut();
+          if (loginStatus) loginStatus.textContent = "✗ Tu cuenta no tiene permisos de administrador.";
+          return;
+        }
+        document.body.classList.remove("admin-locked");
+        if (loginOverlay) loginOverlay.style.display = "none";
+        applySupabaseRows(await fetchSupabaseProducts());
+        toast("Sesión iniciada");
       });
     }
 

@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pedidos · Reymero3d</title>
+  <link rel="icon" type="image/svg+xml" href="logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root { --bg:#f4f0e9; --surface:#fffdf9; --surface-2:#efe9df; --border:#ded6c8; --text:#26221d; --muted:#6b6359; --muted-2:#9a9184; --accent:#b91c1c; --accent-dark:#991b1b; --accent-soft:#fbeeec; --green:#15803d; --amber:#a16207; --shadow:0 1px 2px rgba(38,34,29,.05); --shadow-md:0 6px 18px rgba(38,34,29,.08); }
+    body.dark { --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33; --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70; --accent:#ef4444; --accent-dark:#dc2626; --accent-soft:#3a1f1f; --green:#4ade80; --amber:#fbbf24; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-md:0 6px 18px rgba(0,0,0,.35); }
+    * { box-sizing:border-box; }
+    html,body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Inter","Segoe UI",system-ui,sans-serif; }
+    body { min-height:100vh; }
+    .app { max-width:1280px; margin:0 auto; padding:0 1.5rem 3rem; }
+    .hero { background:linear-gradient(135deg,#1c1917 0%,#2d1d1a 100%); color:#fbf8f3; padding:2.5rem 2rem 2rem; margin:1.5rem -1.5rem 0; border-bottom:3px solid var(--accent); border-radius:0 0 16px 16px; }
+    .eyebrow { font-family:"JetBrains Mono",monospace; font-size:.68rem; text-transform:uppercase; letter-spacing:.18em; color:#fca5a5; margin-bottom:.75rem; }
+    .hero h1 { margin:0; font-family:"Fraunces",serif; font-size:clamp(2rem,4vw,3rem); }
+    .hero p { margin:.5rem 0 0; opacity:.78; }
+    .hero-nav { display:flex; gap:.5rem; margin-top:1.1rem; flex-wrap:wrap; }
+    .hero-nav a, .hero-nav button { color:#fbf8f3; text-decoration:none; font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.08em; padding:.45rem .85rem; border:1px solid rgba(251,248,243,.28); border-radius:99px; font-family:"JetBrains Mono",monospace; background:transparent; cursor:pointer; }
+    .hero-nav a.active, .hero-nav a:hover, .hero-nav button:hover { background:var(--accent); border-color:var(--accent); }
+    .toolbar { display:grid; grid-template-columns:1fr auto auto; gap:.75rem; margin-top:-1rem; padding:1rem; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-md); }
+    .toolbar input, .toolbar select { width:100%; padding:.72rem .9rem; border:1.5px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font:inherit; }
+    .toolbar input:focus, .toolbar select:focus { outline:none; border-color:var(--accent); box-shadow:0 0 0 3px rgba(185,28,28,.12); }
+    .btn { padding:.72rem 1rem; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font:inherit; cursor:pointer; }
+    .btn.primary { background:var(--accent); border-color:var(--accent); color:#fff; font-family:"JetBrains Mono",monospace; font-size:.72rem; font-weight:700; text-transform:uppercase; }
+    .btn.primary:hover { background:var(--accent-dark); }
+    .status { margin-top:1rem; font-size:.8rem; color:var(--muted); font-family:"JetBrains Mono",monospace; }
+    .status.err { color:var(--accent); }
+    .table-wrap { margin-top:1rem; background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:auto; box-shadow:var(--shadow); }
+    table { width:100%; border-collapse:collapse; min-width:980px; }
+    th, td { padding:.85rem .8rem; border-bottom:1px solid var(--border); text-align:left; vertical-align:top; font-size:.84rem; }
+    th { font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); background:var(--surface-2); position:sticky; top:0; }
+    tr:hover td { background:rgba(185,28,28,.03); }
+    .badge { display:inline-flex; align-items:center; padding:.2rem .55rem; border-radius:99px; font-size:.68rem; font-weight:700; font-family:"JetBrains Mono",monospace; text-transform:uppercase; white-space:nowrap; }
+    .s-pending { background:#fef3c7; color:#92400e; } .s-confirmed { background:#dbeafe; color:#1d4ed8; }
+    .s-preparing { background:#ede9fe; color:#6d28d9; } .s-ready { background:#dcfce7; color:#166534; }
+    .s-delivered { background:#e5e7eb; color:#374151; } .s-cancelled { background:#fee2e2; color:#991b1b; }
+    body.dark .s-pending { background:#422006; color:#fcd34d; } body.dark .s-confirmed { background:#172554; color:#93c5fd; }
+    body.dark .s-preparing { background:#2e1065; color:#c4b5fd; } body.dark .s-ready { background:#052e16; color:#86efac; }
+    body.dark .s-delivered { background:#27272a; color:#d4d4d8; } body.dark .s-cancelled { background:#450a0a; color:#fca5a5; }
+    .muted { color:var(--muted); font-size:.76rem; }
+    .actions { display:flex; gap:.4rem; flex-wrap:wrap; }
+    .small { padding:.45rem .65rem; font-size:.72rem; }
+    .empty { padding:2rem; text-align:center; color:var(--muted); }
+    /* Modal */
+    .modal-back { position:fixed; inset:0; background:rgba(28,25,23,.55); display:none; z-index:80; }
+    .modal-back.open { display:block; }
+    .modal { position:fixed; inset:1rem; margin:auto; max-width:860px; max-height:calc(100vh - 2rem); overflow:auto; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-md); z-index:81; display:none; }
+    .modal.open { display:block; }
+    .modal-head { display:flex; justify-content:space-between; gap:1rem; padding:1rem 1.25rem; border-bottom:1px solid var(--border); position:sticky; top:0; background:var(--surface); }
+    .modal-head h2 { margin:0; font-family:"Fraunces",serif; font-size:1.35rem; }
+    .modal-body { padding:1.25rem; display:grid; gap:1rem; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .box { border:1px solid var(--border); border-radius:10px; padding:1rem; background:var(--surface-2); }
+    .box h3 { margin:0 0 .6rem; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
+    .box p { margin:.25rem 0; font-size:.85rem; line-height:1.45; white-space:pre-wrap; }
+    .items { width:100%; border-collapse:collapse; }
+    .items th,.items td { padding:.6rem .5rem; border-bottom:1px solid var(--border); font-size:.8rem; }
+    .items th { background:transparent; position:static; }
+    .row { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+    .row select, .row input { padding:.55rem .7rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); font:inherit; }
+    /* Login */
+    body.admin-locked .app { display:none; }
+    body.admin-locked #loginOverlay { display:block !important; }
+    #loginOverlay { display:none; max-width:460px; margin:2rem auto; padding:1.5rem; background:var(--surface); border:1px solid var(--border); border-radius:12px; box-shadow:var(--shadow-md); }
+    #loginOverlay h2 { margin:0 0 .5rem; font-family:"Fraunces",serif; }
+    #loginOverlay label { display:block; font-size:.78rem; color:var(--muted); margin-top:.75rem; }
+    #loginOverlay input { width:100%; padding:.72rem .9rem; border:1.5px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font:inherit; margin-top:.3rem; }
+    #loginOverlay .hint { font-size:.78rem; color:var(--muted); margin-top:.75rem; }
+    @media (max-width:800px) { .toolbar{grid-template-columns:1fr;} .grid2{grid-template-columns:1fr;} .app{padding:0 1rem 2rem;} .hero{margin:1rem -1rem 0;} }
+  </style>
+</head>
+<body class="admin-locked">
+  <div id="loginOverlay">
+    <h2>Acceso admin</h2>
+    <p class="hint">Ingresá con tu cuenta de administrador para gestionar pedidos.</p>
+    <label for="loginEmail">Email</label>
+    <input type="email" id="loginEmail" autocomplete="email">
+    <label for="loginPassword">Contraseña</label>
+    <input type="password" id="loginPassword" autocomplete="current-password">
+    <button class="btn primary" id="loginBtn" style="width:100%;margin-top:1rem;">Ingresar</button>
+    <p class="hint" id="loginStatus"></p>
+    <a href="tienda.html" class="hint" style="display:inline-block;margin-top:.5rem;">Volver a la tienda</a>
+  </div>
+
+  <div class="app">
+    <div class="hero">
+      <div class="eyebrow">Reymero3d · Administración</div>
+      <h1>Pedidos</h1>
+      <p>Gestioná pedidos, estados y detalle de entrega. Los clientes ven solo sus propios pedidos; los admins ven todos.</p>
+      <div class="hero-nav">
+        <a href="index.html">Costos 3D</a>
+        <a href="productos.html">Productos</a>
+        <a href="pedidos.html" class="active">Pedidos</a>
+        <button id="themeToggle" type="button">☾ Oscuro</button>
+        <button id="logoutBtn" type="button">Salir</button>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="q" placeholder="Buscar por número, cliente, teléfono o email...">
+      <select id="statusFilter">
+        <option value="">Todos los estados</option>
+        <option value="pending">Pendiente</option>
+        <option value="confirmed">Confirmado</option>
+        <option value="preparing">En preparación</option>
+        <option value="ready">Listo para entregar</option>
+        <option value="delivered">Entregado</option>
+        <option value="cancelled">Cancelado</option>
+      </select>
+      <button class="btn primary" id="refreshBtn" type="button">Actualizar</button>
+    </div>
+
+    <div class="status" id="statusLine">Cargando pedidos...</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Pedido</th><th>Fecha</th><th>Cliente</th><th>Entrega</th><th>Total</th><th>Estado</th><th>Pago</th><th>Acciones</th></tr></thead>
+        <tbody id="rows"><tr><td colspan="8" class="empty">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-back" id="modalBack"></div>
+  <div class="modal" id="modal" aria-hidden="true">
+    <div class="modal-head">
+      <h2 id="modalTitle">Pedido</h2>
+      <button class="btn small" id="modalClose" type="button">Cerrar</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+
+  <script>
+    const CFG = window.ReymeroConfig || {};
+    const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
+    const STATUS_LABELS = { pending:"Pendiente", confirmed:"Confirmado", preparing:"En preparación", ready:"Listo para entregar", delivered:"Entregado", cancelled:"Cancelado" };
+    const DELIVERY_LABELS = { shipping:"Envío", pickup_agreed:"Retiro acordado" };
+    const PAYMENT_LABELS = { pending_payment:"Pendiente comprobante", receipt_uploaded:"Comprobante recibido", verified:"Pago verificado", not_required:"No requerido" };
+    let allOrders = [];
+    let current = null;
+
+    function money(n){ const v=Number(n); return "$ " + (Number.isFinite(v)?v:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function fmtDate(v){ const d=new Date(v); return isNaN(d)?"-":d.toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
+    function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
+    function badge(status){ const s=String(status||"pending"); return `<span class="badge s-${esc(s)}">${esc(STATUS_LABELS[s]||s)}</span>`; }
+    function payBadge(status){ const s=String(status||"pending_payment"); const cls = s==="receipt_uploaded"?"s-confirmed":s==="verified"?"s-ready":s==="not_required"?"s-delivered":"s-pending"; return `<span class="badge ${cls}">${esc(PAYMENT_LABELS[s]||s)}</span>`; }
+    function rm(n){ return "RM-" + String(n||0).padStart(6,"0"); }
+
+    async function ensureAdmin() {
+      const { data: sess } = await sb.auth.getSession();
+      if (!sess || !sess.session) return { ok:false, reason:"auth" };
+      const { data, error } = await sb.rpc("is_admin");
+      if (error) return { ok:false, reason:"rpc", error };
+      return { ok: !!data, reason: data ? "ok" : "not_admin" };
+    }
+
+    function setLocked(locked, msg) {
+      document.body.classList.toggle("admin-locked", !!locked);
+      const overlay = document.getElementById("loginOverlay");
+      overlay.style.display = locked ? "block" : "none";
+      const st = document.getElementById("loginStatus");
+      if (st && msg) st.textContent = msg;
+    }
+
+    async function loadOrders() {
+      const statusLine = document.getElementById("statusLine");
+      statusLine.textContent = "Cargando pedidos...";
+      statusLine.className = "status";
+      const { data, error } = await sb
+        .from("orders")
+        .select("*, order_items(id,product_name_snapshot,unit_price,quantity,line_total,item_note)")
+        .order("created_at", { ascending: false })
+        .limit(200);
+      if (error) {
+        statusLine.textContent = "Error cargando pedidos: " + error.message;
+        statusLine.className = "status err";
+        allOrders = [];
+        renderRows();
+        return;
+      }
+      allOrders = data || [];
+      statusLine.textContent = allOrders.length + " pedido(s) cargados.";
+      renderRows();
+    }
+
+    function filtered() {
+      const q = document.getElementById("q").value.trim().toLowerCase();
+      const st = document.getElementById("statusFilter").value;
+      return allOrders.filter(o => {
+        if (st && o.status !== st) return false;
+        if (!q) return true;
+        const hay = [rm(o.order_number), o.order_number, o.customer_full_name, o.customer_phone, o.customer_email, o.id].filter(Boolean).join(" ").toLowerCase();
+        return hay.includes(q);
+      });
+    }
+
+    function renderRows() {
+      const tbody = document.getElementById("rows");
+      const rows = filtered();
+      if (!rows.length) { tbody.innerHTML = '<tr><td colspan="8" class="empty">No hay pedidos para mostrar.</td></tr>'; return; }
+      tbody.innerHTML = rows.map(o => {
+        const addr = o.delivery_method === "shipping" ? [o.shipping_address, o.shipping_city, o.shipping_province].filter(Boolean).join(", ") : "Retiro acordado";
+        return `<tr>
+          <td><strong>${esc(rm(o.order_number))}</strong><div class="muted">${esc(o.id.slice(0,8))}…</div></td>
+          <td>${esc(fmtDate(o.created_at))}</td>
+          <td><strong>${esc(o.customer_full_name||"-")}</strong><div class="muted">${esc(o.customer_phone||"")}</div><div class="muted">${esc(o.customer_email||"")}</div></td>
+          <td>${esc(DELIVERY_LABELS[o.delivery_method]||o.delivery_method)}<div class="muted">${esc(addr)}</div></td>
+          <td><strong>${esc(money(o.total))}</strong><div class="muted">${(o.order_items||[]).length} ítem(s)</div></td>
+          <td>${badge(o.status)}</td>
+          <td>${payBadge(o.payment_status)}</td>
+          <td><div class="actions"><button class="btn small" data-view="${esc(o.id)}">Ver</button></div></td>
+        </tr>`;
+      }).join("");
+    }
+
+    function openModal(order) {
+      current = order;
+      document.getElementById("modalTitle").textContent = "Pedido " + rm(order.order_number);
+      const items = (order.order_items || []).map(it => `<tr><td>${esc(it.product_name_snapshot)}</td><td>${esc(it.quantity)}</td><td>${esc(money(it.unit_price))}</td><td>${esc(money(it.line_total))}</td></tr>`).join("");
+      const addr = [order.shipping_address, order.shipping_city, order.shipping_province, order.shipping_postal_code].filter(Boolean).join(", ");
+      document.getElementById("modalBody").innerHTML = `
+        <div class="grid2">
+          <div class="box"><h3>Cliente</h3><p><strong>${esc(order.customer_full_name||"-")}</strong></p><p>Tel: ${esc(order.customer_phone||"-")}</p><p>Email: ${esc(order.customer_email||"-")}</p><p>Tipo: ${esc(order.customer_type||"-")}</p></div>
+          <div class="box"><h3>Entrega</h3><p><strong>${esc(DELIVERY_LABELS[order.delivery_method]||order.delivery_method)}</strong></p><p>${esc(addr||"Sin dirección de envío")}</p><p>${esc(order.shipping_references||"")}</p></div>
+        </div>
+        <div class="grid2">
+          <div class="box"><h3>Estado</h3><p>${badge(order.status)}</p><p class="muted">Creado: ${esc(fmtDate(order.created_at))}</p><p class="muted">Actualizado: ${esc(fmtDate(order.updated_at))}</p><div class="row" style="margin-top:.75rem;"><select id="newStatus">${Object.entries(STATUS_LABELS).map(([v,l])=>`<option value="${v}" ${v===order.status?"selected":""}>${l}</option>`).join("")}</select><button class="btn primary small" id="saveStatusBtn" type="button">Guardar estado</button></div><p class="muted" id="statusMsg"></p></div>
+          <div class="box"><h3>Pago / Comprobante</h3><p>${payBadge(order.payment_status)}</p><p class="muted">Subido: ${esc(fmtDate(order.payment_receipt_uploaded_at))}</p><p class="muted">Archivo: ${esc(order.payment_receipt_name||"-")}</p>${order.payment_receipt_path?`<div class="row" style="margin-top:.75rem;"><button class="btn small" id="viewReceiptBtn" type="button">Ver comprobante</button></div><p class="muted" id="receiptMsg"></p>`:`<p class="muted" style="margin-top:.5rem;">Sin comprobante cargado.</p>`}</div>
+        </div>
+        <div class="box"><h3>Facturación / Notas</h3><p><strong>Facturación:</strong> ${order.billing_requested?"Sí":"No"} ${order.billing_requested?`· ${esc(order.billing_full_name||"")} ${esc(order.billing_tax_id||"")} ${esc(order.billing_address||"")}`:""}</p><p style="margin-top:.5rem;"><strong>Notas:</strong> ${esc(order.general_notes||"-")}</p></div>
+        <div class="box"><h3>Productos</h3><table class="items"><thead><tr><th>Producto</th><th>Cant.</th><th>Unitario</th><th>Total</th></tr></thead><tbody>${items || '<tr><td colspan="4">Sin items</td></tr>'}</tbody></table><p style="text-align:right;margin-top:.75rem;font-family:'JetBrains Mono',monospace;"><strong>Total: ${esc(money(order.total))}</strong></p></div>
+        <div class="box"><h3>Historial</h3><div id="historyBox" class="muted">Cargando historial...</div></div>
+      `;
+      document.getElementById("modalBack").classList.add("open");
+      document.getElementById("modal").classList.add("open");
+      document.getElementById("modal").setAttribute("aria-hidden","false");
+      document.getElementById("saveStatusBtn").addEventListener("click", saveStatus);
+      const vr = document.getElementById("viewReceiptBtn");
+      if (vr) vr.addEventListener("click", async () => {
+        const msg = document.getElementById("receiptMsg"); vr.disabled = true; if (msg) msg.textContent = "Generando enlace...";
+        const { data, error } = await sb.storage.from("order-receipts").createSignedUrl(order.payment_receipt_path, 3600);
+        if (error) { if (msg) msg.textContent = "Error: " + error.message; vr.disabled = false; return; }
+        if (msg) msg.textContent = "";
+        window.open(data.signedUrl, "_blank", "noopener");
+        vr.disabled = false;
+      });
+      loadHistory(order.id);
+    }
+
+    function closeModal() {
+      document.getElementById("modalBack").classList.remove("open");
+      document.getElementById("modal").classList.remove("open");
+      document.getElementById("modal").setAttribute("aria-hidden","true");
+      current = null;
+    }
+
+    async function loadHistory(orderId) {
+      const box = document.getElementById("historyBox");
+      const { data, error } = await sb.from("order_status_history").select("from_status,to_status,note,created_at").eq("order_id", orderId).order("created_at", { ascending: false }).limit(50);
+      if (error) { box.textContent = "No se pudo cargar historial: " + error.message; return; }
+      if (!data || !data.length) { box.textContent = "Sin historial."; return; }
+      box.innerHTML = data.map(h => `<div style="padding:.35rem 0;border-bottom:1px solid var(--border);"><strong>${esc(STATUS_LABELS[h.to_status]||h.to_status)}</strong> <span class="muted">${esc(fmtDate(h.created_at))}</span><div class="muted">${esc(h.note||"")}</div></div>`).join("");
+    }
+
+    async function saveStatus() {
+      if (!current) return;
+      const newStatus = document.getElementById("newStatus").value;
+      const msg = document.getElementById("statusMsg");
+      const btn = document.getElementById("saveStatusBtn");
+      btn.disabled = true; msg.textContent = "Guardando...";
+      const { data, error } = await sb.rpc("admin_update_order_status", { p_order_id: current.id, p_new_status: newStatus, p_note: "Actualizado desde panel admin" });
+      if (error) { msg.textContent = "Error: " + error.message; btn.disabled = false; return; }
+      msg.textContent = data && data.changed ? "Estado actualizado." : "Sin cambios.";
+      await loadOrders();
+      const refreshed = allOrders.find(o => o.id === current.id);
+      if (refreshed) openModal(refreshed); else closeModal();
+    }
+
+    async function boot() {
+      const themeBtn = document.getElementById("themeToggle");
+      let theme = "light"; try { theme = localStorage.getItem("reymero-theme") || "light"; } catch(e) {}
+      const applyTheme = () => { document.body.classList.toggle("dark", theme==="dark"); themeBtn.textContent = theme==="dark"?"☀ Claro":"☾ Oscuro"; };
+      applyTheme();
+      themeBtn.addEventListener("click", () => { theme = theme==="dark"?"light":"dark"; try{localStorage.setItem("reymero-theme",theme);}catch(e){} applyTheme(); });
+
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        document.getElementById("loginStatus").textContent = "Verificando...";
+        const { error } = await sb.auth.signInWithPassword({ email, password });
+        if (error) { document.getElementById("loginStatus").textContent = "✗ " + error.message; return; }
+        await afterAuth();
+      });
+      document.getElementById("logoutBtn").addEventListener("click", async () => { await sb.auth.signOut(); setLocked(true, "Sesión cerrada."); });
+      document.getElementById("refreshBtn").addEventListener("click", loadOrders);
+      document.getElementById("q").addEventListener("input", renderRows);
+      document.getElementById("statusFilter").addEventListener("change", renderRows);
+      document.getElementById("rows").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-view]");
+        if (!btn) return;
+        const order = allOrders.find(o => o.id === btn.dataset.view);
+        if (order) openModal(order);
+      });
+      document.getElementById("modalClose").addEventListener("click", closeModal);
+      document.getElementById("modalBack").addEventListener("click", closeModal);
+      document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+      await afterAuth();
+    }
+
+    async function afterAuth() {
+      const check = await ensureAdmin();
+      if (!check.ok) {
+        if (check.reason === "not_admin") {
+          await sb.auth.signOut();
+          setLocked(true, "Tu cuenta no tiene permisos de administrador.");
+        } else {
+          setLocked(true, check.reason === "auth" ? "" : "No se pudo verificar acceso admin.");
+        }
+        return;
+      }
+      setLocked(false);
+      await loadOrders();
+    }
+
+    boot();
+  </script>
+</body>
+</html>

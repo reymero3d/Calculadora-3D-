@@ -242,8 +242,15 @@ create policy order_status_history_select_admin on public.order_status_history
 for select to authenticated
 using (public.is_admin());
 
+-- Grants de tabla (necesarios además de RLS). Mínimos para el flujo actual.
+grant select, insert, update on public.customer_profiles to authenticated;
+grant select on public.admin_users to authenticated;
+grant select on public.orders to authenticated;
+grant select on public.order_items to authenticated;
+grant select on public.order_status_history to authenticated;
+
 -- IMPORTANTE: no hay políticas INSERT para orders/order_items/order_status_history para anon/authenticated.
--- La creación se hace vía RPC SECURITY DEFINER.
+-- La creación se hace vía RPC SECURITY DEFINER. Las escrituras pasan por RPC.
 
 -- ---------------------------------------------------------------------------
 -- RPC: crear pedido (invitado o autenticado)

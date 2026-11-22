@@ -190,6 +190,7 @@
           <div style="display:flex;gap:.5rem;margin-top:1rem;flex-wrap:wrap;">
             <a href="index.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid var(--accent);border-radius:2px;font-family:'JetBrains Mono',monospace;background:var(--accent);">Costos 3D</a>
             <a href="productos.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;">Productos</a>
+            <a href="pedidos.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;">Pedidos</a>
             <a href="tienda.html" style="color:#fbf8f3;text-decoration:none;font-size:.75rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;padding:.35rem .7rem;border:1px solid rgba(251,248,243,0.3);border-radius:2px;font-family:'JetBrains Mono',monospace;">Tienda</a>
           </div>
         </div>
@@ -2063,21 +2064,32 @@
       });
     }
 
-    function checkSession() {
+    async function isAdminUser() {
+      if (!supabaseClient) return true;
+      const { data, error } = await supabaseClient.rpc("is_admin");
+      if (error) { console.warn("is_admin check failed", error); return false; }
+      return !!data;
+    }
+
+    async function checkSession() {
       if (!supabaseClient) {
         if (loginOverlay) loginOverlay.style.display = "none";
-        return Promise.resolve(true);
+        return true;
       }
-      return supabaseClient.auth.getSession().then(({ data }) => {
-        if (data && data.session) {
+      const { data } = await supabaseClient.auth.getSession();
+      if (data && data.session) {
+        const admin = await isAdminUser();
+        if (admin) {
           document.body.classList.remove("admin-locked");
           if (loginOverlay) loginOverlay.style.display = "none";
           return true;
         }
-        document.body.classList.add("admin-locked");
-        if (loginOverlay) loginOverlay.style.display = "block";
-        return false;
-      });
+        await supabaseClient.auth.signOut();
+        if (loginStatus) loginStatus.textContent = "✗ Tu cuenta no tiene permisos de administrador.";
+      }
+      document.body.classList.add("admin-locked");
+      if (loginOverlay) loginOverlay.style.display = "block";
+      return false;
     }
 
     if (loginBtn) {
@@ -2086,15 +2098,21 @@
         const email = document.getElementById("loginEmail").value.trim();
         const password = document.getElementById("loginPassword").value;
         if (loginStatus) loginStatus.textContent = "Verificando...";
-        supabaseClient.auth.signInWithPassword({ email, password }).then(({ data, error }) => {
+        supabaseClient.auth.signInWithPassword({ email, password }).then(async ({ data, error }) => {
           if (error) {
             if (loginStatus) loginStatus.textContent = "✗ " + error.message;
-          } else {
-            document.body.classList.remove("admin-locked");
-            if (loginOverlay) loginOverlay.style.display = "none";
-            toast("Sesión iniciada");
-            loadFromSupabase();
+            return;
           }
+          const admin = await isAdminUser();
+          if (!admin) {
+            await supabaseClient.auth.signOut();
+            if (loginStatus) loginStatus.textContent = "✗ Tu cuenta no tiene permisos de administrador.";
+            return;
+          }
+          document.body.classList.remove("admin-locked");
+          if (loginOverlay) loginOverlay.style.display = "none";
+          toast("Sesión iniciada");
+          loadFromSupabase();
         });
       });
     }

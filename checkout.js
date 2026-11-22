@@ -10,6 +10,7 @@
   const NOTE_KEY = "reymero-checkout-note-v1";
   const DRAFT_KEY = "reymero-checkout-draft-v1";
   const IDEM_KEY = "reymero-checkout-idem-v1";
+  const PENDING_KEY = "reymero-pending-payment-v1";
 
   let modal = null, backdrop = null, statusEl = null, linesEl = null, noteEl = null;
   let unitsEl = null, totalEl = null, confirmBtn = null, backBtn = null, closeBtn = null;
@@ -163,6 +164,9 @@
   function saveDraft(d) { try { localStorage.setItem(DRAFT_KEY, JSON.stringify(d || {})); } catch (e) {} }
   function getIdem() { try { return sessionStorage.getItem(IDEM_KEY) || ""; } catch (e) { return ""; } }
   function setIdem(v) { try { if (v) sessionStorage.setItem(IDEM_KEY, v); else sessionStorage.removeItem(IDEM_KEY); } catch (e) {} }
+  function getPending() { try { return JSON.parse(localStorage.getItem(PENDING_KEY) || "null"); } catch (e) { return null; } }
+  function setPending(v) { try { if (v) localStorage.setItem(PENDING_KEY, JSON.stringify(v)); else localStorage.removeItem(PENDING_KEY); } catch (e) {} }
+  function clearPending() { setPending(null); setIdem(""); }
 
   function collectForm() {
     const g = function (id) { const n = document.getElementById(id); return n ? n.value.trim() : ""; };
@@ -264,11 +268,60 @@
     syncDeliveryUI(); syncBillingUI();
   }
 
-  function open() {
+  async function getResumablePending() {
+    const pending = getPending();
+    if (!pending || !pending.orderId || !pending.receiptToken) return null;
+    try {
+      const { data, error } = await getClient().rpc("get_order_payment_status", {
+        p_order_id: pending.orderId,
+        p_receipt_token: pending.receiptToken
+      });
+      if (error) throw error;
+      if (data && (data.payment_status === "pending_payment" || data.payment_status === "receipt_uploaded")) {
+        pending.paymentStatus = data.payment_status;
+        pending.status = data.status || pending.status;
+        pending.paymentReceiptUploadedAt = data.payment_receipt_uploaded_at || pending.paymentReceiptUploadedAt || null;
+        setPending(pending);
+        return pending;
+      }
+      // verified/not_required/cancelled/no longer payable: liberar flujo
+      clearPending();
+      return null;
+    } catch (e) {
+      // Si no se puede verificar, reanudar con datos locales para no bloquear el pago
+      if (pending.paymentStatus === "pending_payment" || pending.paymentStatus === "receipt_uploaded") return pending;
+      return null;
+    }
+  }
+
+  async function open() {
     if (modal && modal.classList.contains("open")) return;
     if (window.ReymeroCartUI) window.ReymeroCartUI.close();
     lastFocus = document.activeElement; previousOverflow = document.body.style.overflow;
+
+    // Si hay un pedido pendiente de comprobante, reanudar pantalla de pago.
+    const pending = await getResumablePending();
+    if (pending) {
+      window.dispatchEvent(new CustomEvent("reymero:checkout-validated", { detail: pending }));
+      return;
+    }
+
     const draft = getDraft();
+    // Prefill desde perfil de cuenta cliente si hay sesión y el borrador está vacío
+    const cust = window.ReymeroCustomer;
+    const prof = cust && cust.getProfile ? cust.getProfile() : null;
+    const user = cust && cust.getUser ? cust.getUser() : null;
+    if (prof || user) {
+      const p = prof || {};
+      if (!draft.customer_full_name && p.full_name) draft.customer_full_name = p.full_name;
+      if (!draft.customer_phone && p.phone) draft.customer_phone = p.phone;
+      if (!draft.customer_email && (p.email || (user && user.email))) draft.customer_email = p.email || user.email;
+      if (!draft.shipping_province && p.province) draft.shipping_province = p.province;
+      if (!draft.shipping_city && p.city) draft.shipping_city = p.city;
+      if (!draft.shipping_address && p.address) draft.shipping_address = p.address;
+      if (!draft.shipping_postal_code && p.postal_code) draft.shipping_postal_code = p.postal_code;
+      if (!draft.shipping_references && p.extra_references) draft.shipping_references = p.extra_references;
+    }
     try { state.generalNote = (draft.general_notes != null ? String(draft.general_notes) : (localStorage.getItem(NOTE_KEY) || "")); } catch (e) { state.generalNote = String(draft.general_notes || ""); }
     if (noteEl) noteEl.value = state.generalNote;
     fillForm(draft);
@@ -312,9 +365,14 @@
       if (error) throw error;
       if (!data || !data.id) throw new Error("Respuesta inválida del servidor");
 
-      setIdem(""); // permitir nuevo pedido después
-      window.ReymeroCart.clear();
-      close();
+      // Guardar perfil básico si el cliente inició sesión (best-effort, sin bloquear UX)
+      if (window.ReymeroCustomer && window.ReymeroCustomer.getUser && window.ReymeroCustomer.getUser()) {
+        window.ReymeroCustomer.saveProfile({
+          full_name: form.customer_full_name, phone: form.customer_phone, email: form.customer_email,
+          province: form.shipping_province, city: form.shipping_city, address: form.shipping_address,
+          postal_code: form.shipping_postal_code, extra_references: form.shipping_references
+        }).catch(() => {});
+      }
 
       const detail = {
         orderId: data.id,
@@ -325,6 +383,8 @@
         total: Number(data.total != null ? data.total : res.subtotal),
         currency: data.currency || "ARS",
         duplicate: !!data.duplicate,
+        receiptToken: data.receipt_token || "",
+        paymentStatus: data.payment_status || "pending_payment",
         customer: { fullName: form.customer_full_name, phone: form.customer_phone, email: form.customer_email },
         deliveryMethod: form.delivery_method,
         shipping: { province: form.shipping_province, city: form.shipping_city, address: form.shipping_address, postalCode: form.shipping_postal_code, references: form.shipping_references },
@@ -335,6 +395,9 @@
         subtotal: res.subtotal,
         validatedAt: new Date().toISOString()
       };
+      // No vaciar carrito hasta que el comprobante se suba correctamente.
+      setPending(detail);
+      close();
       window.dispatchEvent(new CustomEvent("reymero:checkout-validated", { detail: detail }));
     } catch (e) {
       state.error = "No se pudo registrar el pedido. Revisá tu conexión e intentá de nuevo. " + (e && e.message ? "(" + e.message + ")" : "");
@@ -443,9 +506,12 @@
     window.ReymeroCheckout = Object.freeze({
       open: open, close: close, validate: validate, validateRows: validateRows,
       setFetcher: function (fn) { fetcher = typeof fn === "function" ? fn : fetchRows; },
-      getState: function () { return { result: state.result, error: state.error, validating: state.validating, submitting: state.submitting, open: modal.classList.contains("open") }; }
+      getState: function () { return { result: state.result, error: state.error, validating: state.validating, submitting: state.submitting, open: modal.classList.contains("open") }; },
+      getPending: getPending,
+      clearPending: clearPending,
+      setPending: setPending
     });
-    window.ReymeroCart.subscribe(function () { if (!syncingCart) setIdem(""); });
+    window.ReymeroCart.subscribe(function () { if (!syncingCart && !getPending()) setIdem(""); });
     render();
   }
 

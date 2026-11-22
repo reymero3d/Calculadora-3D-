@@ -13,6 +13,7 @@
   <script src="offline-store.js?v=3"></script>
   <script src="cart.js"></script>
   <script src="cart-ui.js"></script>
+  <script src="customer.js"></script>
   <script src="checkout.js"></script>
   <script src="order.js"></script>
   <script src="share.js"></script>
@@ -200,6 +201,7 @@
         </div>
         <div class="hero-meta">
           <button class="theme-toggle" id="themeToggle" type="button" aria-label="Cambiar tema">☾ Oscuro</button>
+          <button class="theme-toggle" id="accountBtn" type="button" aria-label="Mi cuenta">Mi cuenta</button>
           <div>Diseño · Impresión<br>Finalización · Envíos</div>
         </div>
       </div>
@@ -282,6 +284,19 @@
         try { localStorage.setItem("reymero-theme", theme); } catch (e) {}
         applyTheme();
       });
+    }
+
+    const accountBtn = document.getElementById("accountBtn");
+    function updateAccountBtn() {
+      if (!accountBtn || !window.ReymeroCustomer) return;
+      const user = window.ReymeroCustomer.getUser();
+      accountBtn.textContent = user ? "Mi cuenta" : "Ingresar";
+      accountBtn.setAttribute("aria-label", user ? "Mi cuenta" : "Ingresar o crear cuenta");
+    }
+    if (accountBtn) accountBtn.addEventListener("click", () => { if (window.ReymeroCustomer) window.ReymeroCustomer.open(); });
+    if (window.ReymeroCustomer) {
+      window.ReymeroCustomer.init().then(updateAccountBtn);
+      window.ReymeroCustomer.subscribe(updateAccountBtn);
     }
 
     // Vista: categorías (default) o clásica

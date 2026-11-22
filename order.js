@@ -61,13 +61,18 @@
       if (shipping.references) delivery.push("Referencias: " + shipping.references);
     }
 
+    const paymentLabel = d.paymentStatus === "receipt_uploaded"
+      ? "Comprobante recibido (pendiente de verificación)"
+      : d.paymentStatus === "verified"
+        ? "Verificado"
+        : "No pagado";
     const out = [
       "Hola Reymero3d! Quiero confirmar este pedido:",
       "",
       "Pedido: " + orderId,
       "Fecha: " + formatDate(date),
-      "Estado: Pendiente de confirmación",
-      "Pago: No pagado",
+      "Estado: " + (d.statusLabel || "Pendiente de confirmación"),
+      "Pago: " + paymentLabel,
       "",
       "Cliente: " + (customer.fullName || "-"),
       "Teléfono: " + (customer.phone || "-"),
