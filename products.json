@@ -1240,7 +1240,7 @@
       }
     },
     {
-      "id": "prod_1795383469653",
+      "id": "sb_657276c7-9776-46f9-a01d-89314ab5eb27",
       "name": "（sin AMS）Psyduck golpeado por pokebola",
       "data": {
         "productName": "（sin AMS）Psyduck golpeado por pokebola",
@@ -1264,7 +1264,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 11000
-      }
+      },
+      "_sbJustSaved": 1795383470298
     }
   ]
 }
