@@ -302,16 +302,7 @@
 
     bodyEl = el("div", "rm-receipt-body"); bodyEl.id = "rmReceiptBody"; modal.appendChild(bodyEl);
 
-    const foot = el("div", "rm-receipt-foot");
-    const row1 = el("div", "rm-receipt-row");
-    const whatsapp = el("button", "rm-receipt-btn primary", "Enviar por WhatsApp"); whatsapp.id = "rmReceiptWhatsapp"; whatsapp.type = "button";
-    const copy = el("button", "rm-receipt-btn", "Copiar texto"); copy.id = "rmReceiptCopy"; copy.type = "button";
-    row1.appendChild(whatsapp); row1.appendChild(copy); foot.appendChild(row1);
-    const row2 = el("div", "rm-receipt-row");
-    const pdf = el("button", "rm-receipt-btn", "Descargar PDF"); pdf.id = "rmReceiptPdf"; pdf.type = "button";
-    const share = el("button", "rm-receipt-btn", "Compartir comprobante"); share.id = "rmReceiptShare"; share.type = "button";
-    row2.appendChild(pdf); row2.appendChild(share); foot.appendChild(row2);
-    modal.appendChild(foot);
+    // Acciones de compartir/descargar removidas por solicitud; el cierre queda en la cabecera.
 
     document.body.appendChild(backdrop); document.body.appendChild(modal);
 
@@ -329,25 +320,7 @@
       if (e.target && e.target.id === "rmReceiptUploadBtn") uploadReceipt();
     });
 
-    whatsapp.addEventListener("click", function () {
-      const cfg = window.ReymeroConfig || {};
-      const url = "https://wa.me/" + encodeURIComponent(cfg.WHATSAPP || "") + "?text=" + encodeURIComponent(orderText());
-      const target = window.ReymeroShare && window.ReymeroShare.isNative && window.ReymeroShare.isNative() ? "_system" : "_blank";
-      window.open(url, target, "noopener");
-    });
-    copy.addEventListener("click", async function () {
-      try {
-        if (navigator.clipboard && navigator.clipboard.writeText) { await navigator.clipboard.writeText(orderText()); if (typeof window.toast === "function") window.toast("Texto del pedido copiado"); }
-        else { await window.ReymeroShare.shareText(orderText(), "Pedido Reymero3d"); }
-      } catch (e) { if (typeof window.toast === "function") window.toast("No se pudo copiar el texto"); }
-    });
-    pdf.addEventListener("click", function () {
-      try { makePdf().save(pdfFilename()); } catch (e) { if (typeof window.toast === "function") window.toast("No se pudo generar el PDF"); }
-    });
-    share.addEventListener("click", async function () {
-      try { const doc = makePdf(); await window.ReymeroShare.sharePdf(doc.output("blob"), pdfFilename(), orderText(), "Comprobante Reymero3d"); }
-      catch (e) { if (typeof window.toast === "function") window.toast("No se pudo compartir el comprobante"); }
-    });
+    // Botones WhatsApp/copiar/PDF/compartir removidos por solicitud.
 
     window.ReymeroReceipt = Object.freeze({
       open: open, close: close, makePdf: makePdf, orderText: orderText,
