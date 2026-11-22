@@ -69,6 +69,19 @@
   function getSb() { const cfg = window.ReymeroConfig || {}; return window.supabase.createClient(cfg.SUPABASE_URL, cfg.SUPABASE_ANON_KEY); }
   function safeName(name) { return String(name || "comprobante").replace(/[^a-zA-Z0-9._-]+/g, "-").replace(/-+/g, "-").slice(0, 120) || "comprobante"; }
 
+  function getExtraCartItems(d) {
+    if (!window.ReymeroCart || !d || !Array.isArray(d.items)) return [];
+    const cartItems = window.ReymeroCart.items() || [];
+    const extras = [];
+    cartItems.forEach(function (c) {
+      const ordered = d.items.find(function (it) { return String(it.id) === String(c.id); });
+      const orderedQty = ordered ? (Number(ordered.qty) || 0) : 0;
+      const cartQty = Number(c.qty) || 0;
+      if (cartQty > orderedQty) extras.push({ id: c.id, name: c.name, qty: cartQty - orderedQty });
+    });
+    return extras;
+  }
+
   function makePdf() {
     if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("jsPDF no disponible");
     const d = current.detail;
@@ -162,13 +175,23 @@
     up.appendChild(el("h4", null, "Comprobante de pago"));
     if (uploaded) {
       up.appendChild(el("p", "rm-upload-status ok", "Comprobante recibido. Pendiente de verificación por Reymero3d."));
+      const extraAfter = (window.ReymeroCart && window.ReymeroCart.items ? window.ReymeroCart.items() : []) || [];
+      if (extraAfter.length) {
+        up.appendChild(el("p", "rm-upload-status", "Todavía tenés productos en tu carrito. Podés cerrar este comprobante y hacer una nueva compra."));
+      }
     } else {
       const input = document.createElement("input"); input.type = "file"; input.id = "rmReceiptFile"; input.accept = "image/jpeg,image/png,image/webp,application/pdf";
       up.appendChild(input);
       const upActions = el("div", "rm-pay-actions"); upActions.style.marginTop = ".75rem";
       const upBtn = el("button", "rm-receipt-btn primary", "Subir comprobante"); upBtn.type = "button"; upBtn.id = "rmReceiptUploadBtn";
       upActions.appendChild(upBtn); up.appendChild(upActions);
-      up.appendChild(el("p", "rm-upload-status", "Formatos: JPG, PNG, WebP o PDF. Máximo 10 MB. El carrito se vacía recién después de subirlo correctamente. No modifiques el carrito hasta subir el comprobante: el pedido ya fue registrado con estos productos."));
+      up.appendChild(el("p", "rm-upload-status", "Formatos: JPG, PNG, WebP o PDF. Máximo 10 MB."));
+      const extra = getExtraCartItems(d);
+      if (extra.length) {
+        up.appendChild(el("p", "rm-upload-status", "Tenés " + extra.length + " producto(s) nuevo(s) en el carrito. Se mantienen guardados y podés hacer otra compra después de subir este comprobante. Este pedido no incluye esos productos."));
+      } else {
+        up.appendChild(el("p", "rm-upload-status", "El carrito se actualiza recién después de subir el comprobante correctamente."));
+      }
       const st = el("div", "rm-upload-status"); st.id = "rmReceiptUploadStatus"; up.appendChild(st);
     }
     bodyEl.appendChild(up);
@@ -264,7 +287,16 @@
       d.paymentStatus = "receipt_uploaded";
       d.paymentReceiptUploadedAt = (reg.data && reg.data.payment_receipt_uploaded_at) || new Date().toISOString();
       if (window.ReymeroCheckout && window.ReymeroCheckout.setPending) window.ReymeroCheckout.setPending(d);
-      if (window.ReymeroCart) window.ReymeroCart.clear();
+      // Quitar del carrito solo los productos de este pedido (el usuario pudo agregar otros mientras tanto)
+      if (window.ReymeroCart && Array.isArray(d.items)) {
+        d.items.forEach(function (it) {
+          const cartItem = (window.ReymeroCart.items() || []).find(function (c) { return String(c.id) === String(it.id); });
+          if (!cartItem) return;
+          const remaining = (Number(cartItem.qty) || 0) - (Number(it.qty) || 0);
+          if (remaining > 0) window.ReymeroCart.setQty(it.id, remaining);
+          else window.ReymeroCart.remove(it.id);
+        });
+      }
       if (window.ReymeroCheckout && window.ReymeroCheckout.clearPending) window.ReymeroCheckout.clearPending();
       // mantener d en memoria pero pending ya limpiado; el modal muestra estado recibido
       setUploadStatus("Comprobante recibido. Pendiente de verificación.", false);
