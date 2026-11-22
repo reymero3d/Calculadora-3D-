@@ -1219,7 +1219,7 @@
       }
     },
     {
-      "id": "prod_1795382913592",
+      "id": "sb_5636a25c-3ff4-4c71-9485-d134d225b37c",
       "name": "Anya y Bond Spy X Family Hueforge",
       "data": {
         "productName": "Anya y Bond Spy X Family Hueforge",
@@ -1243,7 +1243,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 8000
-      }
+      },
+      "_sbJustSaved": 1795382914154
     }
   ]
 }
