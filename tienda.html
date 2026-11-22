@@ -483,16 +483,9 @@
     function cardMediaHtml(p) {
       const items = mediaItemsOf(p);
       if (!items.length) return `<span class="placeholder">Sin foto</span>`;
-      if (items.length === 1) {
-        const m = items[0];
-        if (m.type === 'video') return `<video src="${escapeHtml(m.url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`;
-        return `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" loading="lazy">`;
-      }
-      const parts = items.map((m) => {
-        if (m.type === 'video') return `<div class="media-half"><video src="${escapeHtml(m.url)}" muted playsinline preload="metadata"></video><span class="media-badge">Video</span></div>`;
-        return `<div class="media-half"><img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" loading="lazy"></div>`;
-      }).join('');
-      return `<div class="media-split">${parts}</div>`;
+      const m = items[0];
+      if (m.type === 'video') return `<video src="${escapeHtml(m.url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`;
+      return `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" loading="lazy">`;
     }
 
     function cardHtml(p) {
