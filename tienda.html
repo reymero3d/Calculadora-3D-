@@ -427,9 +427,15 @@
 
       setSyncStatus("Actualizando…", "syncing");
       try {
-        const { data, error } = await sb.from("products")
-          .select("id,name,description,category,price,image_url,published,in_stock,created_at")
+        let res = await sb.from("products")
+          .select("id,name,description,category,price,image_url,media,published,in_stock,created_at")
           .eq("published", true).eq("in_stock", true).order("name");
+        if (res.error && /media|column/i.test(res.error.message || "")) {
+          res = await sb.from("products")
+            .select("id,name,description,category,price,image_url,published,in_stock,created_at")
+            .eq("published", true).eq("in_stock", true).order("name");
+        }
+        const { data, error } = res;
         if (error) throw error;
         const rows = data || [];
         let toUse = rows;

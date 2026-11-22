@@ -359,7 +359,8 @@
             <textarea id="jsonInput" rows="5" placeholder='{"name": "...", "grams": 0, "hours": 0, "minutes": 0}'></textarea>
           </div>
           <div id="importImagePreview" style="display:none;margin-top:.5rem;text-align:center;">
-            <img id="importImageImg" src="" alt="Foto" style="max-width:100%;max-height:140px;border-radius:4px;border:1px solid var(--border);">
+            <div id="importMediaRow" style="display:flex;gap:.5rem;justify-content:center;flex-wrap:wrap;"></div>
+            <img id="importImageImg" src="" alt="Foto" style="display:none;max-width:100%;max-height:140px;border-radius:4px;border:1px solid var(--border);">
           </div>
           <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
             <button class="btn btn-primary" id="importJsonBtn">Importar JSON</button>
@@ -597,6 +598,7 @@
       roundTo: 0,
       refsOpen: true,
       productImage: "",
+      productMedia: [],
       productCategory: "",
       published: true,
       inStock: true,
@@ -943,6 +945,7 @@
         roundTo: state.roundTo || 0,
         currency: state.currency,
         productImage: state.productImage || "",
+        productMedia: Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : [],
         published: state.published !== false,
         inStock: state.inStock !== false,
         rawPrice: M(v) || 0,
@@ -966,10 +969,12 @@
         state.insumos = 0;
         state.quantity = 1;
         state.productImage = "";
+        state.productMedia = [];
         state.productCategory = "";
         state.published = true;
         state.inStock = true;
         syncInputs();
+        renderImportMedia();
         recalc();
         savePiece();
         menu.classList.remove("open");
@@ -1006,10 +1011,13 @@
           state.insumos = d.insumos || 0;
           state.quantity = d.quantity || 1;
           state.productImage = d.productImage || state.productImage || "";
+          state.productMedia = Array.isArray(d.productMedia) ? d.productMedia.slice(0,2) : (d.productImage ? [{type:'image',url:d.productImage}] : []);
+          if (state.productMedia.length && !state.productImage) { const im = state.productMedia.find(m=>m.type==='image'); if (im) state.productImage = im.url; }
           state.published = d.published !== false;
           state.inStock = d.inStock !== false;
           if (d.currency && CURRENCIES[d.currency]) { state.currency = d.currency; applyCurrency(state.currency, false); }
           syncInputs();
+          renderImportMedia();
           recalc();
           savePiece();
           menu.classList.remove("open");
@@ -1041,18 +1049,31 @@
           .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
+      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')).slice(0,2) : [];
+      const cover = (mediaArr.find(m=>m.type==='image')||{}).url || d.productImage || null;
       const productRow = {
         name: pr.name,
         description: d.productName || pr.name,
         category: d.category || null,
         price: d.rawPrice || 0,
-        image_url: d.productImage || null,
+        image_url: cover,
         published: d.published !== false,
         in_stock: d.inStock !== false,
       };
-      let res = sbId
-        ? await supabaseClient.from("products").update(productRow).eq("id", sbId).select().single()
-        : await supabaseClient.from("products").insert(productRow).select().single();
+      if (mediaArr.length) productRow.media = mediaArr;
+      async function writeRow(row, id) {
+        let r = id
+          ? await supabaseClient.from("products").update(row).eq("id", id).select().single()
+          : await supabaseClient.from("products").insert(row).select().single();
+        if (r.error && row.media && /media|schema cache|column/i.test(r.error.message || "")) {
+          const fallback = { ...row }; delete fallback.media;
+          r = id
+            ? await supabaseClient.from("products").update(fallback).eq("id", id).select().single()
+            : await supabaseClient.from("products").insert(fallback).select().single();
+        }
+        return r;
+      }
+      let res = await writeRow(productRow, sbId);
       let prod = res.data;
       let error = res.error;
       // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
@@ -1060,7 +1081,7 @@
         const { data: same } = await supabaseClient.from("products")
           .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) {
-          res = await supabaseClient.from("products").update(productRow).eq("id", same[0].id).select().single();
+          res = await writeRow(productRow, same[0].id);
           prod = res.data;
           error = res.error;
         }
@@ -1115,9 +1136,12 @@
       if (state.activeProductId && !state.products.find(p => p.id === state.activeProductId)) {
         state.activeProductId = null;
       }
-      // Asegurar foto desde la última importación
+      // Asegurar foto/media desde la última importación
       if (!state.productImage && lastImportedJson && lastImportedJson.image) {
         state.productImage = lastImportedJson.image;
+      }
+      if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
+        state.productMedia = lastImportedJson.media.slice(0,2);
       }
       const data = productData();
       if (state.activeProductId) {
@@ -1170,10 +1194,12 @@
       state.insumos = 0;
       state.quantity = 1;
       state.productImage = "";
+      state.productMedia = [];
       state.productCategory = "";
       state.published = true;
       state.inStock = true;
       syncInputs();
+      renderImportMedia();
       recalc();
       savePiece();
       toast("Nuevo producto");
@@ -1187,10 +1213,12 @@
       state.activeProductId = null;
       state.productName = "";
       state.productImage = "";
+      state.productMedia = [];
       state.productCategory = "";
       state.published = true;
       state.inStock = true;
       syncInputs();
+      renderImportMedia();
       recalc();
       savePiece();
       saveProducts();
@@ -1528,10 +1556,36 @@
       return url;
     }
 
-    function persistActiveImage(url) {
+    function renderImportMedia() {
+      const previewWrap = document.getElementById("importImagePreview");
+      const row = document.getElementById("importMediaRow");
+      const legacyImg = document.getElementById("importImageImg");
+      const media = Array.isArray(state.productMedia) ? state.productMedia : [];
+      if (!previewWrap || !row) return;
+      row.innerHTML = "";
+      if (legacyImg) legacyImg.style.display = "none";
+      if (!media.length) { previewWrap.style.display = "none"; return; }
+      media.slice(0,2).forEach(m => {
+        if (m.type === 'video') {
+          const v = document.createElement('video');
+          v.src = m.url; v.controls = true; v.muted = true; v.playsInline = true;
+          v.style.cssText = 'max-width:48%;max-height:140px;border-radius:4px;border:1px solid var(--border);background:#000';
+          row.appendChild(v);
+        } else {
+          const img = document.createElement('img');
+          img.src = m.url; img.alt = 'Media';
+          img.style.cssText = 'max-width:' + (media.length>1?'48%':'100%') + ';max-height:140px;border-radius:4px;border:1px solid var(--border);object-fit:cover';
+          row.appendChild(img);
+        }
+      });
+      previewWrap.style.display = "";
+    }
+
+    function persistActiveImage(url, media) {
       const active = state.products.find(p => p.id === state.activeProductId);
       if (!active) return;
-      active.data = { ...(active.data || {}), productImage: url };
+      const nextMedia = Array.isArray(media) ? media.slice(0,2) : (Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : []);
+      active.data = { ...(active.data || {}), productImage: url, productMedia: nextMedia };
       saveProducts();
       sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
     }
@@ -1539,20 +1593,35 @@
     function setImportImage(url) {
       if (!url) return;
       state.productImage = url;
-      const previewWrap = document.getElementById("importImagePreview");
-      const previewImg = document.getElementById("importImageImg");
-      if (previewWrap && previewImg) { previewImg.src = url; previewWrap.style.display = ""; }
-      persistActiveImage(url);
+      const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : [];
+      const video = baseMedia.find(m => m && m.type === 'video');
+      const next = [{ type: 'image', url }];
+      if (video) next.push({ type: 'video', url: video.url });
+      state.productMedia = next.slice(0,2);
+      renderImportMedia();
+      persistActiveImage(url, state.productMedia);
       imageToDataUrl(url).then((dataUrl) => {
         // Sólo aplicar si sigue siendo la foto del perfil elegido
         if (dataUrl && dataUrl !== url && state.productImage === url) {
           state.productImage = dataUrl;
-          if (previewImg) previewImg.src = dataUrl;
+          if (Array.isArray(state.productMedia) && state.productMedia[0] && state.productMedia[0].type === 'image') {
+            state.productMedia[0] = { type: 'image', url: dataUrl };
+          }
+          renderImportMedia();
           savePiece();
-          persistActiveImage(dataUrl);
+          persistActiveImage(dataUrl, state.productMedia);
           toast("Foto importada");
         }
       }).catch(() => {});
+    }
+
+    function setImportMedia(media) {
+      const arr = Array.isArray(media) ? media.filter(m => m && m.url).slice(0,2) : [];
+      state.productMedia = arr;
+      const img = (arr.find(m => m.type === 'image') || {}).url || "";
+      state.productImage = img;
+      renderImportMedia();
+      persistActiveImage(state.productImage, state.productMedia);
     }
 
     function profileImage(prof) {
@@ -1585,6 +1654,11 @@
       const colors = d.colors ?? d.colores;
       const quantity = d.quantity ?? d.cantidad ?? d.qty;
       const insumos = d.insumos ?? d.extras ?? d.extraCosts;
+      let media = Array.isArray(d.media) ? d.media.filter(m => m && typeof m.url === 'string' && /^https?:\/\//i.test(m.url)).slice(0,2).map(m => ({ type: m.type === 'video' ? 'video' : 'image', url: m.url })) : [];
+      const img = d.image || d.coverUrl || d.cover || d.coverPortrait || d.previewUrl || d.thumbnail || "";
+      if (!media.length && img) media = [{ type: 'image', url: img }];
+      if (media.length && !media.some(m => m.type === 'image') && img) media.unshift({ type: 'image', url: img });
+      media = media.slice(0,2);
       return {
         name: String(name || ""),
         grams: Number(grams) || 0,
@@ -1593,7 +1667,8 @@
         colors: colors !== undefined && colors !== null ? (Number(colors) || 1) : undefined,
         quantity: quantity !== undefined && quantity !== null ? (Number(quantity) || 1) : undefined,
         insumos: insumos !== undefined && insumos !== null ? (Number(insumos) || 0) : undefined,
-        image: d.image || d.coverUrl || d.cover || d.coverPortrait || d.previewUrl || d.thumbnail || "",
+        image: (media.find(m => m.type === 'image') || {}).url || img || "",
+        media,
         url: d.url || d.link || "",
         allInstances: (d.debug && d.debug.allInstances) || d.allInstances || d.profiles || d.instances || null,
         raw: d,
@@ -1658,6 +1733,13 @@
         ? imp.allInstances[profileIndex] : null;
       lastEffectiveImage = profileImage(chosenProfile) || imp.image || "";
       if (lastEffectiveImage) state.productImage = lastEffectiveImage;
+      const baseMedia = Array.isArray(imp.media) ? imp.media.slice(0,2) : [];
+      const originalVideo = baseMedia.find(m => m && m.type === 'video');
+      let nextMedia = [];
+      if (lastEffectiveImage) nextMedia.push({ type: 'image', url: lastEffectiveImage });
+      if (originalVideo) nextMedia.push({ type: 'video', url: originalVideo.url });
+      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice(0,2);
+      state.productMedia = nextMedia.slice(0,2);
       syncInputs();
       recalc();
       savePiece();
@@ -2203,9 +2285,12 @@
           const existing = state.products.find(p => (p.name || "").toLowerCase() === name.toLowerCase());
           if (existing) state.activeProductId = existing.id;
         }
-        // Asegurar que la foto se guarde aunque la conversión async no haya terminado
+        // Asegurar que la foto/media se guarde aunque la conversión async no haya terminado
         if (!state.productImage && lastImportedJson && lastImportedJson.image) {
           state.productImage = lastImportedJson.image;
+        }
+        if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
+          state.productMedia = lastImportedJson.media.slice(0,2);
         }
         saveProduct();
         toast("Producto guardado automáticamente");

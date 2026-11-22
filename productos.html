@@ -638,6 +638,7 @@
           roundTo: c.round_to || 0,
           currency: c.currency || "ARS",
           productImage: r.image_url || "",
+          productMedia: Array.isArray(r.media) ? r.media.slice(0,2) : (r.image_url ? [{type:'image',url:r.image_url}] : []),
           rawPrice: c.raw_price || r.price || 0,
           published: r.published,
           inStock: r.in_stock,
@@ -666,27 +667,39 @@
         const { data: same } = await sb.from("products").select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
+      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')).slice(0,2) : [];
+      const cover = (mediaArr.find(m=>m.type==='image')||{}).url || d.productImage || null;
       const productRow = {
         name: pr.name,
         description: d.productName || pr.name,
         category: d.category || null,
         price: d.rawPrice || 0,
-        image_url: d.productImage || null,
+        image_url: cover,
         published: d.published !== false,
         in_stock: d.inStock !== false,
       };
+      if (mediaArr.length) productRow.media = mediaArr;
+      async function writeRow(row, id) {
+        let r = id
+          ? await sb.from("products").update(row).eq("id", id).select().single()
+          : await sb.from("products").insert(row).select().single();
+        if (r.error && row.media && /media|schema cache|column/i.test(r.error.message || "")) {
+          const fb = { ...row }; delete fb.media;
+          r = id ? await sb.from("products").update(fb).eq("id", id).select().single() : await sb.from("products").insert(fb).select().single();
+        }
+        return r;
+      }
       let prod = null;
       if (sbId) {
-        const res = await sb.from("products").update(productRow).eq("id", sbId).select().single();
+        const res = await writeRow(productRow, sbId);
         if (res.error) { console.error(res.error); return; }
         prod = res.data;
       } else {
-        let res = await sb.from("products").insert(productRow).select().single();
-        // Si otra pestaña insertó el mismo nombre, actualizar esa fila en vez de crear otra
+        let res = await writeRow(productRow, null);
         if (res.error && res.error.code === "23505" && pr.name) {
           const { data: same } = await sb.from("products").select("id").ilike("name", sbLikeName(pr.name)).limit(1);
           if (same && same.length) {
-            res = await sb.from("products").update(productRow).eq("id", same[0].id).select().single();
+            res = await writeRow(productRow, same[0].id);
           }
         }
         if (res.error) { console.error(res.error); return; }

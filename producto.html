@@ -132,10 +132,15 @@
       detailQty = 1;
       document.getElementById("pageTitle").textContent = p.name;
       document.title = p.name + " · Reymero3d";
-      const img = StoreOffline.imageOf(p);
+      const primary = StoreOffline.imageOf(p);
+      const media = Array.isArray(p.media) && p.media.length ? p.media.slice(0,2) : (primary ? [{type:'image',url:primary}] : []);
+      const mediaHtml = media.length ? `<div style="display:flex;flex-direction:column;gap:.5rem;height:100%;">` + media.map(m => {
+        if (m.type === 'video') return `<video src="${escapeHtml(m.url)}" controls playsinline style="width:100%;max-height:${media.length>1?'49%':'100%'};border-radius:4px;background:#000"></video>`;
+        return `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" style="width:100%;${media.length>1?'max-height:49%;':''}object-fit:cover;border-radius:4px">`;
+      }).join('') + `</div>` : `<span class="placeholder">Sin foto</span>`;
       document.getElementById("content").innerHTML = `
         <div class="detail">
-          <div class="img">${img ? `<img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}">` : `<span class="placeholder">Sin foto</span>`}</div>
+          <div class="img" style="${media.length>1?'padding:.5rem;align-items:stretch;':''}">${mediaHtml}</div>
           <div class="info">
             ${p.category ? `<div class="cat">${escapeHtml(p.category)}</div>` : ""}
             <h2>${escapeHtml(p.name)}</h2>
