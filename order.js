@@ -48,9 +48,8 @@
     const lines = items.map(function (item, i) {
       const qty = Number(item.qty) || 1;
       const price = Number(item.price) || 0;
-      const text = (i + 1) + ") " + qty + " × " + String(item.name || "Producto") +
+      return (i + 1) + ") " + qty + " × " + String(item.name || "Producto") +
         " — " + money(price) + " c/u = " + money(Number(item.subtotal != null ? item.subtotal : price * qty));
-      return item.note ? text + "\n    Obs: " + String(item.note) : text;
     });
 
     const delivery = [];
@@ -85,7 +84,6 @@
     out.push("Productos:");
     out.push(...lines);
     out.push("");
-    out.push("Observaciones generales: " + (d.notes ? String(d.notes) : "-"));
     out.push("Total estimado: " + money(d.total != null ? d.total : d.subtotal));
     out.push("");
     out.push("Precios y stock verificados al generar el pedido. Este mensaje no confirma el pago ni la aceptación final del pedido.");

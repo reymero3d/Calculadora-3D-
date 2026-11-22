@@ -109,10 +109,8 @@
       doc.text(nameLines, left, y); y += nameLines.length * 13;
       doc.setFont("helvetica", "normal"); doc.text(qty + " x " + money(price) + " c/u", left + 12, y);
       doc.text(money(sub), right, y, { align: "right" }); y += 14;
-      if (item.note) line("Obs: " + String(item.note), { size: 9, lh: 11, width: 470 });
       y += 4;
     });
-    if (d.notes) { y += 4; line("Observaciones generales", { bold: true, size: 11, lh: 14 }); line(String(d.notes), { width: 495 }); }
     ensure(60); doc.setDrawColor(200); doc.line(left, y, right, y); y += 22;
     doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.text("Total estimado", left, y);
     doc.setFontSize(16); doc.text(money(d.total != null ? d.total : d.subtotal), right, y, { align: "right" }); y += 24;
@@ -193,11 +191,8 @@
       const row = el("div", "rm-receipt-line"); const leftInfo = el("div");
       leftInfo.appendChild(el("div", "rm-receipt-line-name", (i + 1) + ") " + String(item.name || "Producto")));
       leftInfo.appendChild(el("div", "rm-receipt-line-meta", qty + " × " + money(price) + " c/u"));
-      if (item.note) leftInfo.appendChild(el("div", "rm-receipt-line-note", "Obs: " + String(item.note)));
       row.appendChild(leftInfo); row.appendChild(el("div", "rm-receipt-line-sub", money(sub))); bodyEl.appendChild(row);
     });
-
-    if (d.notes) { const notes = el("div", "rm-receipt-notes"); notes.appendChild(el("b", null, "Observaciones generales")); notes.appendChild(el("p", null, d.notes)); bodyEl.appendChild(notes); }
 
     const total = el("div", "rm-receipt-total"); total.appendChild(el("span", null, "Total estimado"));
     total.appendChild(el("b", null, money(d.total != null ? d.total : d.subtotal))); bodyEl.appendChild(total);
