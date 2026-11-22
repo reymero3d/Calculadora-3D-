@@ -127,6 +127,36 @@
     return true;
   }
 
+  /* Actualiza nombre y precio desde datos ya verificados de Supabase.
+     No cambia cantidades ni agrega productos nuevos. */
+  function sync(products) {
+    let changed = false;
+    (products || []).forEach(function (p) {
+      if (!p) return;
+      const item = find(p.id);
+      if (!item) return;
+      const nextName = String(p.name == null ? item.name : p.name).slice(0, 300);
+      const nextPrice = Number(p.price);
+      if (item.name !== nextName) { item.name = nextName; changed = true; }
+      if (Number.isFinite(nextPrice) && nextPrice >= 0 && item.price !== nextPrice) {
+        item.price = nextPrice;
+        changed = true;
+      }
+    });
+    if (changed) persist();
+    return changed;
+  }
+
+  function setNote(id, note) {
+    const item = find(id);
+    if (!item) return false;
+    const next = String(note == null ? "" : note).slice(0, 1000);
+    if (item.note === next) return true;
+    item.note = next;
+    persist();
+    return true;
+  }
+
   function clear() {
     if (!items.length) return false;
     items = [];
@@ -147,6 +177,8 @@
     items: snapshot,
     add: add,
     setQty: setQty,
+    setNote: setNote,
+    sync: sync,
     remove: remove,
     clear: clear,
     count: count,

@@ -124,10 +124,8 @@
     const checkout = el("button", "rm-cart-primary", "Revisar pedido");
     checkout.type = "button";
     checkout.addEventListener("click", function () {
+      if (window.ReymeroCartUI) window.ReymeroCartUI.close();
       window.dispatchEvent(new CustomEvent("reymero:checkout-request"));
-      if (typeof window.toast === "function") {
-        window.toast("El resumen del pedido se habilita en la próxima etapa.");
-      }
     });
     const keepShopping = el("button", "rm-cart-secondary", "Seguir comprando");
     keepShopping.type = "button";
