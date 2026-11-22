@@ -190,6 +190,27 @@
       }
     },
     {
+      "id": "sb_69aff25c-061e-4986-914b-7fe581bd903c",
+      "name": "Escultura en capas - Adorno navideño de gato",
+      "data": {
+        "productName": "Escultura en capas - Adorno navideño de gato",
+        "category": "Cuadro",
+        "colors": 1,
+        "hours": 7,
+        "minutes": 1,
+        "grams": 150,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US2f40cdca4cbdd6/1134479097/instance/d6363839a0ba9e61.png",
+        "rawPrice": 17000,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_eacf8657-0969-4053-9ba2-823620cb497e",
       "name": "Figura articulada del Warden de Minecraft",
       "data": {
@@ -1198,26 +1219,31 @@
       }
     },
     {
-      "id": "sb_69aff25c-061e-4986-914b-7fe581bd903c",
-      "name": "Escultura en capas - Adorno navideño de gato",
+      "id": "prod_1795382913592",
+      "name": "Anya y Bond Spy X Family Hueforge",
       "data": {
-        "productName": "Escultura en capas - Adorno navideño de gato",
+        "productName": "Anya y Bond Spy X Family Hueforge",
         "category": "Cuadro",
         "colors": 1,
-        "hours": 7,
-        "minutes": 1,
-        "grams": 150,
+        "hours": 3,
+        "minutes": 55,
+        "grams": 69,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US2f40cdca4cbdd6/1134479097/instance/d6363839a0ba9e61.png",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USb377760b153338/1164097150/instance/1375aef025c15366.png",
+        "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/USb377760b153338/1164097150/instance/1375aef025c15366.png"
+          }
+        ],
         "published": true,
         "inStock": true,
-        "rawPrice": 17000
-      },
-      "_sbJustSaved": 1795298919603
+        "rawPrice": 8000
+      }
     }
   ]
 }
