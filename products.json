@@ -1246,19 +1246,19 @@
         "productName": "（sin AMS）Psyduck golpeado por pokebola",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 4,
-        "minutes": 8,
+        "hours": 3,
+        "minutes": 22,
         "grams": 98,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1155617821/instance/ce7035e1c7d4a5aa.png",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1141417346/instance/7b5c472f8d435153.jpg",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1155617821/instance/ce7035e1c7d4a5aa.png"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US39393dda21ecd9/1141417346/instance/7b5c472f8d435153.jpg"
           }
         ],
         "published": true,
