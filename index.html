@@ -1594,9 +1594,10 @@
       if (!url) return;
       state.productImage = url;
       const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice(0,2) : [];
-      const video = baseMedia.find(m => m && m.type === 'video');
+      // Preservar el segundo ítem existente (video o segunda imagen) para no perder media importada.
+      const second = baseMedia.find(m => m && m.url && m.url !== url && (m.type === 'video' || m.type === 'image'));
       const next = [{ type: 'image', url }];
-      if (video) next.push({ type: 'video', url: video.url });
+      if (second) next.push({ type: second.type === 'video' ? 'video' : 'image', url: second.url });
       state.productMedia = next.slice(0,2);
       renderImportMedia();
       persistActiveImage(url, state.productMedia);
@@ -1735,9 +1736,11 @@
       if (lastEffectiveImage) state.productImage = lastEffectiveImage;
       const baseMedia = Array.isArray(imp.media) ? imp.media.slice(0,2) : [];
       const originalVideo = baseMedia.find(m => m && m.type === 'video');
+      const secondImage = baseMedia.find(m => m && m.type === 'image' && m.url !== lastEffectiveImage);
       let nextMedia = [];
       if (lastEffectiveImage) nextMedia.push({ type: 'image', url: lastEffectiveImage });
       if (originalVideo) nextMedia.push({ type: 'video', url: originalVideo.url });
+      else if (secondImage) nextMedia.push({ type: 'image', url: secondImage.url });
       if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice(0,2);
       state.productMedia = nextMedia.slice(0,2);
       syncInputs();
@@ -2260,16 +2263,19 @@
         }
       } else if (params.get("name") || params.get("grams") || params.get("hours") || params.get("title")) {
         hadParams = true;
+        let media;
+        try { const m = params.get("media"); if (m) media = JSON.parse(m); } catch {}
         const imp = {
           name: params.get("name") || params.get("title") || "",
           grams: params.get("grams") || params.get("weight") || 0,
           hours: params.get("hours") || 0,
           minutes: params.get("minutes") || 0,
           colors: params.get("colors") || undefined,
-          colors: params.get("colors") || undefined,
           quantity: params.get("quantity") || undefined,
           insumos: params.get("insumos") || undefined,
           image: params.get("image") || params.get("img") || "",
+          media: Array.isArray(media) ? media : undefined,
+          url: params.get("url") || "",
         };
         tryImportJson(JSON.stringify(imp));
         if (window.history && window.history.replaceState) {
