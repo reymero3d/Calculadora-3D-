@@ -123,7 +123,9 @@
     let currentProduct = null;
     let detailQty = 1;
     let lastProductUrls = [];
+    let detailMediaTimer = null;
     function renderProduct(data) {
+      if (detailMediaTimer) { clearInterval(detailMediaTimer); detailMediaTimer = null; }
       StoreOffline.revokeObjectUrls(lastProductUrls);
       const rows = StoreOffline.withObjectUrls([data]);
       lastProductUrls = rows;
@@ -134,13 +136,16 @@
       document.title = p.name + " · Reymero3d";
       const primary = StoreOffline.imageOf(p);
       const media = Array.isArray(p.media) && p.media.length ? p.media.slice(0,2) : (primary ? [{type:'image',url:primary}] : []);
-      const mediaHtml = media.length ? `<div style="display:flex;flex-direction:column;gap:.5rem;height:100%;">` + media.map(m => {
-        if (m.type === 'video') return `<video src="${escapeHtml(m.url)}" controls playsinline style="width:100%;max-height:${media.length>1?'49%':'100%'};border-radius:4px;background:#000"></video>`;
-        return `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" style="width:100%;${media.length>1?'max-height:49%;':''}object-fit:cover;border-radius:4px">`;
-      }).join('') + `</div>` : `<span class="placeholder">Sin foto</span>`;
+      const slidesHtml = media.length ? media.map((m, i) => {
+        const active = i === 0 ? 'opacity:1;z-index:1;' : 'opacity:0;z-index:0;';
+        if (m.type === 'video') return `<div class="detail-slide" data-idx="${i}" style="position:absolute;inset:0;${active}transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;background:#000;"><video src="${escapeHtml(m.url)}" controls playsinline style="width:100%;height:100%;object-fit:contain;background:#000"></video></div>`;
+        return `<div class="detail-slide" data-idx="${i}" style="position:absolute;inset:0;${active}transition:opacity .45s ease;"><img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;"></div>`;
+      }).join('') : `<span class="placeholder">Sin foto</span>`;
+      const dotsHtml = media.length > 1 ? `<div id="detailDots" style="position:absolute;left:0;right:0;bottom:.75rem;display:flex;gap:.4rem;justify-content:center;z-index:3;">${media.map((_,i)=>`<button type="button" class="detail-dot" data-idx="${i}" aria-label="Ver imagen ${i+1}" style="width:10px;height:10px;border-radius:50%;border:0;padding:0;cursor:pointer;background:${i===0?'#fff':'rgba(255,255,255,.45)'};box-shadow:0 0 0 1px rgba(0,0,0,.2);"></button>`).join('')}</div>` : '';
+      const mediaHtml = media.length ? `<div id="detailCarousel" style="position:relative;width:100%;height:100%;min-height:360px;">${slidesHtml}${dotsHtml}</div>` : `<span class="placeholder">Sin foto</span>`;
       document.getElementById("content").innerHTML = `
         <div class="detail">
-          <div class="img" style="${media.length>1?'padding:.5rem;align-items:stretch;':''}">${mediaHtml}</div>
+          <div class="img" style="padding:0;overflow:hidden;position:relative;min-height:360px;">${mediaHtml}</div>
           <div class="info">
             ${p.category ? `<div class="cat">${escapeHtml(p.category)}</div>` : ""}
             <h2>${escapeHtml(p.name)}</h2>
@@ -175,6 +180,26 @@
         if (ReymeroCart.add(currentProduct, detailQty)) toast("Agregado al carrito");
         else toast("No se pudo agregar el producto");
       });
+
+      const slides = Array.from(document.querySelectorAll(".detail-slide"));
+      const dots = Array.from(document.querySelectorAll(".detail-dot"));
+      let slideIdx = 0;
+      function showSlide(next) {
+        if (!slides.length) return;
+        slideIdx = (next + slides.length) % slides.length;
+        slides.forEach((s, i) => {
+          const active = i === slideIdx;
+          s.style.opacity = active ? "1" : "0";
+          s.style.zIndex = active ? "1" : "0";
+        });
+        dots.forEach((d, i) => {
+          d.style.background = i === slideIdx ? "#fff" : "rgba(255,255,255,.45)";
+        });
+      }
+      dots.forEach(d => d.addEventListener("click", () => { showSlide(Number(d.dataset.idx || 0)); if (detailMediaTimer) { clearInterval(detailMediaTimer); detailMediaTimer = setInterval(() => showSlide(slideIdx + 1), 3000); } }));
+      if (slides.length > 1) {
+        detailMediaTimer = setInterval(() => showSlide(slideIdx + 1), 3000);
+      }
     }
 
     async function loadProduct() {
