@@ -1282,7 +1282,7 @@
       }
     },
     {
-      "id": "prod_1795384541244",
+      "id": "sb_a0292fca-3905-49e3-8e2e-f29e39f2f80f",
       "name": "VARITA GIRATORIA SPIDERMAN NO AMS",
       "data": {
         "productName": "VARITA GIRATORIA SPIDERMAN NO AMS",
@@ -1310,7 +1310,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 9500
-      }
+      },
+      "_sbJustSaved": 1795384542948
     }
   ]
 }
