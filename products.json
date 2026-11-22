@@ -961,15 +961,9 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg",
-        "productMedia": [
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US1f44c38b995233/1011996850/instance/1d1b1896d4006783.jpg"
-          }
-        ],
+        "rawPrice": 10000,
         "published": true,
-        "inStock": true,
-        "rawPrice": 10000
+        "inStock": true
       }
     },
     {
@@ -1285,6 +1279,37 @@
         "rawPrice": 7000,
         "published": true,
         "inStock": true
+      }
+    },
+    {
+      "id": "prod_1795384541244",
+      "name": "VARITA GIRATORIA SPIDERMAN NO AMS",
+      "data": {
+        "productName": "VARITA GIRATORIA SPIDERMAN NO AMS",
+        "category": "Anti estres",
+        "colors": 1,
+        "hours": 5,
+        "minutes": 47,
+        "grams": 80,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1099694311/instance/e5615945fc77b67e.png",
+        "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1099694311/instance/e5615945fc77b67e.png"
+          },
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1115166900/instance/855dc9f74183760f.png"
+          }
+        ],
+        "published": true,
+        "inStock": true,
+        "rawPrice": 9500
       }
     }
   ]
