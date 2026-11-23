@@ -1597,11 +1597,9 @@
       if (!url) return;
       state.productImage = url;
       const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice(0, 5) : [];
-      // Preservar el segundo ítem existente (video o segunda imagen) para no perder media importada.
-      const second = baseMedia.find(m => m && m.url && m.url !== url && (m.type === 'video' || m.type === 'image'));
-      const next = [{ type: 'image', url }];
-      if (second) next.push({ type: second.type === 'video' ? 'video' : 'image', url: second.url });
-      state.productMedia = next.slice(0, 5);
+      const rest = baseMedia.filter(m => m && m.url && m.url !== url && (m.type === 'video' || m.type === 'image'));
+      const next = [{ type: 'image', url }, ...rest].slice(0, 5);
+      state.productMedia = next;
       renderImportMedia();
       persistActiveImage(url, state.productMedia);
       imageToDataUrl(url).then((dataUrl) => {
@@ -1738,13 +1736,17 @@
       lastEffectiveImage = profileImage(chosenProfile) || imp.image || "";
       if (lastEffectiveImage) state.productImage = lastEffectiveImage;
       const baseMedia = Array.isArray(imp.media) ? imp.media.slice(0, 5) : [];
-      const originalVideo = baseMedia.find(m => m && m.type === 'video');
-      const secondImage = baseMedia.find(m => m && m.type === 'image' && m.url !== lastEffectiveImage);
       let nextMedia = [];
-      if (lastEffectiveImage) nextMedia.push({ type: 'image', url: lastEffectiveImage });
-      if (originalVideo) nextMedia.push({ type: 'video', url: originalVideo.url });
-      else if (secondImage) nextMedia.push({ type: 'image', url: secondImage.url });
-      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice(0, 5);
+      if (lastEffectiveImage) {
+        nextMedia.push({ type: 'image', url: lastEffectiveImage });
+        baseMedia.forEach(m => {
+          if (!m || !m.url || m.url === lastEffectiveImage) return;
+          if (m.type !== 'image' && m.type !== 'video') return;
+          if (!nextMedia.some(x => x.url === m.url)) nextMedia.push({ type: m.type, url: m.url });
+        });
+      } else {
+        nextMedia = baseMedia.slice(0, 5);
+      }
       state.productMedia = nextMedia.slice(0, 5);
       syncInputs();
       recalc();
