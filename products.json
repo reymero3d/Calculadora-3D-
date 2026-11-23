@@ -1366,7 +1366,7 @@
       }
     },
     {
-      "id": "prod_1795393676998",
+      "id": "sb_dba4e2de-60b8-4d48-a551-6ae6386a4d96",
       "name": "Diego Maradona - Argentina - Iconos del fútbol #015",
       "data": {
         "productName": "Diego Maradona - Argentina - Iconos del fútbol #015",
@@ -1397,16 +1397,13 @@
           {
             "type": "image",
             "url": "https://makerworld.bblmw.com/makerworld/model/USd3136158629506/design/da65abfe98fe92b7.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USd3136158629506/design/60f2bde06b539454.jpg"
           }
         ],
         "published": true,
         "inStock": true,
         "rawPrice": 4500
-      }
+      },
+      "_sbJustSaved": 1795393677748
     }
   ]
 }
