@@ -88,11 +88,24 @@
             try { const u = await fs.getUri({ path: name, directory: "CACHE" }); uri = u.uri || uri; }
             catch (e) {}
           }
-          const payload = { title: label, text: text, dialogTitle: label };
-          if (url) payload.url = url;
-          if (uri) payload.files = [uri];
-          await share.share(payload);
-          return true;
+          if (uri) {
+            // No pasar url separado cuando hay archivos: en Android puede hacer que se comparta solo el link.
+            const payload = { title: label, text: text, dialogTitle: label, files: [uri] };
+            try {
+              await share.share(payload);
+              return true;
+            } catch (e) {
+              if (e && String(e.message || e).toLowerCase().includes("cancel")) return false;
+              // Reintento solo con imagen; el texto/link puede pegarse manualmente en el estado.
+              try {
+                await share.share({ title: label, dialogTitle: label, files: [uri] });
+                notify("Imagen compartida. Si falta el texto, pegá: " + (text || ""));
+                return true;
+              } catch (e2) {
+                if (e2 && String(e2.message || e2).toLowerCase().includes("cancel")) return false;
+              }
+            }
+          }
         } catch (e) {
           if (e && String(e.message || e).toLowerCase().includes("cancel")) return false;
         }
