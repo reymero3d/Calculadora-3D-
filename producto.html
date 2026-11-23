@@ -347,6 +347,16 @@
               }
             } catch (e) { console.warn("native share image download failed", e); }
           }
+          if (!blob && imgUrl && /^https?:/i.test(imgUrl)) {
+            try {
+              const proxyUrl = "https://wsrv.nl/?url=" + encodeURIComponent(imgUrl) + "&output=jpg&q=90";
+              const r = await fetch(proxyUrl, { mode: "cors", cache: "force-cache" });
+              if (r.ok) {
+                const b = await r.blob();
+                if (b && b.size > 0) blob = b.type && /^image\//i.test(b.type) ? b : new Blob([b], { type: "image/jpeg" });
+              }
+            } catch (e) { console.warn("proxy share image fetch failed", e); }
+          }
 
           if (blob) {
             if (!/^image\//i.test(blob.type || "")) blob = new Blob([blob], { type: "image/jpeg" });
