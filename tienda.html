@@ -476,7 +476,7 @@
     function mediaItemsOf(p) {
       const primary = StoreOffline.imageOf(p);
       const arr = Array.isArray(p.media) ? p.media.filter(m => m && m.url && (m.type === 'image' || m.type === 'video')) : [];
-      if (arr.length) return arr.slice();
+      if (arr.length) return arr.slice(0, 5);
       return primary ? [{ type: 'image', url: primary }] : [];
     }
 
@@ -496,7 +496,7 @@
             <a class="prod-card-link" href="producto.html?id=${encodeURIComponent(p.id)}">
               <div class="img${items.length > 1 ? ' has-multi-media' : ''}">
                 <span class="cat">${escapeHtml(categoryOf(p))}</span>
-                ${items.length > 1 ? `<span class="media-count">${items.some(m=>m.type==='video') ? '1 foto + video' : '2 fotos'}</span>` : ''}
+                ${items.length > 1 ? `<span class="media-count">${items.some(m=>m.type==='video') ? (items.filter(m=>m.type==='image').length + ' foto + video') : (items.length + ' fotos')}</span>` : ''}
                 ${cardMediaHtml(p)}
               </div>
               <div class="body">

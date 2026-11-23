@@ -945,7 +945,7 @@
         roundTo: state.roundTo || 0,
         currency: state.currency,
         productImage: state.productImage || "",
-        productMedia: Array.isArray(state.productMedia) ? state.productMedia : [],
+        productMedia: Array.isArray(state.productMedia) ? state.productMedia.slice(0, 5) : [],
         published: state.published !== false,
         inStock: state.inStock !== false,
         rawPrice: M(v) || 0,
@@ -1011,7 +1011,7 @@
           state.insumos = d.insumos || 0;
           state.quantity = d.quantity || 1;
           state.productImage = d.productImage || state.productImage || "";
-          state.productMedia = Array.isArray(d.productMedia) ? d.productMedia : (d.productImage ? [{type:'image',url:d.productImage}] : []);
+          state.productMedia = Array.isArray(d.productMedia) ? d.productMedia.slice(0, 5) : (d.productImage ? [{type:'image',url:d.productImage}] : []);
           if (state.productMedia.length && !state.productImage) { const im = state.productMedia.find(m=>m.type==='image'); if (im) state.productImage = im.url; }
           state.published = d.published !== false;
           state.inStock = d.inStock !== false;
@@ -1049,7 +1049,7 @@
           .select("id").ilike("name", sbLikeName(pr.name)).limit(1);
         if (same && same.length) sbId = same[0].id;
       }
-      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')) : [];
+      const mediaArr = Array.isArray(d.productMedia) ? d.productMedia.filter(m => m && m.url && (m.type==='image'||m.type==='video')).slice(0, 5) : [];
       const cover = (mediaArr.find(m=>m.type==='image')||{}).url || d.productImage || null;
       const productRow = {
         name: pr.name,
@@ -1141,7 +1141,7 @@
         state.productImage = lastImportedJson.image;
       }
       if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
-        state.productMedia = lastImportedJson.media.slice();
+        state.productMedia = lastImportedJson.media.slice(0, 5);
       }
       const data = productData();
       if (state.activeProductId) {
@@ -1587,7 +1587,7 @@
     function persistActiveImage(url, media) {
       const active = state.products.find(p => p.id === state.activeProductId);
       if (!active) return;
-      const nextMedia = Array.isArray(media) ? media.slice() : (Array.isArray(state.productMedia) ? state.productMedia.slice() : []);
+      const nextMedia = Array.isArray(media) ? media.slice(0, 5) : (Array.isArray(state.productMedia) ? state.productMedia.slice(0, 5) : []);
       active.data = { ...(active.data || {}), productImage: url, productMedia: nextMedia };
       saveProducts();
       sbSaveQueue = sbSaveQueue.then(() => syncProductRow(active)).catch(e => console.error(e));
@@ -1596,12 +1596,12 @@
     function setImportImage(url) {
       if (!url) return;
       state.productImage = url;
-      const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice() : [];
+      const baseMedia = Array.isArray(state.productMedia) ? state.productMedia.slice(0, 5) : [];
       // Preservar el segundo ítem existente (video o segunda imagen) para no perder media importada.
       const second = baseMedia.find(m => m && m.url && m.url !== url && (m.type === 'video' || m.type === 'image'));
       const next = [{ type: 'image', url }];
       if (second) next.push({ type: second.type === 'video' ? 'video' : 'image', url: second.url });
-      state.productMedia = next.slice();
+      state.productMedia = next.slice(0, 5);
       renderImportMedia();
       persistActiveImage(url, state.productMedia);
       imageToDataUrl(url).then((dataUrl) => {
@@ -1620,7 +1620,7 @@
     }
 
     function setImportMedia(media) {
-      const arr = Array.isArray(media) ? media.filter(m => m && m.url) : [];
+      const arr = Array.isArray(media) ? media.filter(m => m && m.url).slice(0, 5) : [];
       state.productMedia = arr;
       const img = (arr.find(m => m.type === 'image') || {}).url || "";
       state.productImage = img;
@@ -1662,7 +1662,7 @@
       const img = d.image || d.coverUrl || d.cover || d.coverPortrait || d.previewUrl || d.thumbnail || "";
       if (!media.length && img) media = [{ type: 'image', url: img }];
       if (media.length && !media.some(m => m.type === 'image') && img) media.unshift({ type: 'image', url: img });
-      media = media.slice();
+      media = media.slice(0, 5);
       return {
         name: String(name || ""),
         grams: Number(grams) || 0,
@@ -1737,15 +1737,15 @@
         ? imp.allInstances[profileIndex] : null;
       lastEffectiveImage = profileImage(chosenProfile) || imp.image || "";
       if (lastEffectiveImage) state.productImage = lastEffectiveImage;
-      const baseMedia = Array.isArray(imp.media) ? imp.media.slice() : [];
+      const baseMedia = Array.isArray(imp.media) ? imp.media.slice(0, 5) : [];
       const originalVideo = baseMedia.find(m => m && m.type === 'video');
       const secondImage = baseMedia.find(m => m && m.type === 'image' && m.url !== lastEffectiveImage);
       let nextMedia = [];
       if (lastEffectiveImage) nextMedia.push({ type: 'image', url: lastEffectiveImage });
       if (originalVideo) nextMedia.push({ type: 'video', url: originalVideo.url });
       else if (secondImage) nextMedia.push({ type: 'image', url: secondImage.url });
-      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice();
-      state.productMedia = nextMedia.slice();
+      if (!nextMedia.length && baseMedia.length) nextMedia = baseMedia.slice(0, 5);
+      state.productMedia = nextMedia.slice(0, 5);
       syncInputs();
       recalc();
       savePiece();
@@ -2299,7 +2299,7 @@
           state.productImage = lastImportedJson.image;
         }
         if ((!state.productMedia || !state.productMedia.length) && lastImportedJson && Array.isArray(lastImportedJson.media) && lastImportedJson.media.length) {
-          state.productMedia = lastImportedJson.media.slice();
+          state.productMedia = lastImportedJson.media.slice(0, 5);
         }
         saveProduct();
         toast("Producto guardado automáticamente");
