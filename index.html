@@ -1565,21 +1565,44 @@
       row.innerHTML = "";
       if (legacyImg) legacyImg.style.display = "none";
       if (!media.length) { previewWrap.style.display = "none"; return; }
-      media.forEach(m => {
+      media.forEach((m, idx) => {
         const multi = media.length > 1;
         const w = multi ? '140px' : '100%';
-        const h = multi ? '140px' : '140px';
+        const h = '140px';
+        const wrap = document.createElement('div');
+        wrap.style.cssText = `position:relative;flex:0 0 ${w};width:${w};max-width:${w};height:${h};`;
+
         if (m.type === 'video') {
           const v = document.createElement('video');
           v.src = m.url; v.controls = true; v.muted = true; v.playsInline = true;
-          v.style.cssText = `flex:0 0 ${w};width:${w};max-width:${w};height:${h};object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#000`;
-          row.appendChild(v);
+          v.style.cssText = `width:100%;height:100%;object-fit:cover;border-radius:4px;border:1px solid var(--border);background:#000;display:block`;
+          wrap.appendChild(v);
         } else {
           const img = document.createElement('img');
           img.src = m.url; img.alt = 'Media';
-          img.style.cssText = `flex:0 0 ${w};width:${w};max-width:${multi?w:'100%'};height:${h};object-fit:cover;border-radius:4px;border:1px solid var(--border)`;
-          row.appendChild(img);
+          img.style.cssText = `width:100%;height:100%;object-fit:cover;border-radius:4px;border:1px solid var(--border);display:block`;
+          wrap.appendChild(img);
         }
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.textContent = '×';
+        removeBtn.title = 'Quitar imagen';
+        removeBtn.setAttribute('aria-label', 'Quitar imagen');
+        removeBtn.style.cssText = 'position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;border:1px solid rgba(255,255,255,.35);background:rgba(28,25,23,.72);color:#fff;font-size:16px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;z-index:2';
+        removeBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          const next = (Array.isArray(state.productMedia) ? state.productMedia : []).filter((_, i) => i !== idx);
+          state.productMedia = next;
+          const nextImg = (next.find(x => x.type === 'image') || {}).url || '';
+          state.productImage = nextImg;
+          renderImportMedia();
+          try { if (typeof savePiece === 'function') savePiece(); } catch (err) {}
+          persistActiveImage(state.productImage, state.productMedia);
+        });
+        wrap.appendChild(removeBtn);
+        row.appendChild(wrap);
       });
       previewWrap.style.display = "";
     }
