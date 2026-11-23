@@ -279,11 +279,13 @@
           if (blob) {
             const ext = (blob.type && blob.type.split("/")[1]) ? blob.type.split("/")[1].replace("jpeg","jpg") : "jpg";
             const filename = (p.name || "producto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "producto";
+            const storyText = p.name + "\n" + money(p.price) + "\n" + url;
             if (window.ReymeroShare && window.ReymeroShare.shareFile) {
-              await window.ReymeroShare.shareFile(blob, filename + "." + ext, blob.type || "image/jpeg", text, title, "Imagen descargada. Subila a tu estado de WhatsApp.");
+              await window.ReymeroShare.shareFile(blob, filename + "." + ext, blob.type || "image/jpeg", storyText, title, "Imagen descargada. Subila a tu estado de WhatsApp y agregá el link: " + url, url);
             } else {
               window.ReymeroShare.download(blob, filename + "." + ext);
-              toast("Imagen descargada. Subila a tu estado de WhatsApp.");
+              try { await navigator.clipboard.writeText(storyText); } catch (e) {}
+              toast("Imagen descargada. Subila a tu estado y pegá el link.");
             }
           } else {
             if (window.ReymeroShare && window.ReymeroShare.shareText) await window.ReymeroShare.shareText(text, title);

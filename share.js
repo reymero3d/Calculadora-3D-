@@ -71,7 +71,7 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  async function shareFile(blob, filename, mime, text, title, fallbackMsg) {
+  async function shareFile(blob, filename, mime, text, title, fallbackMsg, url) {
     const label = title || "Reymero3d";
     const type = mime || blob.type || "application/octet-stream";
     const name = filename || "archivo";
@@ -89,6 +89,7 @@
             catch (e) {}
           }
           const payload = { title: label, text: text, dialogTitle: label };
+          if (url) payload.url = url;
           if (uri) payload.files = [uri];
           await share.share(payload);
           return true;
@@ -101,8 +102,10 @@
     if (global.navigator.share && global.navigator.canShare) {
       try {
         const file = new File([blob], name, { type: type });
+        const payload = { files: [file], title: label, text: text };
+        if (url) payload.url = url;
         if (global.navigator.canShare({ files: [file] })) {
-          await global.navigator.share({ files: [file], title: label, text: text });
+          await global.navigator.share(payload);
           return true;
         }
       } catch (e) {
