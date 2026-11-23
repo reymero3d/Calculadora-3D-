@@ -351,6 +351,48 @@
           return imageToJpegDataUrl(await loadImageElement(src, useCors));
         } catch (e) {}
       }
+
+      // 5) Proxy web para imágenes sin CORS (ej. MakerWorld)
+      if (!isData && /^https?:/i.test(src)) {
+        try {
+          const proxyUrl = "https://wsrv.nl/?url=" + encodeURIComponent(src) + "&output=jpg&q=90";
+          const res = await fetch(proxyUrl, { mode: "cors" });
+          if (res.ok) {
+            const blob = await res.blob();
+            if (blob && blob.size > 0) {
+              const dataUrl = await new Promise((resolve, reject) => {
+                const r = new FileReader(); r.onload = () => resolve(r.result); r.onerror = reject; r.readAsDataURL(blob);
+              });
+              try { return imageToJpegDataUrl(await loadImageElement(dataUrl, false)); }
+              catch (e) { return { dataUrl, format: "JPEG", width: 0, height: 0 }; }
+            }
+          }
+        } catch (e) {}
+      }
+
+      // 6) Descarga nativa en APK/Capacitor (sin CORS)
+      if (!isData && /^https?:/i.test(src) && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+        try {
+          const FS = window.Capacitor.Plugins.Filesystem;
+          if (FS.downloadFile && FS.readFile) {
+            const clean = src.split("?")[0].toLowerCase();
+            const extGuess = clean.endsWith(".png") ? "png" : clean.endsWith(".webp") ? "webp" : clean.endsWith(".gif") ? "gif" : "jpg";
+            const mimeGuess = extGuess === "png" ? "image/png" : extGuess === "webp" ? "image/webp" : extGuess === "gif" ? "image/gif" : "image/jpeg";
+            const path = "sell-pdf-" + Date.now() + "." + extGuess;
+            const dir = "CACHE";
+            const dl = await FS.downloadFile({ url: src, path, directory: dir });
+            const file = await FS.readFile({ path: (dl && dl.path) || path, directory: dir });
+            if (file && file.data) {
+              const dataUrl = "data:" + mimeGuess + ";base64," + file.data;
+              try { FS.deleteFile({ path: (dl && dl.path) || path, directory: dir }).catch(() => {}); } catch (e) {}
+              try { return imageToJpegDataUrl(await loadImageElement(dataUrl, false)); }
+              catch (e) { return { dataUrl, format: pdfImageFormat(dataUrl) || "JPEG", width: 0, height: 0 }; }
+            }
+            try { FS.deleteFile({ path: (dl && dl.path) || path, directory: dir }).catch(() => {}); } catch (e) {}
+          }
+        } catch (e) {}
+      }
+
       const f = pdfImageFormat(src);
       return f ? { dataUrl: src, format: f, width: 0, height: 0 } : null;
     }
