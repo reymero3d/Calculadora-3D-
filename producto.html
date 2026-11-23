@@ -326,6 +326,27 @@
               });
             } catch (e) {}
           }
+          if (!blob && imgUrl && /^https?:/i.test(imgUrl) && window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Filesystem) {
+            try {
+              const FS = window.Capacitor.Plugins.Filesystem;
+              if (FS.downloadFile && FS.readFile) {
+                const clean = imgUrl.split("?")[0].toLowerCase();
+                const extGuess = clean.endsWith(".png") ? "png" : clean.endsWith(".webp") ? "webp" : clean.endsWith(".gif") ? "gif" : "jpg";
+                const mimeGuess = extGuess === "png" ? "image/png" : extGuess === "webp" ? "image/webp" : extGuess === "gif" ? "image/gif" : "image/jpeg";
+                const path = "share-story-" + Date.now() + "." + extGuess;
+                const dir = "CACHE";
+                const dl = await FS.downloadFile({ url: imgUrl, path, directory: dir });
+                const file = await FS.readFile({ path: (dl && dl.path) || path, directory: dir });
+                if (file && file.data) {
+                  const bin = atob(file.data);
+                  const bytes = new Uint8Array(bin.length);
+                  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+                  blob = new Blob([bytes], { type: mimeGuess });
+                }
+                try { FS.deleteFile({ path: (dl && dl.path) || path, directory: dir }).catch(() => {}); } catch (e) {}
+              }
+            } catch (e) { console.warn("native share image download failed", e); }
+          }
 
           if (blob) {
             if (!/^image\//i.test(blob.type || "")) blob = new Blob([blob], { type: "image/jpeg" });
