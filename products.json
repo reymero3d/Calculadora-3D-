@@ -268,27 +268,9 @@
         "roundTo": 500,
         "currency": "ARS",
         "productImage": "https://makerworld.bblmw.com/makerworld/model/USc6adfab655e54/1113985983/instance/b017c03481565032.jpg",
-        "productMedia": [
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc6adfab655e54/1113985983/instance/b017c03481565032.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc6adfab655e54/design/a89e19a16ca08ae4.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc6adfab655e54/design/d985c3a6c310f8aa.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc6adfab655e54/design/884f46eecc5ac0aa.jpg"
-          }
-        ],
+        "rawPrice": 4500,
         "published": true,
-        "inStock": true,
-        "rawPrice": 4500
+        "inStock": true
       }
     },
     {
@@ -1444,6 +1426,41 @@
         "rawPrice": 7000,
         "published": true,
         "inStock": true
+      }
+    },
+    {
+      "id": "prod_1795393961102",
+      "name": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
+      "data": {
+        "productName": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 9,
+        "minutes": 0,
+        "grams": 160,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/500525509/instance/2025-12-02_1f488e74eb3498.jpg",
+        "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/500525509/instance/2025-12-02_1f488e74eb3498.jpg"
+          },
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/design/2025-12-02_061412e0d1b69.jpg"
+          },
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/design/2025-12-02_370ee93ab11528.jpg"
+          }
+        ],
+        "published": true,
+        "inStock": true,
+        "rawPrice": 18500
       }
     }
   ]
