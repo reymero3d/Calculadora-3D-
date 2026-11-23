@@ -1387,7 +1387,7 @@
       }
     },
     {
-      "id": "prod_1795393742582",
+      "id": "sb_d3b60d36-7c01-4712-a338-d2027ad3cd28",
       "name": "Lionel Messi - Inter Miami - Iconos del fútbol #019",
       "data": {
         "productName": "Lionel Messi - Inter Miami - Iconos del fútbol #019",
@@ -1423,7 +1423,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 4500
-      }
+      },
+      "_sbJustSaved": 1795393743082
     }
   ]
 }
