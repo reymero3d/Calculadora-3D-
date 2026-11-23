@@ -1051,6 +1051,27 @@
       }
     },
     {
+      "id": "sb_15e9c215-1579-48e6-91a4-df3eddae14ea",
+      "name": "Minecraft Zombie - Articulado",
+      "data": {
+        "productName": "Minecraft Zombie - Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 39,
+        "grams": 49,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd0e8ae8085b866/1008326387/instance/3b98c4813129b907.jpg",
+        "rawPrice": 5500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_ddae8c0d-ba41-4acd-8e09-891c65407025",
       "name": "Mini Honda CRF250R de Motocross a Escala",
       "data": {
@@ -1471,36 +1492,36 @@
       }
     },
     {
-      "id": "sb_15e9c215-1579-48e6-91a4-df3eddae14ea",
-      "name": "Minecraft Zombie - Articulado",
+      "id": "sb_6a4cc986-b500-4343-a403-8d5f32e1ca72",
+      "name": "Minecraft Caballo Esqueleto y Jinete – Articulado",
       "data": {
-        "productName": "Minecraft Zombie - Articulado",
+        "productName": "Minecraft Caballo Esqueleto y Jinete – Articulado",
         "category": "Minecraft",
         "colors": 1,
-        "hours": 2,
-        "minutes": 39,
-        "grams": 49,
+        "hours": 3,
+        "minutes": 36,
+        "grams": 73,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USd0e8ae8085b866/1008326387/instance/3b98c4813129b907.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USd0e8ae8085b866/1008326387/instance/3b98c4813129b907.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg"
           },
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USd0e8ae8085b866/1008339608/instance/fd633a63b0d519f0.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/design/cc4adb3e400f60cc.jpg"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 5500
+        "rawPrice": 8500
       },
-      "_sbJustSaved": 1795454890526
+      "_sbJustSaved": 1795454997520
     }
   ]
 }
