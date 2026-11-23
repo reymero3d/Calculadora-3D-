@@ -973,16 +973,20 @@
         "productName": "Minecraft Caballo Esqueleto y Jinete – Articulado",
         "category": "Minecraft",
         "colors": 1,
-        "hours": 3,
-        "minutes": 36,
-        "grams": 73,
+        "hours": 1,
+        "minutes": 10,
+        "grams": 30,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636640917/instance/9b2343803e09adce.jpg",
         "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636640917/instance/9b2343803e09adce.jpg"
+          },
           {
             "type": "image",
             "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg"
@@ -990,7 +994,7 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 8500
+        "rawPrice": 3500
       }
     },
     {
