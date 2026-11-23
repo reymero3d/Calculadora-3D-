@@ -1345,7 +1345,7 @@
       }
     },
     {
-      "id": "prod_1795393610215",
+      "id": "sb_376ffc2a-a968-4a57-b016-2ca8ec80c1b9",
       "name": "Lionel Messi - Barcelona - Iconos del fútbol #007",
       "data": {
         "productName": "Lionel Messi - Barcelona - Iconos del fútbol #007",
@@ -1377,7 +1377,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 4500
-      }
+      },
+      "_sbJustSaved": 1795393610821
     }
   ]
 }
