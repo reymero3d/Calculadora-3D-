@@ -700,19 +700,19 @@
         "productName": "Juguete Pokémon Sylveon Eeveelución",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 1,
-        "minutes": 0,
-        "grams": 20,
+        "hours": 20,
+        "minutes": 42,
+        "grams": 235,
         "insumos": 0,
-        "quantity": 1,
+        "quantity": 0,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US6aeedd87aacecf/895798760/instance/b7a803ad10ca8d54.png",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US6aeedd87aacecf/895790765/instance/7e304f45e6e6f5f4.png",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US6aeedd87aacecf/895798760/instance/b7a803ad10ca8d54.png"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US6aeedd87aacecf/895790765/instance/7e304f45e6e6f5f4.png"
           },
           {
             "type": "image",
@@ -721,7 +721,7 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 2500
+        "rawPrice": 29000
       }
     },
     {
