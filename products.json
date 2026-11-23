@@ -1240,6 +1240,27 @@
       }
     },
     {
+      "id": "sb_a0292fca-3905-49e3-8e2e-f29e39f2f80f",
+      "name": "VARITA GIRATORIA SPIDERMAN NO AMS",
+      "data": {
+        "productName": "VARITA GIRATORIA SPIDERMAN NO AMS",
+        "category": "Anti estres",
+        "colors": 1,
+        "hours": 5,
+        "minutes": 47,
+        "grams": 80,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1099694311/instance/e5615945fc77b67e.png",
+        "rawPrice": 9500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_4f33ac9f-8524-4359-864b-b94b5e8bc9e5",
       "name": "Vegeta Daima Fanart (19 cm de alto)",
       "data": {
@@ -1282,36 +1303,35 @@
       }
     },
     {
-      "id": "sb_a0292fca-3905-49e3-8e2e-f29e39f2f80f",
-      "name": "VARITA GIRATORIA SPIDERMAN NO AMS",
+      "id": "prod_1795392248786",
+      "name": "（Sin AMS）¡Gengar golpeado por pokebola!",
       "data": {
-        "productName": "VARITA GIRATORIA SPIDERMAN NO AMS",
-        "category": "Anti estres",
+        "productName": "（Sin AMS）¡Gengar golpeado por pokebola!",
+        "category": "Pokemon",
         "colors": 1,
-        "hours": 5,
-        "minutes": 47,
-        "grams": 80,
+        "hours": 4,
+        "minutes": 18,
+        "grams": 117,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1099694311/instance/e5615945fc77b67e.png",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8cd6097978ec8d/design/eb49ee81f19f2c65.jpg",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1099694311/instance/e5615945fc77b67e.png"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US8cd6097978ec8d/design/eb49ee81f19f2c65.jpg"
           },
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USc9069143b36ec3/1115166900/instance/855dc9f74183760f.png"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US8cd6097978ec8d/1167276294/instance/1533daa2f5e400c1.jpg"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 9500
-      },
-      "_sbJustSaved": 1795384542948
+        "rawPrice": 13000
+      }
     }
   ]
 }
