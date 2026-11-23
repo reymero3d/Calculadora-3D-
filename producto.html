@@ -57,6 +57,9 @@
     .action-row { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.5rem; }
     .share-btn { display:inline-flex; align-items:center; gap:.5rem; background:var(--surface); color:var(--text); padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--border); cursor:pointer; font-family:inherit; }
     .share-btn:hover { border-color:var(--accent); color:var(--accent); }
+    .share-story-btn { display:none; align-items:center; gap:.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-transform:uppercase; letter-spacing:.04em; border:1px solid #1c1917; cursor:pointer; font-family:inherit; }
+    .share-story-btn:hover { background:var(--accent); border-color:var(--accent); }
+    .share-story-btn.visible { display:inline-flex; }
     .cart-add-row { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1.25rem 0 .5rem; }
     .qty-stepper { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
     .qty-stepper button { width:2.4rem; height:2.4rem; border:0; background:var(--surface-2); color:var(--text); font-size:1.1rem; cursor:pointer; }
@@ -128,6 +131,25 @@
     if (accountBtn) accountBtn.addEventListener("click", () => { if (window.ReymeroCustomer) window.ReymeroCustomer.open(); });
     if (window.ReymeroCustomer) { window.ReymeroCustomer.init().then(updateAccountBtn); window.ReymeroCustomer.subscribe(updateAccountBtn); }
 
+    let isProductAdmin = false;
+    function updateAdminStoryBtn() {
+      const btn = document.getElementById("shareStoryBtn");
+      if (btn) btn.classList.toggle("visible", !!isProductAdmin);
+    }
+    async function checkProductAdmin() {
+      try {
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) { isProductAdmin = false; updateAdminStoryBtn(); return; }
+        const { data, error } = await sb.rpc("is_admin");
+        isProductAdmin = !error && data === true;
+      } catch (e) {
+        isProductAdmin = false;
+      }
+      updateAdminStoryBtn();
+    }
+    checkProductAdmin();
+    if (window.ReymeroCustomer) window.ReymeroCustomer.subscribe(() => { checkProductAdmin(); updateAccountBtn(); });
+
     function money(n) { return "$ " + (Number.isFinite(n)?n:0).toLocaleString("es-AR",{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function toast(msg){ const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"),2000); }
 
@@ -180,6 +202,7 @@
                 Consultar por WhatsApp
               </a>
               <button type="button" class="share-btn" id="shareProductBtn">Compartir</button>
+              <button type="button" class="share-story-btn" id="shareStoryBtn" aria-label="Compartir en historia de WhatsApp (solo admin)">Compartir en historia</button>
             </div>
             <a class="back" href="tienda.html">← Volver al catálogo</a>
           </div>
@@ -222,6 +245,58 @@
           }
         } catch (e) {}
         window.prompt("Copiá este enlace:", url);
+      });
+
+      updateAdminStoryBtn();
+      const shareStoryBtn = document.getElementById("shareStoryBtn");
+      if (shareStoryBtn) shareStoryBtn.addEventListener("click", async () => {
+        if (!isProductAdmin) return;
+        const url = location.href;
+        const title = p.name + " · Reymero 3D";
+        const text = p.name + " - " + money(p.price) + "\n" + url;
+        shareStoryBtn.disabled = true;
+        const oldLabel = shareStoryBtn.textContent;
+        shareStoryBtn.textContent = "Preparando...";
+        try {
+          let blob = null;
+          const imgUrl = primary || (media.find(m => m.type === 'image') || {}).url || "";
+          if (imgUrl) {
+            try {
+              const r = await fetch(imgUrl, { mode: "cors" });
+              if (r.ok) blob = await r.blob();
+            } catch (e) {}
+          }
+          if (!blob && window.StoreOffline && typeof window.StoreOffline.readOne === "function") {
+            try {
+              const cached = await window.StoreOffline.readOne(p.id);
+              if (cached && cached.imageBlob instanceof Blob) blob = cached.imageBlob;
+              if (!blob && cached && cached.imageDataUrl) {
+                const res = await fetch(cached.imageDataUrl);
+                blob = await res.blob();
+              }
+            } catch (e) {}
+          }
+          if (blob) {
+            const ext = (blob.type && blob.type.split("/")[1]) ? blob.type.split("/")[1].replace("jpeg","jpg") : "jpg";
+            const filename = (p.name || "producto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "producto";
+            if (window.ReymeroShare && window.ReymeroShare.shareFile) {
+              await window.ReymeroShare.shareFile(blob, filename + "." + ext, blob.type || "image/jpeg", text, title, "Imagen descargada. Subila a tu estado de WhatsApp.");
+            } else {
+              window.ReymeroShare.download(blob, filename + "." + ext);
+              toast("Imagen descargada. Subila a tu estado de WhatsApp.");
+            }
+          } else {
+            if (window.ReymeroShare && window.ReymeroShare.shareText) await window.ReymeroShare.shareText(text, title);
+            else { await navigator.clipboard.writeText(text); toast("Texto copiado"); }
+            toast("No se pudo obtener la imagen, se compartió el texto.");
+          }
+        } catch (e) {
+          console.warn("share story", e);
+          toast("No se pudo compartir la historia");
+        } finally {
+          shareStoryBtn.disabled = false;
+          shareStoryBtn.textContent = oldLabel;
+        }
       });
 
       try {

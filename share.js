@@ -71,8 +71,10 @@
     setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
   }
 
-  async function sharePdf(blob, filename, text, title) {
-    const label = title || "Comprobante Reymero3d";
+  async function shareFile(blob, filename, mime, text, title, fallbackMsg) {
+    const label = title || "Reymero3d";
+    const type = mime || blob.type || "application/octet-stream";
+    const name = filename || "archivo";
 
     if (isNative()) {
       const share = plugin("Share");
@@ -80,10 +82,10 @@
       if (share && share.share && fs && fs.writeFile) {
         try {
           const base64 = await blobToBase64(blob);
-          const res = await fs.writeFile({ path: filename, data: base64, directory: "CACHE" });
+          const res = await fs.writeFile({ path: name, data: base64, directory: "CACHE" });
           let uri = res && res.uri;
           if (fs.getUri) {
-            try { const u = await fs.getUri({ path: filename, directory: "CACHE" }); uri = u.uri || uri; }
+            try { const u = await fs.getUri({ path: name, directory: "CACHE" }); uri = u.uri || uri; }
             catch (e) {}
           }
           const payload = { title: label, text: text, dialogTitle: label };
@@ -98,7 +100,7 @@
 
     if (global.navigator.share && global.navigator.canShare) {
       try {
-        const file = new File([blob], filename, { type: "application/pdf" });
+        const file = new File([blob], name, { type: type });
         if (global.navigator.canShare({ files: [file] })) {
           await global.navigator.share({ files: [file], title: label, text: text });
           return true;
@@ -108,14 +110,19 @@
       }
     }
 
-    download(blob, filename);
-    notify("PDF descargado. Podés adjuntarlo desde tu app de WhatsApp.");
+    download(blob, name);
+    notify(fallbackMsg || "Archivo descargado. Podés compartirlo desde tu app.");
     return false;
+  }
+
+  async function sharePdf(blob, filename, text, title) {
+    return shareFile(blob, filename, "application/pdf", text, title || "Comprobante Reymero3d", "PDF descargado. Podés adjuntarlo desde tu app de WhatsApp.");
   }
 
   global.ReymeroShare = Object.freeze({
     isNative: isNative,
     shareText: shareText,
+    shareFile: shareFile,
     sharePdf: sharePdf,
     download: download
   });
