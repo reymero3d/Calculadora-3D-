@@ -188,15 +188,29 @@
       function clearMediaTimer() { if (detailMediaTimer) { clearTimeout(detailMediaTimer); detailMediaTimer = null; } }
       function scheduleNext() {
         clearMediaTimer();
-        if (slides.length <= 1) return;
         const active = slides[slideIdx];
         const video = active ? active.querySelector("video") : null;
         if (video) {
-          video.currentTime = 0;
-          const p = video.play();
-          if (p && p.catch) p.catch(() => {});
-          video.onended = () => { showSlide(slideIdx + 1); };
-        } else {
+          video.muted = true;
+          video.defaultMuted = true;
+          video.playsInline = true;
+          video.setAttribute("muted", "");
+          video.setAttribute("playsinline", "");
+          const startVideo = () => {
+            if (slides[slideIdx] !== active) return;
+            try { video.currentTime = 0; } catch (_) {}
+            const p = video.play();
+            if (p && p.catch) p.catch(() => {});
+          };
+          if (video._startVideo) video.removeEventListener("loadeddata", video._startVideo);
+          video._startVideo = startVideo;
+          if (video.readyState >= 2) startVideo();
+          else {
+            video.addEventListener("loadeddata", startVideo, { once: true });
+            video.load();
+          }
+          video.onended = () => { if (slides[slideIdx] === active && slides.length > 1) showSlide(slideIdx + 1); };
+        } else if (slides.length > 1) {
           detailMediaTimer = setTimeout(() => showSlide(slideIdx + 1), 3000);
         }
       }
@@ -208,7 +222,11 @@
           s.style.opacity = active ? "1" : "0";
           s.style.zIndex = active ? "1" : "0";
           const v = s.querySelector("video");
-          if (v && !active) { v.pause(); v.onended = null; }
+          if (v && !active) {
+            if (v._startVideo) { v.removeEventListener("loadeddata", v._startVideo); v._startVideo = null; }
+            v.pause();
+            v.onended = null;
+          }
         });
         dots.forEach((d, i) => { d.style.background = i === slideIdx ? "#fff" : "rgba(255,255,255,.45)"; });
         scheduleNext();
@@ -231,6 +249,13 @@
           if (Math.abs(dx) > 40) showSlide(slideIdx + (dx < 0 ? 1 : -1));
           mouseDownX = null;
         });
+      }
+      if (carousel) {
+        const tryPlayActiveVideo = () => {
+          const v = slides[slideIdx] && slides[slideIdx].querySelector("video");
+          if (v && v.paused) { v.muted = true; v.play().catch(() => {}); }
+        };
+        carousel.addEventListener("pointerdown", tryPlayActiveVideo, { passive: true });
       }
       if (slides.length > 1) showSlide(0);
       else if (slides.length === 1) scheduleNext();
