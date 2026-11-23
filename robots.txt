@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /pedidos.html
+Disallow: /productos.html
+Disallow: /index.html
+
+Sitemap: https://reymero3d.github.io/Calculadora-3D-/sitemap.xml

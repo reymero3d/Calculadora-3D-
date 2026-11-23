@@ -141,17 +141,20 @@
     const customer = d.customer || {};
     const shipping = d.shipping || {};
     const t = (window.ReymeroConfig && window.ReymeroConfig.TRANSFER) || {};
-    const uploaded = d.paymentStatus === "receipt_uploaded" || d.paymentStatus === "verified";
+    const ps = String(d.paymentStatus || "pending_payment");
+    const uploaded = ["receipt_uploaded", "proof_submitted", "verified"].indexOf(ps) >= 0;
+    const rejected = ps === "rejected";
+    const verified = ps === "verified";
     bodyEl.textContent = "";
 
     bodyEl.appendChild(el("div", "rm-receipt-brand", "Reymero3d · Impresión 3D"));
-    bodyEl.appendChild(el("h3", "rm-receipt-title", uploaded ? "Comprobante recibido" : "Datos para el pago"));
+    bodyEl.appendChild(el("h3", "rm-receipt-title", verified ? "Pago verificado" : (rejected ? "Comprobante rechazado" : (uploaded ? "Comprobante recibido" : "Datos para el pago"))));
 
     const meta = el("div", "rm-receipt-meta");
     [["Número de pedido", current.id],
      ["Fecha", window.ReymeroOrder.formatDate(d.createdAt || d.validatedAt)],
      ["Estado pedido", d.statusLabel || "Pendiente de confirmación"],
-     ["Pago", uploaded ? "Comprobante recibido / pendiente de verificación" : "Pendiente de comprobante"]].forEach(function (pair) {
+     ["Pago", verified ? "Pago verificado" : (rejected ? "Comprobante rechazado - subí uno nuevo" : (uploaded ? "Comprobante recibido / pendiente de verificación" : "Pendiente de comprobante"))]].forEach(function (pair) {
       const box = el("div"); box.appendChild(el("span", null, pair[0])); box.appendChild(el("b", null, pair[1])); meta.appendChild(box);
     });
     bodyEl.appendChild(meta);
@@ -159,31 +162,36 @@
     // Transferencia
     const pay = el("div", "rm-pay");
     pay.appendChild(el("h4", null, "Datos de transferencia"));
+    const amount = money(d.total != null ? d.total : d.subtotal);
     const grid = el("div", "rm-pay-grid");
-    [["Alias", t.alias || "-"], ["Titular", t.holder || "-"], ["DNI", t.dni || "-"], ["Banco / Entidad", t.bank || "-"]].forEach(function (p) {
+    [["Monto a transferir", amount], ["Alias", t.alias || "-"], ["Titular", t.holder || "-"], ["Banco / Entidad", t.bank || "-"]].forEach(function (p) {
       const cell = el("div"); cell.appendChild(el("span", null, p[0])); cell.appendChild(el("b", null, p[1])); grid.appendChild(cell);
     });
     pay.appendChild(grid);
     const payActions = el("div", "rm-pay-actions");
     const copyAlias = el("button", "rm-receipt-btn", "Copiar alias"); copyAlias.type = "button"; copyAlias.id = "rmPayCopyAlias";
-    payActions.appendChild(copyAlias); pay.appendChild(payActions);
+    const copyAmount = el("button", "rm-receipt-btn", "Copiar monto"); copyAmount.type = "button"; copyAmount.id = "rmPayCopyAmount";
+    payActions.appendChild(copyAlias); payActions.appendChild(copyAmount); pay.appendChild(payActions);
     pay.appendChild(el("p", "rm-pay-note", "Transferí el total estimado e subí el comprobante. El pedido queda pendiente hasta que verifiquemos el pago. No se marca como pagado automáticamente."));
     bodyEl.appendChild(pay);
 
     // Upload
     const up = el("div", "rm-upload");
     up.appendChild(el("h4", null, "Comprobante de pago"));
-    if (uploaded) {
+    if (verified) {
+      up.appendChild(el("p", "rm-upload-status ok", "Pago verificado por Reymero3d."));
+    } else if (uploaded && !rejected) {
       up.appendChild(el("p", "rm-upload-status ok", "Comprobante recibido. Pendiente de verificación por Reymero3d."));
       const extraAfter = (window.ReymeroCart && window.ReymeroCart.items ? window.ReymeroCart.items() : []) || [];
       if (extraAfter.length) {
         up.appendChild(el("p", "rm-upload-status", "Todavía tenés productos en tu carrito. Podés cerrar este comprobante y hacer una nueva compra."));
       }
     } else {
+      if (rejected) up.appendChild(el("p", "rm-upload-status err", "El comprobante anterior fue rechazado. Subí un nuevo comprobante para que podamos verificar el pago."));
       const input = document.createElement("input"); input.type = "file"; input.id = "rmReceiptFile"; input.accept = "image/jpeg,image/png,image/webp,application/pdf";
       up.appendChild(input);
       const upActions = el("div", "rm-pay-actions"); upActions.style.marginTop = ".75rem";
-      const upBtn = el("button", "rm-receipt-btn primary", "Subir comprobante"); upBtn.type = "button"; upBtn.id = "rmReceiptUploadBtn";
+      const upBtn = el("button", "rm-receipt-btn primary", rejected ? "Subir nuevo comprobante" : "Subir comprobante"); upBtn.type = "button"; upBtn.id = "rmReceiptUploadBtn";
       upActions.appendChild(upBtn); up.appendChild(upActions);
       up.appendChild(el("p", "rm-upload-status", "Formatos: JPG, PNG, WebP o PDF. Máximo 10 MB."));
       const extra = getExtraCartItems(d);
@@ -343,6 +351,12 @@
         const alias = (window.ReymeroConfig && window.ReymeroConfig.TRANSFER && window.ReymeroConfig.TRANSFER.alias) || "";
         const p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(alias) : Promise.reject();
         p.then(() => { if (typeof window.toast === "function") window.toast("Alias copiado"); }).catch(() => {});
+      }
+      if (e.target && e.target.id === "rmPayCopyAmount") {
+        const d = current && current.detail ? current.detail : {};
+        const raw = String(Number(d.total != null ? d.total : d.subtotal) || 0);
+        const p = navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(raw) : Promise.reject();
+        p.then(() => { if (typeof window.toast === "function") window.toast("Monto copiado"); }).catch(() => {});
       }
       if (e.target && e.target.id === "rmReceiptUploadBtn") uploadReceipt();
     });

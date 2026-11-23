@@ -282,19 +282,26 @@
         p_receipt_token: pending.receiptToken
       });
       if (error) throw error;
-      if (data && (data.payment_status === "pending_payment" || data.payment_status === "receipt_uploaded")) {
-        pending.paymentStatus = data.payment_status;
+      const resumable = ["pending_payment", "receipt_uploaded", "proof_submitted", "unpaid", "rejected"];
+      const ps = String(data && data.payment_status || "");
+      if (data && resumable.indexOf(ps) >= 0) {
+        pending.paymentStatus = ps;
         pending.status = data.status || pending.status;
         pending.paymentReceiptUploadedAt = data.payment_receipt_uploaded_at || pending.paymentReceiptUploadedAt || null;
         setPending(pending);
         return pending;
       }
-      // verified/not_required/cancelled/no longer payable: liberar flujo
-      clearPending();
+      if (data) {
+        // verified/not_required/refunded/cancelled/no longer payable: liberar flujo
+        clearPending();
+        return null;
+      }
+      if (resumable.indexOf(String(pending.paymentStatus || "")) >= 0) return pending;
       return null;
     } catch (e) {
       // Si no se puede verificar, reanudar con datos locales para no bloquear el pago
-      if (pending.paymentStatus === "pending_payment" || pending.paymentStatus === "receipt_uploaded") return pending;
+      const resumable = ["pending_payment", "receipt_uploaded", "proof_submitted", "unpaid", "rejected"];
+      if (resumable.indexOf(String(pending.paymentStatus || "")) >= 0) return pending;
       return null;
     }
   }

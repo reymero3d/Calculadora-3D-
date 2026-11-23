@@ -4,6 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Producto · Reymero3d</title>
+  <meta name="description" content="Detalle de producto de Reymero 3D: fotos, precio, disponibilidad y consulta por WhatsApp." />
+  <meta name="theme-color" content="#1c1917" />
+  <meta property="og:site_name" content="Reymero 3D" />
+  <meta property="og:type" content="product" />
+  <meta property="og:title" content="Producto · Reymero 3D" />
+  <meta property="og:description" content="Mirá el detalle, precio y disponibilidad de este producto impreso en 3D." />
+  <meta property="og:image" content="logo.svg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -46,6 +54,9 @@
     .stock { font-size:.8rem; color:var(--muted); margin-bottom:1rem; }
     .whatsapp-btn { display:inline-flex; align-items:center; gap:.5rem; background:#25D366; color:#fff; padding:.8rem 1.4rem; border-radius:4px; font-weight:600; font-size:.9rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; transition:background .15s; }
     .whatsapp-btn:hover { background:#1ebe57; }
+    .action-row { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.5rem; }
+    .share-btn { display:inline-flex; align-items:center; gap:.5rem; background:var(--surface); color:var(--text); padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--border); cursor:pointer; font-family:inherit; }
+    .share-btn:hover { border-color:var(--accent); color:var(--accent); }
     .cart-add-row { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1.25rem 0 .5rem; }
     .qty-stepper { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
     .qty-stepper button { width:2.4rem; height:2.4rem; border:0; background:var(--surface-2); color:var(--text); font-size:1.1rem; cursor:pointer; }
@@ -53,6 +64,10 @@
     .add-cart-btn { flex:1; min-width:180px; padding:.8rem 1rem; border:1.5px solid var(--accent); border-radius:5px; background:var(--accent); color:#fff; font-family:"JetBrains Mono",monospace; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; cursor:pointer; transition:background .15s,border-color .15s; }
     .add-cart-btn:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
     .add-cart-btn:disabled { opacity:.5; cursor:default; }
+    .mobile-cart-bar { display:none; position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--surface); border-top:1px solid var(--border); padding:.75rem 5rem calc(.75rem + env(safe-area-inset-bottom, 0px)) 1rem; box-shadow:0 -8px 24px rgba(0,0,0,.08); gap:.75rem; align-items:center; }
+    .mobile-cart-bar .price { margin:0; font-size:1.2rem; }
+    .mobile-cart-bar .add-cart-btn { min-width:0; }
+    @media (max-width:768px) { .mobile-cart-bar { display:flex; } .app { padding-bottom:6.5rem; } }
     .back { display:inline-block; margin-top:1.5rem; color:var(--accent); text-decoration:none; font-size:.85rem; font-weight:600; }
     .empty { text-align:center; padding:3rem 1rem; color:var(--muted); font-style:italic; }
     .toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:3px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; }
@@ -80,7 +95,7 @@
     </div>
     <div id="content"></div>
   </div>
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <script>
     const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
@@ -160,12 +175,18 @@
               </div>
               <button type="button" class="add-cart-btn" id="addToCartBtn"${p.in_stock === false ? " disabled" : ""}>${p.in_stock === false ? "Sin stock" : "Agregar al carrito"}</button>
             </div>
-            <a class="whatsapp-btn" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, me interesa el producto: " + p.name + " a " + money(p.price))}" target="_blank">
-              Consultar por WhatsApp
-            </a>
-            <br>
+            <div class="action-row">
+              <a class="whatsapp-btn" id="waBtn" href="https://wa.me/${WHATSAPP}?text=${encodeURIComponent("Hola, me interesa el producto: " + p.name + " - " + money(p.price) + "\n" + location.href)}" target="_blank" rel="noopener noreferrer">
+                Consultar por WhatsApp
+              </a>
+              <button type="button" class="share-btn" id="shareProductBtn">Compartir</button>
+            </div>
             <a class="back" href="tienda.html">← Volver al catálogo</a>
           </div>
+        </div>
+        <div class="mobile-cart-bar" id="mobileCartBar">
+          <div class="price" style="font-size:1.1rem;white-space:nowrap;">${money(p.price)}</div>
+          <button type="button" class="add-cart-btn" id="addToCartBtnMobile"${p.in_stock === false ? " disabled" : ""}>${p.in_stock === false ? "Sin stock" : "Agregar al carrito"}</button>
         </div>
       `;
 
@@ -175,11 +196,44 @@
       const addBtn = document.getElementById("addToCartBtn");
       if (minus) minus.addEventListener("click", () => { detailQty = Math.max(1, detailQty - 1); if (qtyValue) qtyValue.textContent = String(detailQty); });
       if (plus) plus.addEventListener("click", () => { detailQty = Math.min(999, detailQty + 1); if (qtyValue) qtyValue.textContent = String(detailQty); });
-      if (addBtn) addBtn.addEventListener("click", () => {
+      const addToCart = () => {
         if (!currentProduct || currentProduct.in_stock === false) return;
         if (ReymeroCart.add(currentProduct, detailQty)) toast("Agregado al carrito");
         else toast("No se pudo agregar el producto");
+      };
+      if (addBtn) addBtn.addEventListener("click", addToCart);
+      const addBtnMobile = document.getElementById("addToCartBtnMobile");
+      if (addBtnMobile) addBtnMobile.addEventListener("click", addToCart);
+
+      const shareBtn = document.getElementById("shareProductBtn");
+      if (shareBtn) shareBtn.addEventListener("click", async () => {
+        const url = location.href;
+        const title = p.name + " · Reymero 3D";
+        const text = p.name + " - " + money(p.price) + "\n" + url;
+        if (window.ReymeroShare && window.ReymeroShare.shareText) {
+          const shared = await window.ReymeroShare.shareText(text, title);
+          if (shared) return;
+        }
+        try {
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            toast("Enlace copiado");
+            return;
+          }
+        } catch (e) {}
+        window.prompt("Copiá este enlace:", url);
       });
+
+      try {
+        const desc = (p.description ? String(p.description).slice(0, 160) : (p.name + " - " + money(p.price) + " en Reymero 3D"));
+        document.querySelector('meta[name="description"]')?.setAttribute("content", desc);
+        document.querySelector('meta[property="og:title"]')?.setAttribute("content", p.name + " · Reymero 3D");
+        document.querySelector('meta[property="og:description"]')?.setAttribute("content", desc);
+        document.querySelector('meta[property="og:image"]')?.setAttribute("content", primary || "logo.svg");
+        let canon = document.querySelector('link[rel="canonical"]');
+        if (!canon) { canon = document.createElement('link'); canon.rel = 'canonical'; document.head.appendChild(canon); }
+        canon.href = location.href;
+      } catch (e) {}
 
       const slides = Array.from(document.querySelectorAll(".detail-slide"));
       const dots = Array.from(document.querySelectorAll(".detail-dot"));

@@ -140,7 +140,12 @@
     const sb = window.supabase.createClient(CFG.SUPABASE_URL, CFG.SUPABASE_ANON_KEY);
     const STATUS_LABELS = { pending:"Pendiente", confirmed:"Confirmado", preparing:"En preparación", ready:"Listo para entregar", delivered:"Entregado", cancelled:"Cancelado" };
     const DELIVERY_LABELS = { shipping:"Envío", pickup_agreed:"Retiro acordado" };
-    const PAYMENT_LABELS = { pending_payment:"Pendiente comprobante", receipt_uploaded:"Comprobante recibido", verified:"Pago verificado", not_required:"No requerido" };
+    const PAYMENT_LABELS = {
+      pending_payment:"Pendiente comprobante", unpaid:"Pendiente de pago",
+      receipt_uploaded:"Comprobante recibido", proof_submitted:"Comprobante recibido",
+      verified:"Pago verificado", rejected:"Comprobante rechazado", refunded:"Reembolsado",
+      not_required:"No requerido"
+    };
     let allOrders = [];
     let current = null;
 
@@ -148,7 +153,14 @@
     function fmtDate(v){ const d=new Date(v); return isNaN(d)?"-":d.toLocaleString("es-AR",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"}); }
     function esc(v){ return String(v==null?"":v).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
     function badge(status){ const s=String(status||"pending"); return `<span class="badge s-${esc(s)}">${esc(STATUS_LABELS[s]||s)}</span>`; }
-    function payBadge(status){ const s=String(status||"pending_payment"); const cls = s==="receipt_uploaded"?"s-confirmed":s==="verified"?"s-ready":s==="not_required"?"s-delivered":"s-pending"; return `<span class="badge ${cls}">${esc(PAYMENT_LABELS[s]||s)}</span>`; }
+    function payBadge(status){
+      const s=String(status||"pending_payment");
+      const cls = (s==="receipt_uploaded"||s==="proof_submitted") ? "s-confirmed"
+        : s==="verified" ? "s-ready"
+        : (s==="rejected"||s==="refunded") ? "s-cancelled"
+        : s==="not_required" ? "s-delivered" : "s-pending";
+      return `<span class="badge ${cls}">${esc(PAYMENT_LABELS[s]||s)}</span>`;
+    }
     function rm(n){ return "RM-" + String(n||0).padStart(6,"0"); }
 
     async function ensureAdmin() {
@@ -230,7 +242,7 @@
         </div>
         <div class="grid2">
           <div class="box"><h3>Estado</h3><p>${badge(order.status)}</p><p class="muted">Creado: ${esc(fmtDate(order.created_at))}</p><p class="muted">Actualizado: ${esc(fmtDate(order.updated_at))}</p><div class="row" style="margin-top:.75rem;"><select id="newStatus">${Object.entries(STATUS_LABELS).map(([v,l])=>`<option value="${v}" ${v===order.status?"selected":""}>${l}</option>`).join("")}</select><button class="btn primary small" id="saveStatusBtn" type="button">Guardar estado</button></div><p class="muted" id="statusMsg"></p></div>
-          <div class="box"><h3>Pago / Comprobante</h3><p>${payBadge(order.payment_status)}</p><p class="muted">Subido: ${esc(fmtDate(order.payment_receipt_uploaded_at))}</p><p class="muted">Archivo: ${esc(order.payment_receipt_name||"-")}</p>${order.payment_receipt_path?`<div class="row" style="margin-top:.75rem;"><button class="btn small" id="viewReceiptBtn" type="button">Ver comprobante</button></div><p class="muted" id="receiptMsg"></p>`:`<p class="muted" style="margin-top:.5rem;">Sin comprobante cargado.</p>`}</div>
+          <div class="box"><h3>Pago / Comprobante</h3><p>${payBadge(order.payment_status)}</p><p class="muted">Subido: ${esc(fmtDate(order.payment_receipt_uploaded_at))}</p><p class="muted">Archivo: ${esc(order.payment_receipt_name||"-")}</p>${order.payment_rejection_reason?`<p class="muted" style="color:var(--red);">Motivo rechazo: ${esc(order.payment_rejection_reason)}</p>`:""}${order.payment_receipt_path?`<div class="row" style="margin-top:.75rem;"><button class="btn small" id="viewReceiptBtn" type="button">Ver comprobante</button></div><p class="muted" id="receiptMsg"></p>`:`<p class="muted" style="margin-top:.5rem;">Sin comprobante cargado.</p>`}${(order.payment_status==="proof_submitted"||order.payment_status==="receipt_uploaded")?`<div class="row" style="margin-top:.75rem;"><button class="btn primary small" id="verifyPaymentBtn" type="button">Confirmar pago</button><button class="btn danger small" id="rejectReceiptBtn" type="button">Rechazar comprobante</button></div><p class="muted" id="paymentMsg"></p>`:""}</div>
         </div>
         <div class="box"><h3>Facturación</h3><p><strong>Facturación:</strong> ${order.billing_requested?"Sí":"No"} ${order.billing_requested?`· ${esc(order.billing_full_name||"")} ${esc(order.billing_tax_id||"")} ${esc(order.billing_address||"")}`:""}</p></div>
         <div class="box"><h3>Productos</h3><table class="items"><thead><tr><th>Producto</th><th>Cant.</th><th>Unitario</th><th>Total</th></tr></thead><tbody>${items || '<tr><td colspan="4">Sin items</td></tr>'}</tbody></table><p style="text-align:right;margin-top:.75rem;font-family:'JetBrains Mono',monospace;"><strong>Total: ${esc(money(order.total))}</strong></p></div>
@@ -248,6 +260,32 @@
         if (msg) msg.textContent = "";
         window.open(data.signedUrl, "_blank", "noopener");
         vr.disabled = false;
+      });
+      const vp = document.getElementById("verifyPaymentBtn");
+      if (vp) vp.addEventListener("click", async () => {
+        const msg = document.getElementById("paymentMsg");
+        if (!confirm("¿Confirmar que el pago ingresó correctamente? Esta acción la debe hacer solo un admin autorizado.")) return;
+        vp.disabled = true; if (msg) msg.textContent = "Verificando pago...";
+        const { data, error } = await sb.rpc("admin_verify_order_payment", { p_order_id: order.id, p_note: "Pago verificado desde panel admin" });
+        if (error) { if (msg) msg.textContent = "Error: " + error.message; vp.disabled = false; return; }
+        if (msg) msg.textContent = data && data.changed ? "Pago verificado." : "Sin cambios.";
+        await loadOrders();
+        const refreshed = allOrders.find(o => o.id === order.id);
+        if (refreshed) openModal(refreshed); else closeModal();
+      });
+      const rr = document.getElementById("rejectReceiptBtn");
+      if (rr) rr.addEventListener("click", async () => {
+        const msg = document.getElementById("paymentMsg");
+        const reason = prompt("Motivo del rechazo del comprobante:");
+        if (reason === null) return;
+        if (!String(reason).trim()) { if (msg) msg.textContent = "Indicá un motivo de rechazo."; return; }
+        rr.disabled = true; if (msg) msg.textContent = "Rechazando comprobante...";
+        const { data, error } = await sb.rpc("admin_reject_order_receipt", { p_order_id: order.id, p_reason: String(reason).trim() });
+        if (error) { if (msg) msg.textContent = "Error: " + error.message; rr.disabled = false; return; }
+        if (msg) msg.textContent = data && data.changed ? "Comprobante rechazado." : "Sin cambios.";
+        await loadOrders();
+        const refreshed = allOrders.find(o => o.id === order.id);
+        if (refreshed) openModal(refreshed); else closeModal();
       });
       loadHistory(order.id);
     }
