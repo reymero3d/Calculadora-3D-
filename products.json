@@ -967,6 +967,33 @@
       }
     },
     {
+      "id": "sb_6a4cc986-b500-4343-a403-8d5f32e1ca72",
+      "name": "Minecraft Caballo Esqueleto y Jinete – Articulado",
+      "data": {
+        "productName": "Minecraft Caballo Esqueleto y Jinete – Articulado",
+        "category": "Minecraft",
+        "colors": 1,
+        "hours": 3,
+        "minutes": 36,
+        "grams": 73,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg",
+        "productMedia": [
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg"
+          }
+        ],
+        "published": true,
+        "inStock": true,
+        "rawPrice": 8500
+      }
+    },
+    {
       "id": "sb_a1193a85-bfab-4ade-828a-5dd14aa88615",
       "name": "Minecraft Cerdo zombi - Articulado",
       "data": {
@@ -1490,38 +1517,6 @@
         "published": true,
         "inStock": true
       }
-    },
-    {
-      "id": "sb_6a4cc986-b500-4343-a403-8d5f32e1ca72",
-      "name": "Minecraft Caballo Esqueleto y Jinete – Articulado",
-      "data": {
-        "productName": "Minecraft Caballo Esqueleto y Jinete – Articulado",
-        "category": "Minecraft",
-        "colors": 1,
-        "hours": 3,
-        "minutes": 36,
-        "grams": 73,
-        "insumos": 0,
-        "quantity": 1,
-        "profitMultiplier": 4,
-        "roundTo": 500,
-        "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg",
-        "productMedia": [
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/636639279/instance/e8f8bc23cfbd6565.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USf595ed347f2fcf/design/cc4adb3e400f60cc.jpg"
-          }
-        ],
-        "published": true,
-        "inStock": true,
-        "rawPrice": 8500
-      },
-      "_sbJustSaved": 1795454997520
     }
   ]
 }
