@@ -316,6 +316,27 @@
       }
     },
     {
+      "id": "sb_ecdf390d-1879-4f1d-95e6-c4790dcf9562",
+      "name": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
+      "data": {
+        "productName": "Flareon Pokémon tipo Chibi Funko",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 9,
+        "minutes": 0,
+        "grams": 160,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 4,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/500525509/instance/2025-12-02_1f488e74eb3498.jpg",
+        "rawPrice": 18500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_9fd46f7f-73b1-4325-9d47-5736f78132d0",
       "name": "Freddy Krueger",
       "data": {
@@ -1429,40 +1450,43 @@
       }
     },
     {
-      "id": "sb_ecdf390d-1879-4f1d-95e6-c4790dcf9562",
-      "name": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
+      "id": "prod_1795394147504",
+      "name": "Ataque de Bowser, diseño totalmente desmontable, muy pocos soportes, gran rey demonio Koopa, fácil de ensamblar (no requiere AMS)",
       "data": {
-        "productName": "Flareon Pokémon tipo Chibi Funko",
-        "category": "Pokemon",
+        "productName": "Ataque de Bowser, diseño totalmente desmontable, muy pocos soportes, gran rey demonio Koopa, fácil de ensamblar (no requiere AMS)",
+        "category": "Mario",
         "colors": 1,
-        "hours": 9,
-        "minutes": 0,
-        "grams": 160,
+        "hours": 11,
+        "minutes": 41,
+        "grams": 293,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 4,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/500525509/instance/2025-12-02_1f488e74eb3498.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US736bdf72818b15/732416336/instance/d062c99e6d5f110b.png",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/500525509/instance/2025-12-02_1f488e74eb3498.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US736bdf72818b15/732416336/instance/d062c99e6d5f110b.png"
           },
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/design/2025-12-02_061412e0d1b69.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US736bdf72818b15/732421317/instance/c87f5e7a4a20b7ba.jpg"
           },
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US8c3e2231ede62a/design/2025-12-02_370ee93ab11528.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US736bdf72818b15/751711791/instance/a31aad54e9064a49.jpg"
+          },
+          {
+            "type": "image",
+            "url": "https://makerworld.bblmw.com/makerworld/model/US736bdf72818b15/809870895/instance/c4c90daa6a481192.jpg"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 18500
-      },
-      "_sbJustSaved": 1795393961780
+        "rawPrice": 33000
+      }
     }
   ]
 }
