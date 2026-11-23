@@ -1450,10 +1450,10 @@
       }
     },
     {
-      "id": "prod_1795394147504",
+      "id": "sb_c088ea62-bbca-4423-8faa-9eb71e748891",
       "name": "Ataque de Bowser, diseño totalmente desmontable, muy pocos soportes, gran rey demonio Koopa, fácil de ensamblar (no requiere AMS)",
       "data": {
-        "productName": "Ataque de Bowser, diseño totalmente desmontable, muy pocos soportes, gran rey demonio Koopa, fácil de ensamblar (no requiere AMS)",
+        "productName": "Ataque de Bowser, gran rey demonio Koopa",
         "category": "Mario",
         "colors": 1,
         "hours": 11,
@@ -1486,7 +1486,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 33000
-      }
+      },
+      "_sbJustSaved": 1795394148024
     }
   ]
 }
