@@ -1471,7 +1471,7 @@
       }
     },
     {
-      "id": "prod_1795454889839",
+      "id": "sb_15e9c215-1579-48e6-91a4-df3eddae14ea",
       "name": "Minecraft Zombie - Articulado",
       "data": {
         "productName": "Minecraft Zombie - Articulado",
@@ -1499,7 +1499,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 5500
-      }
+      },
+      "_sbJustSaved": 1795454890526
     }
   ]
 }
