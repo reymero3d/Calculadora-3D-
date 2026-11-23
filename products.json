@@ -1429,10 +1429,10 @@
       }
     },
     {
-      "id": "prod_1795393961102",
+      "id": "sb_ecdf390d-1879-4f1d-95e6-c4790dcf9562",
       "name": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
       "data": {
-        "productName": "Flareon Pokémon tipo Chibi Funko Multicolor AMS",
+        "productName": "Flareon Pokémon tipo Chibi Funko",
         "category": "Pokemon",
         "colors": 1,
         "hours": 9,
@@ -1461,7 +1461,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 18500
-      }
+      },
+      "_sbJustSaved": 1795393961780
     }
   ]
 }
