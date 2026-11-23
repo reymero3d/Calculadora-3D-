@@ -102,11 +102,22 @@
     if (global.navigator.share && global.navigator.canShare) {
       try {
         const file = new File([blob], name, { type: type });
-        const payload = { files: [file], title: label, text: text };
-        if (url) payload.url = url;
         if (global.navigator.canShare({ files: [file] })) {
-          await global.navigator.share(payload);
-          return true;
+          // Omitir url separado al compartir archivos: mejora compatibilidad (WhatsApp/Android).
+          const payload = { files: [file], title: label, text: text };
+          try {
+            await global.navigator.share(payload);
+            return true;
+          } catch (e) {
+            if (e && e.name === "AbortError") return false;
+            // Reintentar sin texto extra si el objetivo no lo acepta
+            try {
+              await global.navigator.share({ files: [file], title: label });
+              return true;
+            } catch (e2) {
+              if (e2 && e2.name === "AbortError") return false;
+            }
+          }
         }
       } catch (e) {
         if (e && e.name === "AbortError") return false;

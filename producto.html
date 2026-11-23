@@ -258,38 +258,89 @@
         const oldLabel = shareStoryBtn.textContent;
         shareStoryBtn.textContent = "Preparando...";
         try {
-          let blob = null;
           const imgUrl = primary || (media.find(m => m.type === 'image') || {}).url || "";
-          if (imgUrl) {
+          const storyText = p.name + "\n" + money(p.price) + "\n" + url;
+
+          async function blobFromImageEl() {
+            const img = document.querySelector("#detailCarousel .detail-slide.active img") || document.querySelector("#detailCarousel img");
+            if (!img) return null;
+            if (!img.complete || !img.naturalWidth) {
+              await new Promise((resolve) => { img.addEventListener("load", resolve, { once: true }); img.addEventListener("error", resolve, { once: true }); setTimeout(resolve, 2500); });
+            }
+            if (!img.naturalWidth) return null;
             try {
-              const r = await fetch(imgUrl, { mode: "cors" });
-              if (r.ok) blob = await r.blob();
+              const canvas = document.createElement("canvas");
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+              return await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+            } catch (e) { return null; }
+          }
+
+          async function fetchBlob(u) {
+            if (!u) return null;
+            try {
+              const r = await fetch(u, { mode: "cors", cache: "force-cache" });
+              if (r.ok) {
+                const b = await r.blob();
+                if (b && b.size > 0 && /^image\//i.test(b.type || "")) return b;
+                if (b && b.size > 0 && !b.type) return new Blob([b], { type: "image/jpeg" });
+              }
+            } catch (e) {}
+            return null;
+          }
+
+          let blob = null;
+          blob = await fetchBlob(imgUrl);
+          if (!blob) {
+            try {
+              const active = document.querySelector("#detailCarousel .detail-slide.active img") || document.querySelector("#detailCarousel img");
+              const src = active && active.currentSrc || active && active.src || "";
+              if (src && src !== imgUrl) blob = await fetchBlob(src);
             } catch (e) {}
           }
           if (!blob && window.StoreOffline && typeof window.StoreOffline.readOne === "function") {
             try {
               const cached = await window.StoreOffline.readOne(p.id);
-              if (cached && cached.imageBlob instanceof Blob) blob = cached.imageBlob;
-              if (!blob && cached && cached.imageDataUrl) {
-                const res = await fetch(cached.imageDataUrl);
-                blob = await res.blob();
-              }
+              if (cached && cached.image_blob instanceof Blob && cached.image_blob.size > 0) blob = cached.image_blob;
             } catch (e) {}
           }
+          if (!blob) blob = await blobFromImageEl();
+          if (!blob && imgUrl && /^https?:/i.test(imgUrl)) {
+            try {
+              blob = await new Promise((resolve) => {
+                const im = new Image();
+                im.crossOrigin = "anonymous";
+                im.onload = () => {
+                  try {
+                    const c = document.createElement("canvas");
+                    c.width = im.naturalWidth; c.height = im.naturalHeight;
+                    c.getContext("2d").drawImage(im, 0, 0);
+                    c.toBlob((b) => resolve(b), "image/jpeg", 0.92);
+                  } catch (e) { resolve(null); }
+                };
+                im.onerror = () => resolve(null);
+                im.src = imgUrl;
+                setTimeout(() => resolve(null), 4000);
+              });
+            } catch (e) {}
+          }
+
           if (blob) {
-            const ext = (blob.type && blob.type.split("/")[1]) ? blob.type.split("/")[1].replace("jpeg","jpg") : "jpg";
-            const filename = (p.name || "producto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "producto";
-            const storyText = p.name + "\n" + money(p.price) + "\n" + url;
+            if (!/^image\//i.test(blob.type || "")) blob = new Blob([blob], { type: "image/jpeg" });
+            const ext = (blob.type.split("/")[1] || "jpg").replace("jpeg", "jpg").replace(/[^a-z0-9]/gi, "") || "jpg";
+            const filename = ((p.name || "producto").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "producto") + "." + ext;
             if (window.ReymeroShare && window.ReymeroShare.shareFile) {
-              await window.ReymeroShare.shareFile(blob, filename + "." + ext, blob.type || "image/jpeg", storyText, title, "Imagen descargada. Subila a tu estado de WhatsApp y agregá el link: " + url, url);
+              await window.ReymeroShare.shareFile(blob, filename, blob.type, storyText, title, "Imagen descargada. Subila a tu estado de WhatsApp y agregá el link: " + url, url);
             } else {
-              window.ReymeroShare.download(blob, filename + "." + ext);
+              window.ReymeroShare.download(blob, filename);
               try { await navigator.clipboard.writeText(storyText); } catch (e) {}
               toast("Imagen descargada. Subila a tu estado y pegá el link.");
             }
           } else {
-            if (window.ReymeroShare && window.ReymeroShare.shareText) await window.ReymeroShare.shareText(text, title);
-            else { await navigator.clipboard.writeText(text); toast("Texto copiado"); }
+            if (window.ReymeroShare && window.ReymeroShare.shareText) await window.ReymeroShare.shareText(storyText, title);
+            else { try { await navigator.clipboard.writeText(storyText); } catch (e) {} }
             toast("No se pudo obtener la imagen, se compartió el texto.");
           }
         } catch (e) {
