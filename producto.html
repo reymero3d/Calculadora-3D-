@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Producto · Reymero3d</title>
   <meta name="description" content="Detalle de producto de Reymero 3D: fotos, precio, disponibilidad y consulta por WhatsApp." />
   <meta name="theme-color" content="#1c1917" />
@@ -31,17 +31,23 @@
     :root { --bg:#f2eee7; --surface:#fbf8f3; --surface-2:#ece7de; --border:#d9d2c5; --text:#26221d; --muted:#6b6359; --muted-2:#a09688; --accent:#b91c1c; --accent-dark:#991b1b; --shadow:0 1px 0 rgba(38,34,29,0.04); --shadow-lg:0 1px 2px rgba(38,34,29,0.06),0 12px 32px rgba(38,34,29,0.08); }
     body.dark { --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33; --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70; --accent:#ef4444; --accent-dark:#dc2626; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 18px 40px rgba(0,0,0,.5); }
     * { box-sizing: border-box; }
+    html { overflow-x:hidden; scroll-behavior:smooth; }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .detail-slide, .toast, .mobile-cart-bar { transition:none !important; } }
     html, body { margin:0; padding:0; background:var(--bg); color:var(--text); font-family:"Inter","Segoe UI",system-ui,sans-serif; -webkit-font-smoothing:antialiased; }
-    body { min-height:100vh; background-image:radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size:24px 24px; }
+    body { min-height:100dvh; overflow-x:hidden; background-image:radial-gradient(circle at 1px 1px, rgba(38,34,29,0.05) 1px, transparent 0); background-size:24px 24px; }
     body.dark { background-image:radial-gradient(circle at 1px 1px, rgba(251,248,243,0.045) 1px, transparent 0); }
-    .app { max-width:900px; margin:0 auto; padding:0 1.5rem 4rem; }
+    img, video { max-width:100%; height:auto; }
+    .skip-link { position:absolute; left:-999px; top:auto; width:1px; height:1px; overflow:hidden; z-index:100; background:var(--accent); color:#fff; padding:.75rem 1rem; border-radius:8px; font-weight:700; text-decoration:none; }
+    .skip-link:focus,.skip-link:focus-visible { left:1rem; top:calc(1rem + env(safe-area-inset-top,0px)); width:auto; height:auto; }
+    :focus-visible { outline:3px solid rgba(185,28,28,.35); outline-offset:2px; }
+    .app { max-width:900px; margin:0 auto; padding:0 calc(1.5rem + env(safe-area-inset-right,0px)) calc(4rem + env(safe-area-inset-bottom,0px)) calc(1.5rem + env(safe-area-inset-left,0px)); }
     .hero { background:#1c1917; color:#fbf8f3; padding:2rem 2.25rem; margin:1.5rem -1.5rem 0; border-bottom:3px solid var(--accent); }
     .hero h1 { margin:0; font-family:"Fraunces",serif; font-size:2rem; font-weight:700; }
     .hero-nav { display:flex; gap:.5rem; margin-top:1rem; flex-wrap:wrap; }
     .hero-nav a { color:#fbf8f3; text-decoration:none; font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.06em; padding:.35rem .7rem; border:1px solid rgba(251,248,243,0.3); border-radius:2px; font-family:'JetBrains Mono',monospace; }
     .hero-nav a:hover, .hero-nav a.active { background:var(--accent); border-color:var(--accent); }
     .hero-meta { display:flex; flex-direction:column; align-items:flex-end; gap:.8rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; opacity:.85; text-align:right; }
-    .theme-toggle { display:inline-flex; align-items:center; gap:.4rem; background:rgba(255,255,255,.06); color:#fbf8f3; border:1px solid rgba(251,248,243,.3); border-radius:99px; padding:.4rem .8rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:600; cursor:pointer; transition:background .15s,border-color .15s; opacity:1; }
+    .theme-toggle { display:inline-flex; align-items:center; gap:.4rem; min-height:44px; background:rgba(255,255,255,.06); color:#fbf8f3; border:1px solid rgba(251,248,243,.3); border-radius:99px; padding:.4rem .8rem; font-family:'JetBrains Mono',monospace; font-size:.72rem; font-weight:600; cursor:pointer; transition:background .15s,border-color .15s; opacity:1; }
     .theme-toggle:hover { background:rgba(255,255,255,.15); border-color:rgba(251,248,243,.6); }
     .detail { display:grid; grid-template-columns:1fr 1fr; gap:2rem; margin-top:2rem; }
     @media (max-width:768px) { .detail { grid-template-columns:1fr; } }
@@ -52,35 +58,38 @@
     .desc { color:var(--muted); line-height:1.6; margin:1rem 0; }
     .price { font-family:"JetBrains Mono",monospace; font-weight:800; font-size:2rem; color:var(--accent); margin:1rem 0; }
     .stock { font-size:.8rem; color:var(--muted); margin-bottom:1rem; }
-    .whatsapp-btn { display:inline-flex; align-items:center; gap:.5rem; background:#25D366; color:#fff; padding:.8rem 1.4rem; border-radius:4px; font-weight:600; font-size:.9rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; transition:background .15s; }
+    .whatsapp-btn { display:inline-flex; align-items:center; gap:.5rem; min-height:44px; background:#25D366; color:#fff; padding:.8rem 1.4rem; border-radius:4px; font-weight:600; font-size:.9rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; transition:background .15s; }
     .whatsapp-btn:hover { background:#1ebe57; }
     .action-row { display:flex; flex-wrap:wrap; gap:.75rem; margin-top:.5rem; }
-    .share-btn { display:inline-flex; align-items:center; gap:.5rem; background:var(--surface); color:var(--text); padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--border); cursor:pointer; font-family:inherit; }
+    .share-btn { display:inline-flex; align-items:center; gap:.5rem; min-height:44px; background:var(--surface); color:var(--text); padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-decoration:none; text-transform:uppercase; letter-spacing:.04em; border:1px solid var(--border); cursor:pointer; font-family:inherit; }
     .share-btn:hover { border-color:var(--accent); color:var(--accent); }
     .share-story-btn { display:none; align-items:center; gap:.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.1rem; border-radius:4px; font-weight:600; font-size:.85rem; text-transform:uppercase; letter-spacing:.04em; border:1px solid #1c1917; cursor:pointer; font-family:inherit; }
     .share-story-btn:hover { background:var(--accent); border-color:var(--accent); }
     .share-story-btn.visible { display:inline-flex; }
     .cart-add-row { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; margin:1.25rem 0 .5rem; }
     .qty-stepper { display:inline-flex; align-items:center; border:1px solid var(--border); border-radius:6px; overflow:hidden; }
-    .qty-stepper button { width:2.4rem; height:2.4rem; border:0; background:var(--surface-2); color:var(--text); font-size:1.1rem; cursor:pointer; }
+    .qty-stepper button { width:44px; height:44px; border:0; background:var(--surface-2); color:var(--text); font-size:1.1rem; cursor:pointer; }
     .qty-stepper span { min-width:2.2rem; text-align:center; font-family:"JetBrains Mono",monospace; font-weight:700; font-size:.9rem; }
-    .add-cart-btn { flex:1; min-width:180px; padding:.8rem 1rem; border:1.5px solid var(--accent); border-radius:5px; background:var(--accent); color:#fff; font-family:"JetBrains Mono",monospace; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; cursor:pointer; transition:background .15s,border-color .15s; }
+    .add-cart-btn { flex:1; min-width:180px; min-height:44px; padding:.8rem 1rem; border:1.5px solid var(--accent); border-radius:5px; background:var(--accent); color:#fff; font-family:"JetBrains Mono",monospace; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; cursor:pointer; transition:background .15s,border-color .15s; }
     .add-cart-btn:hover { background:var(--accent-dark); border-color:var(--accent-dark); }
     .add-cart-btn:disabled { opacity:.5; cursor:default; }
-    .mobile-cart-bar { display:none; position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--surface); border-top:1px solid var(--border); padding:.75rem 5rem calc(.75rem + env(safe-area-inset-bottom, 0px)) 1rem; box-shadow:0 -8px 24px rgba(0,0,0,.08); gap:.75rem; align-items:center; }
+    .mobile-cart-bar { display:none; position:fixed; left:0; right:0; bottom:0; z-index:40; background:var(--surface); border-top:1px solid var(--border); padding:.75rem calc(1rem + env(safe-area-inset-right,0px)) calc(.75rem + env(safe-area-inset-bottom,0px)) calc(1rem + env(safe-area-inset-left,0px)); box-shadow:0 -8px 24px rgba(0,0,0,.08); gap:.75rem; align-items:center; }
     .mobile-cart-bar .price { margin:0; font-size:1.2rem; }
     .mobile-cart-bar .add-cart-btn { min-width:0; }
-    @media (max-width:768px) { .mobile-cart-bar { display:flex; } .app { padding-bottom:6.5rem; } }
+    @media (max-width:768px) { .mobile-cart-bar { display:flex; } .app { padding-bottom:calc(7.5rem + env(safe-area-inset-bottom,0px)); } .rm-cart-fab { bottom:calc(5.5rem + env(safe-area-inset-bottom,0px)) !important; } }
+    @media (max-width:480px) { .mobile-cart-bar { gap:.5rem; } .mobile-cart-bar .price { font-size:1.05rem; } .mobile-cart-bar .add-cart-btn { padding:.7rem .75rem; font-size:.72rem; } }
     .back { display:inline-block; margin-top:1.5rem; color:var(--accent); text-decoration:none; font-size:.85rem; font-weight:600; }
     .empty { text-align:center; padding:3rem 1rem; color:var(--muted); font-style:italic; }
-    .toast { position:fixed; bottom:1.5rem; right:1.5rem; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:3px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; }
+    .toast { position:fixed; bottom:calc(1.5rem + env(safe-area-inset-bottom,0px)); right:calc(1.5rem + env(safe-area-inset-right,0px)); left:auto; background:#1c1917; color:#fbf8f3; padding:.8rem 1.2rem; border-radius:3px; font-size:.85rem; font-weight:500; box-shadow:var(--shadow-lg); transform:translateY(120%); transition:transform .25s; z-index:50; font-family:"JetBrains Mono",monospace; max-width:min(24rem, calc(100vw - 2rem - env(safe-area-inset-left,0px) - env(safe-area-inset-right,0px))); }
     .toast.show { transform:translateY(0); }
     body.dark .toast { background:#0f0d0b; }
     @media (max-width:640px) { .app { padding:0 1rem 3rem; } .hero { padding:1.5rem 1rem; margin:1rem -1rem 0; } .hero h1 { font-size:1.6rem; } .hero-meta { align-items:flex-start; text-align:left; } }
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#content">Saltar al contenido</a>
   <div class="app">
+    <main id="main">
     <div class="hero">
       <div class="hero-content">
         <div>
@@ -97,6 +106,7 @@
       </div>
     </div>
     <div id="content"></div>
+    </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
   <script>
@@ -178,8 +188,8 @@
         if (m.type === 'video') return `<div class="detail-slide" data-idx="${i}" data-type="video" style="position:absolute;inset:0;${active}transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;background:#000;"><video src="${escapeHtml(m.url)}" controls playsinline autoplay muted style="width:100%;height:100%;object-fit:contain;background:#000"></video></div>`;
         return `<div class="detail-slide" data-idx="${i}" style="position:absolute;inset:0;${active}transition:opacity .45s ease;"><img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;"></div>`;
       }).join('') : `<span class="placeholder">Sin foto</span>`;
-      const dotsHtml = media.length > 1 ? `<div id="detailDots" style="position:absolute;left:0;right:0;bottom:.75rem;display:flex;gap:.4rem;justify-content:center;z-index:3;">${media.map((_,i)=>`<button type="button" class="detail-dot" data-idx="${i}" aria-label="Ver imagen ${i+1}" style="width:10px;height:10px;border-radius:50%;border:0;padding:0;cursor:pointer;background:${i===0?'#fff':'rgba(255,255,255,.45)'};box-shadow:0 0 0 1px rgba(0,0,0,.2);"></button>`).join('')}</div>` : '';
-      const mediaHtml = media.length ? `<div id="detailCarousel" style="position:relative;width:100%;height:100%;min-height:360px;">${slidesHtml}${dotsHtml}</div>` : `<span class="placeholder">Sin foto</span>`;
+      const dotsHtml = media.length > 1 ? `<div id="detailDots" style="position:absolute;left:0;right:0;bottom:.5rem;display:flex;gap:.2rem;justify-content:center;z-index:3;">${media.map((_,i)=>`<button type="button" class="detail-dot" data-idx="${i}" aria-label="Ver imagen ${i+1}" aria-current="${i===0?'true':'false'}" style="width:44px;height:44px;border-radius:50%;border:0;padding:0;cursor:pointer;background:transparent;display:inline-flex;align-items:center;justify-content:center;"><span style="width:10px;height:10px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,.45)'};box-shadow:0 0 0 1px rgba(0,0,0,.2);display:block;"></span></button>`).join('')}</div>` : '';
+      const mediaHtml = media.length ? `<div id="detailCarousel" role="region" aria-label="Galería del producto" aria-roledescription="carrusel" style="position:relative;width:100%;height:100%;min-height:360px;">${slidesHtml}${dotsHtml}</div>` : `<span class="placeholder">Sin foto</span>`;
       document.getElementById("content").innerHTML = `
         <div class="detail">
           <div class="img" style="padding:0;overflow:hidden;position:relative;min-height:360px;">${mediaHtml}</div>
@@ -441,7 +451,7 @@
             v.onended = null;
           }
         });
-        dots.forEach((d, i) => { d.style.background = i === slideIdx ? "#fff" : "rgba(255,255,255,.45)"; });
+        dots.forEach((d, i) => { const activeDot = i === slideIdx; d.setAttribute("aria-current", activeDot ? "true" : "false"); const dotSpan = d.querySelector("span"); if (dotSpan) dotSpan.style.background = activeDot ? "#fff" : "rgba(255,255,255,.45)"; });
         scheduleNext();
       }
       dots.forEach(d => d.addEventListener("click", () => { showSlide(Number(d.dataset.idx || 0)); }));

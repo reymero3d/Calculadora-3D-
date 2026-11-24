@@ -15,12 +15,12 @@
   const CSS = `
     .rm-receipt-backdrop { position:fixed; inset:0; z-index:80; background:rgba(28,25,23,.6); opacity:0; pointer-events:none; transition:opacity .2s; }
     .rm-receipt-backdrop.open { opacity:1; pointer-events:auto; }
-    .rm-receipt { position:fixed; z-index:81; left:50%; top:50%; transform:translate(-50%,-48%) scale(.98); width:min(680px,calc(100% - 2rem)); max-height:92vh; display:flex; flex-direction:column; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); opacity:0; pointer-events:none; transition:opacity .2s,transform .2s; }
+    .rm-receipt { position:fixed; z-index:81; left:50%; top:50%; transform:translate(-50%,-48%) scale(.98); width:min(680px,calc(100% - 2rem)); max-height:92dvh; display:flex; flex-direction:column; background:var(--surface); color:var(--text); border:1px solid var(--border); border-radius:14px; box-shadow:var(--shadow-lg); opacity:0; pointer-events:none; transition:opacity .2s,transform .2s; }
     .rm-receipt.open { opacity:1; pointer-events:auto; transform:translate(-50%,-50%) scale(1); }
     .rm-receipt-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1.1rem 1.25rem; border-bottom:1px solid var(--border); }
     .rm-receipt-head h2 { margin:0; font-family:"Fraunces","Segoe UI",serif; font-size:1.3rem; }
-    .rm-receipt-close { width:2rem; height:2rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); cursor:pointer; font-size:1.1rem; line-height:1; }
-    .rm-receipt-body { overflow:auto; padding:1.25rem; }
+    .rm-receipt-close { width:2.75rem; height:2.75rem; border:1px solid var(--border); border-radius:6px; background:var(--surface); color:var(--text); cursor:pointer; font-size:1.25rem; line-height:1; }
+    .rm-receipt-body { overflow:auto; padding:1.25rem; overscroll-behavior:contain; }
     .rm-receipt-brand { font-family:"JetBrains Mono",monospace; font-size:.7rem; text-transform:uppercase; letter-spacing:.14em; color:var(--accent); font-weight:800; }
     .rm-receipt-title { margin:.25rem 0 1rem; font-family:"Fraunces","Segoe UI",serif; font-size:1.5rem; }
     .rm-receipt-meta { display:grid; grid-template-columns:1fr 1fr; gap:.5rem 1rem; padding:.85rem; margin-bottom:1rem; background:var(--surface-2); border-radius:8px; font-family:"JetBrains Mono",monospace; font-size:.75rem; }
@@ -35,7 +35,7 @@
     .rm-pay-note { margin:.7rem 0 0; font-size:.72rem; color:var(--muted); line-height:1.45; }
     .rm-upload { margin:0 0 1rem; padding:1rem; border:1px dashed var(--border); border-radius:10px; background:var(--surface); }
     .rm-upload h4 { margin:0 0 .5rem; font-size:.78rem; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); }
-    .rm-upload input[type=file] { width:100%; font-size:.8rem; color:var(--text); }
+    .rm-upload input[type=file] { width:100%; font-size:16px; color:var(--text); min-height:44px; }
     .rm-upload-status { margin-top:.6rem; font-size:.75rem; color:var(--muted); line-height:1.4; min-height:1.2em; }
     .rm-upload-status.ok { color:var(--green); font-weight:600; }
     .rm-upload-status.err { color:var(--accent); font-weight:600; }
@@ -50,15 +50,15 @@
     .rm-receipt-total { display:flex; justify-content:space-between; align-items:baseline; gap:1rem; margin-top:1.25rem; padding-top:1rem; border-top:2px solid var(--border); font-family:"JetBrains Mono",monospace; }
     .rm-receipt-total b { font-size:1.5rem; color:var(--accent); }
     .rm-receipt-disclaimer { margin:.9rem 0 0; font-size:.72rem; color:var(--muted); line-height:1.5; }
-    .rm-receipt-foot { border-top:1px solid var(--border); padding:1rem 1.25rem 1.15rem; display:grid; gap:.5rem; }
+    .rm-receipt-foot { border-top:1px solid var(--border); padding:1rem 1.25rem calc(1.15rem + env(safe-area-inset-bottom,0px)); display:grid; gap:.5rem; }
     .rm-receipt-row { display:grid; grid-template-columns:1fr 1fr; gap:.5rem; }
-    .rm-receipt-btn { padding:.75rem .6rem; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font-family:inherit; font-size:.78rem; font-weight:700; cursor:pointer; }
+    .rm-receipt-btn { min-height:44px; padding:.75rem .6rem; border:1px solid var(--border); border-radius:7px; background:var(--surface); color:var(--text); font-family:inherit; font-size:.8rem; font-weight:700; cursor:pointer; }
     .rm-receipt-btn:hover:not(:disabled) { border-color:var(--accent); color:var(--accent); }
     .rm-receipt-btn:disabled { opacity:.55; cursor:default; }
     .rm-receipt-btn.primary { border-color:var(--accent); background:var(--accent); color:#fff; font-family:"JetBrains Mono",monospace; font-size:.72rem; text-transform:uppercase; letter-spacing:.04em; }
     .rm-receipt-btn.primary:hover:not(:disabled) { background:var(--accent-dark); }
-    .rm-receipt-close:focus-visible, .rm-receipt-btn:focus-visible { outline:3px solid rgba(185,28,28,.35); outline-offset:2px; }
-    @media (max-width:640px) { .rm-receipt { width:calc(100% - 1.5rem); } .rm-receipt-meta,.rm-pay-grid,.rm-receipt-row { grid-template-columns:1fr; } }
+    .rm-receipt-close:focus-visible, .rm-receipt-btn:focus-visible, .rm-upload input[type=file]:focus-visible { outline:3px solid rgba(185,28,28,.35); outline-offset:2px; }
+    @media (max-width:640px) { .rm-receipt { width:calc(100% - 1rem); max-height:94dvh; } .rm-receipt-meta,.rm-pay-grid,.rm-receipt-row { grid-template-columns:1fr; } }
     @media (prefers-reduced-motion:reduce) { .rm-receipt,.rm-receipt-backdrop { transition:none; } }
   `;
 
@@ -188,7 +188,9 @@
       }
     } else {
       if (rejected) up.appendChild(el("p", "rm-upload-status err", "El comprobante anterior fue rechazado. Subí un nuevo comprobante para que podamos verificar el pago."));
-      const input = document.createElement("input"); input.type = "file"; input.id = "rmReceiptFile"; input.accept = "image/jpeg,image/png,image/webp,application/pdf";
+      const fileLabel = el("label", "rm-upload-status", "Archivo del comprobante"); fileLabel.setAttribute("for", "rmReceiptFile"); fileLabel.style.display = "block"; fileLabel.style.marginBottom = ".35rem"; fileLabel.style.fontWeight = "600";
+      up.appendChild(fileLabel);
+      const input = document.createElement("input"); input.type = "file"; input.id = "rmReceiptFile"; input.name = "receipt"; input.accept = "image/jpeg,image/png,image/webp,application/pdf"; input.setAttribute("aria-describedby", "rmReceiptUploadStatus");
       up.appendChild(input);
       const upActions = el("div", "rm-pay-actions"); upActions.style.marginTop = ".75rem";
       const upBtn = el("button", "rm-receipt-btn primary", rejected ? "Subir nuevo comprobante" : "Subir comprobante"); upBtn.type = "button"; upBtn.id = "rmReceiptUploadBtn";
@@ -200,7 +202,7 @@
       } else {
         up.appendChild(el("p", "rm-upload-status", "El carrito se actualiza recién después de subir el comprobante correctamente."));
       }
-      const st = el("div", "rm-upload-status"); st.id = "rmReceiptUploadStatus"; up.appendChild(st);
+      const st = el("div", "rm-upload-status"); st.id = "rmReceiptUploadStatus"; st.setAttribute("role", "status"); st.setAttribute("aria-live", "polite"); up.appendChild(st);
     }
     bodyEl.appendChild(up);
 
@@ -343,7 +345,17 @@
 
     closeBtn.addEventListener("click", close);
     backdrop.addEventListener("click", close);
-    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
+    document.addEventListener("keydown", function (e) {
+      if (!modal.classList.contains("open")) return;
+      if (e.key === "Escape") { close(); return; }
+      if (e.key === "Tab") {
+        const focusables = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (!focusables.length) { e.preventDefault(); return; }
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey) { if (document.activeElement === first || document.activeElement === modal) { e.preventDefault(); last.focus(); } }
+        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+      }
+    });
     window.addEventListener("reymero:checkout-validated", onValidated);
 
     bodyEl.addEventListener("click", function (e) {

@@ -5,9 +5,10 @@
 
   const STYLE_ID = "rmCustomerStyles";
   let sb = null;
-  let modal = null, backdrop = null, bodyEl = null, statusEl = null;
+  let modal = null, backdrop = null, bodyEl = null, statusEl = null, closeBtn = null;
   let currentUser = null;
   let profile = null;
+  let lastFocus = null, previousOverflow = "";
   const listeners = [];
 
   function getSb() {
@@ -55,22 +56,25 @@
     const s = document.createElement("style"); s.id = STYLE_ID;
     s.textContent = `
       .rm-cust-back{position:fixed;inset:0;background:rgba(28,25,23,.55);z-index:75;display:none}.rm-cust-back.open{display:block}
-      .rm-cust{position:fixed;inset:1rem;margin:auto;max-width:720px;max-height:calc(100vh - 2rem);overflow:auto;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);z-index:76;display:none}
+      .rm-cust{position:fixed;inset:1rem;margin:auto;max-width:720px;max-height:calc(100dvh - 2rem - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));overflow:auto;background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:14px;box-shadow:var(--shadow-lg);z-index:76;display:none}
       .rm-cust.open{display:block}
-      .rm-cust-head{display:flex;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface)}
+      .rm-cust-head{display:flex;justify-content:space-between;gap:1rem;padding:1rem 1.25rem;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--surface);z-index:1}
       .rm-cust-head h2{margin:0;font-family:"Fraunces",serif;font-size:1.3rem}
       .rm-cust-body{padding:1.25rem;display:grid;gap:1rem}
       .rm-cust-box{border:1px solid var(--border);border-radius:10px;padding:1rem;background:var(--surface-2)}
       .rm-cust-box h3{margin:0 0 .7rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
-      .rm-cust input{width:100%;padding:.65rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:inherit;margin-top:.25rem}
+      .rm-cust input{width:100%;padding:.7rem .75rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font:inherit;font-size:16px;margin-top:.25rem;min-height:44px}
       .rm-cust label{display:block;font-size:.75rem;color:var(--muted);margin-top:.6rem}
       .rm-cust .row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.8rem}
-      .rm-cust button,.rm-cust-btn{padding:.65rem .9rem;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font:inherit;cursor:pointer}
+      .rm-cust button,.rm-cust-btn{min-height:44px;padding:.65rem .9rem;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font:inherit;cursor:pointer}
       .rm-cust .primary{background:var(--accent);border-color:var(--accent);color:#fff;font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;text-transform:uppercase}
       .rm-cust .muted{font-size:.78rem;color:var(--muted);line-height:1.45}
       .rm-cust-order{padding:.75rem 0;border-bottom:1px solid var(--border)}
       .rm-cust-order:last-child{border-bottom:0}
       .rm-cust-badge{display:inline-block;padding:.15rem .5rem;border-radius:99px;font-size:.66rem;font-weight:700;background:var(--accent-soft);color:var(--accent)}
+      .rm-cust button:focus-visible,.rm-cust input:focus-visible,.rm-cust a:focus-visible{outline:3px solid rgba(185,28,28,.35);outline-offset:2px}
+      @media (max-width:640px){.rm-cust{inset:.5rem;max-height:calc(100dvh - 1rem - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));}.rm-cust-head,.rm-cust-body{padding-left:1rem;padding-right:1rem;}}
+      @media (prefers-reduced-motion:reduce){.rm-cust-back,.rm-cust{transition:none}}
     `;
     document.head.appendChild(s);
   }
@@ -79,19 +83,48 @@
     if (modal) return;
     css();
     backdrop = document.createElement("div"); backdrop.className = "rm-cust-back";
-    modal = document.createElement("div"); modal.className = "rm-cust"; modal.setAttribute("role","dialog"); modal.setAttribute("aria-modal","true");
-    modal.innerHTML = `<div class="rm-cust-head"><h2 id="rmCustTitle">Mi cuenta</h2><button type="button" id="rmCustClose">Cerrar</button></div><div class="rm-cust-body" id="rmCustBody"></div>`;
+    modal = document.createElement("div"); modal.className = "rm-cust"; modal.setAttribute("role","dialog"); modal.setAttribute("aria-modal","true"); modal.setAttribute("aria-labelledby","rmCustTitle"); modal.setAttribute("aria-hidden","true");
+    if ("inert" in modal) modal.inert = true;
+    modal.innerHTML = `<div class="rm-cust-head"><h2 id="rmCustTitle">Mi cuenta</h2><button type="button" id="rmCustClose" aria-label="Cerrar">Cerrar</button></div><div class="rm-cust-body" id="rmCustBody"></div>`;
     document.body.appendChild(backdrop); document.body.appendChild(modal);
     bodyEl = modal.querySelector("#rmCustBody");
-    modal.querySelector("#rmCustClose").addEventListener("click", close);
+    closeBtn = modal.querySelector("#rmCustClose");
+    closeBtn.addEventListener("click", close);
     backdrop.addEventListener("click", close);
-    document.addEventListener("keydown", e => { if (e.key === "Escape" && modal.classList.contains("open")) close(); });
+    document.addEventListener("keydown", e => {
+      if (!modal.classList.contains("open")) return;
+      if (e.key === "Escape") { close(); return; }
+      if (e.key === "Tab") {
+        const focusables = modal.querySelectorAll('button:not([disabled]), [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        if (!focusables.length) { e.preventDefault(); return; }
+        const first = focusables[0], last = focusables[focusables.length - 1];
+        if (e.shiftKey) { if (document.activeElement === first || document.activeElement === modal) { e.preventDefault(); last.focus(); } }
+        else { if (document.activeElement === last) { e.preventDefault(); first.focus(); } }
+      }
+    });
   }
 
-  function open(view) { ensureModal(); modal.classList.add("open"); backdrop.classList.add("open"); render(view || (currentUser ? "account" : "login")); }
-  function close() { if (!modal) return; modal.classList.remove("open"); backdrop.classList.remove("open"); }
+  function open(view) {
+    ensureModal();
+    lastFocus = document.activeElement;
+    previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const app = document.querySelector(".app"); if (app && "inert" in app) app.inert = true;
+    modal.classList.add("open"); backdrop.classList.add("open");
+    modal.setAttribute("aria-hidden", "false"); if ("inert" in modal) modal.inert = false;
+    render(view || (currentUser ? "account" : "login"));
+    try { (closeBtn || modal.querySelector("button,input")).focus(); } catch(e) {}
+  }
+  function close() {
+    if (!modal || !modal.classList.contains("open")) return;
+    modal.classList.remove("open"); backdrop.classList.remove("open");
+    modal.setAttribute("aria-hidden", "true"); if ("inert" in modal) modal.inert = true;
+    document.body.style.overflow = previousOverflow;
+    const app = document.querySelector(".app"); if (app && "inert" in app) app.inert = false;
+    if (lastFocus && typeof lastFocus.focus === "function") { try { lastFocus.focus(); } catch(e) {} }
+  }
 
-  function setStatus(msg, err) { if (statusEl) { statusEl.textContent = msg || ""; statusEl.style.color = err ? "var(--accent)" : "var(--muted)"; } }
+  function setStatus(msg, err) { if (statusEl) { statusEl.textContent = msg || ""; statusEl.style.color = err ? "var(--accent)" : "var(--muted)"; statusEl.setAttribute("role","status"); statusEl.setAttribute("aria-live","polite"); } }
 
   async function render(view) {
     ensureModal();
@@ -108,7 +141,7 @@
             <button class="primary" id="rmCustSubmit" type="button">${isReg?"Crear cuenta":"Ingresar"}</button>
             <button type="button" id="rmCustToggle">${isReg?"Ya tengo cuenta":"Crear cuenta"}</button>
           </div>
-          <p class="muted" id="rmCustStatus" style="margin-top:.75rem;"></p>
+          <p class="muted" id="rmCustStatus" role="status" aria-live="polite" style="margin-top:.75rem;"></p>
         </div>`;
       statusEl = bodyEl.querySelector("#rmCustStatus");
       bodyEl.querySelector("#rmCustToggle").onclick = () => render(isReg ? "login" : "register");
@@ -148,7 +181,7 @@
           <label>Código postal<input id="pCp" value="${esc(p.postal_code||"")}"></label>
           <label>Referencias<input id="pRef" value="${esc(p.extra_references||"")}"></label>
           <div class="row"><button class="primary" id="rmCustSaveProfile" type="button">Guardar datos</button></div>
-          <p class="muted" id="rmCustStatus" style="margin-top:.75rem;"></p>
+          <p class="muted" id="rmCustStatus" role="status" aria-live="polite" style="margin-top:.75rem;"></p>
         </div>`;
       statusEl = bodyEl.querySelector("#rmCustStatus");
       bodyEl.querySelector("#rmCustLogout").onclick = async () => { await getSb().auth.signOut(); await refresh(); close(); };
@@ -168,7 +201,7 @@
     }
 
     if (view === "orders") {
-      bodyEl.innerHTML = `<div class="rm-cust-box"><h3>Mis pedidos</h3><p class="muted" id="rmCustStatus">Cargando...</p><div id="rmCustOrdersList"></div><div class="row"><button type="button" id="rmCustBack">Volver</button></div></div>`;
+      bodyEl.innerHTML = `<div class="rm-cust-box"><h3>Mis pedidos</h3><p class="muted" id="rmCustStatus" role="status" aria-live="polite">Cargando...</p><div id="rmCustOrdersList"></div><div class="row"><button type="button" id="rmCustBack">Volver</button></div></div>`;
       statusEl = bodyEl.querySelector("#rmCustStatus");
       bodyEl.querySelector("#rmCustBack").onclick = () => render("account");
       const { data, error } = await getSb().from("orders").select("id,order_number,status,total,created_at,delivery_method").order("created_at", { ascending: false }).limit(50);
