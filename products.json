@@ -1534,15 +1534,15 @@
       }
     },
     {
-      "id": "prod_1795655420173",
+      "id": "sb_9c6d012d-1372-437a-8a57-ae10782950ca",
       "name": "Pokémon Primera Generación #0151 Mew Modelo Multicolor",
       "data": {
         "productName": "Pokémon Primera Generación #0151 Mew Modelo Multicolor",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 3,
-        "minutes": 49,
-        "grams": 77,
+        "hours": 7,
+        "minutes": 43,
+        "grams": 153,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
@@ -1561,8 +1561,9 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 6500
-      }
+        "rawPrice": 13000
+      },
+      "_sbJustSaved": 1795655422474
     }
   ]
 }
