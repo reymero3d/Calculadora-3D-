@@ -1555,7 +1555,7 @@
       }
     },
     {
-      "id": "prod_1795728070113",
+      "id": "sb_43df0cf1-099f-465c-85aa-da9d7040dafe",
       "name": "Poliwhirl Multipartes de 110mm de altura",
       "data": {
         "productName": "Poliwhirl Multipartes de 110mm de altura",
@@ -1591,7 +1591,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 8500
-      }
+      },
+      "_sbJustSaved": 1795728070746
     }
   ]
 }
