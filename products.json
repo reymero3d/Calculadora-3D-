@@ -1345,6 +1345,27 @@
       }
     },
     {
+      "id": "sb_43df0cf1-099f-465c-85aa-da9d7040dafe",
+      "name": "Poliwhirl Multipartes de 110mm de altura",
+      "data": {
+        "productName": "Poliwhirl Multipartes de 110mm de altura",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 4,
+        "minutes": 1,
+        "grams": 100,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/586586070/instance/1b7fb300618f2273.jpg",
+        "rawPrice": 8500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_657276c7-9776-46f9-a01d-89314ab5eb27",
       "name": "Psyduck golpeado por pokebola",
       "data": {
@@ -1555,44 +1576,26 @@
       }
     },
     {
-      "id": "sb_43df0cf1-099f-465c-85aa-da9d7040dafe",
-      "name": "Poliwhirl Multipartes de 110mm de altura",
+      "id": "prod_1795730936027",
+      "name": "Hippo Watermelon Resort",
       "data": {
-        "productName": "Poliwhirl Multipartes de 110mm de altura",
-        "category": "Pokemon",
+        "productName": "Hippo Watermelon Resort",
+        "category": "Animales",
         "colors": 1,
-        "hours": 4,
-        "minutes": 1,
-        "grams": 100,
+        "hours": 9,
+        "minutes": 47,
+        "grams": 137,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/586586070/instance/1b7fb300618f2273.jpg",
-        "productMedia": [
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/586586070/instance/1b7fb300618f2273.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/design/c6b0bffefedbf337.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/design/41e3a21a78597e92.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US76dbeac70f868c/design/8e35c20261e4cc5c.jpg"
-          }
-        ],
+        "productImage": "",
+        "productMedia": [],
         "published": true,
         "inStock": true,
-        "rawPrice": 8500
-      },
-      "_sbJustSaved": 1795728070746
+        "rawPrice": 12500
+      }
     }
   ]
 }
