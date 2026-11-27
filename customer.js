@@ -128,7 +128,7 @@
 
   async function render(view) {
     ensureModal();
-    if (!currentUser) view = (view === "register") ? "register" : "login";
+    if (!currentUser && view !== "forgot" && view !== "reset") view = (view === "register") ? "register" : "login";
     if (view === "login" || view === "register") {
       const isReg = view === "register";
       bodyEl.innerHTML = `
@@ -141,21 +141,81 @@
             <button class="primary" id="rmCustSubmit" type="button">${isReg?"Crear cuenta":"Ingresar"}</button>
             <button type="button" id="rmCustToggle">${isReg?"Ya tengo cuenta":"Crear cuenta"}</button>
           </div>
+          ${!isReg ? '<div class="row"><button type="button" id="rmCustForgot">Olvidé mi contraseña</button></div>' : ''}
           <p class="muted" id="rmCustStatus" role="status" aria-live="polite" style="margin-top:.75rem;"></p>
         </div>`;
       statusEl = bodyEl.querySelector("#rmCustStatus");
       bodyEl.querySelector("#rmCustToggle").onclick = () => render(isReg ? "login" : "register");
+      const forgotBtn = bodyEl.querySelector("#rmCustForgot");
+      if (forgotBtn) forgotBtn.onclick = () => render("forgot");
       bodyEl.querySelector("#rmCustSubmit").onclick = async () => {
         const email = bodyEl.querySelector("#rmCustEmail").value.trim();
         const password = bodyEl.querySelector("#rmCustPass").value;
         if (!email || !password) return setStatus("Completá email y contraseña.", true);
         setStatus(isReg ? "Creando cuenta..." : "Ingresando...");
-        const fn = isReg ? getSb().auth.signUp({ email, password }) : getSb().auth.signInWithPassword({ email, password });
+        const redirectTo = new URL("tienda.html", window.location.href).href;
+        const fn = isReg
+          ? getSb().auth.signUp({ email, password, options: { emailRedirectTo: redirectTo } })
+          : getSb().auth.signInWithPassword({ email, password });
         const { data, error } = await fn;
         if (error) return setStatus(error.message, true);
         if (isReg && data && data.user && !data.session) { setStatus("Cuenta creada. Revisá tu email para confirmar el acceso, si tu proyecto lo requiere.", false); return; }
         await refresh();
         render("account");
+      };
+      return;
+    }
+    if (view === "forgot") {
+      bodyEl.innerHTML = `
+        <div class="rm-cust-box">
+          <h3>Recuperar contraseña</h3>
+          <p class="muted">Ingresá tu email y te enviaremos un enlace para restablecer tu contraseña.</p>
+          <label>Email<input id="rmCustEmail" type="email" autocomplete="email"></label>
+          <div class="row">
+            <button class="primary" id="rmCustResetSend" type="button">Enviar enlace</button>
+            <button type="button" id="rmCustBackLogin">Volver</button>
+          </div>
+          <p class="muted" id="rmCustStatus" role="status" aria-live="polite" style="margin-top:.75rem;"></p>
+        </div>`;
+      statusEl = bodyEl.querySelector("#rmCustStatus");
+      bodyEl.querySelector("#rmCustBackLogin").onclick = () => render("login");
+      bodyEl.querySelector("#rmCustResetSend").onclick = async () => {
+        const email = bodyEl.querySelector("#rmCustEmail").value.trim();
+        if (!email) return setStatus("Ingresá tu email.", true);
+        setStatus("Enviando enlace...");
+        const redirectTo = new URL("tienda.html", window.location.href).href;
+        const { error } = await getSb().auth.resetPasswordForEmail(email, { redirectTo });
+        if (error) return setStatus(error.message, true);
+        setStatus("Si el email existe, recibirás un enlace para restablecer la contraseña. Revisá también spam.");
+      };
+      return;
+    }
+    if (view === "reset") {
+      bodyEl.innerHTML = `
+        <div class="rm-cust-box">
+          <h3>Nueva contraseña</h3>
+          <p class="muted">Ingresá tu nueva contraseña para completar la recuperación.</p>
+          <label>Nueva contraseña<input id="rmCustNewPass" type="password" autocomplete="new-password"></label>
+          <label>Confirmar contraseña<input id="rmCustNewPass2" type="password" autocomplete="new-password"></label>
+          <div class="row">
+            <button class="primary" id="rmCustResetSave" type="button">Guardar contraseña</button>
+            <button type="button" id="rmCustResetCancel">Cancelar</button>
+          </div>
+          <p class="muted" id="rmCustStatus" role="status" aria-live="polite" style="margin-top:.75rem;"></p>
+        </div>`;
+      statusEl = bodyEl.querySelector("#rmCustStatus");
+      bodyEl.querySelector("#rmCustResetCancel").onclick = async () => { await getSb().auth.signOut(); await refresh(); render("login"); };
+      bodyEl.querySelector("#rmCustResetSave").onclick = async () => {
+        const p1 = bodyEl.querySelector("#rmCustNewPass").value;
+        const p2 = bodyEl.querySelector("#rmCustNewPass2").value;
+        if (!p1 || p1.length < 6) return setStatus("La contraseña debe tener al menos 6 caracteres.", true);
+        if (p1 !== p2) return setStatus("Las contraseñas no coinciden.", true);
+        setStatus("Guardando contraseña...");
+        const { error } = await getSb().auth.updateUser({ password: p1 });
+        if (error) return setStatus(error.message, true);
+        setStatus("Contraseña actualizada. Ya podés usar tu cuenta.");
+        await refresh();
+        setTimeout(() => render("account"), 800);
       };
       return;
     }
@@ -222,7 +282,22 @@
   }
 
   window.ReymeroCustomer = {
-    init: async function () { await refresh(); getSb().auth.onAuthStateChange(async () => { await refresh(); }); return { user: currentUser, profile }; },
+    init: async function () {
+      await refresh();
+      getSb().auth.onAuthStateChange(async (event) => {
+        await refresh();
+        if (event === "PASSWORD_RECOVERY") {
+          open("reset");
+        }
+      });
+      // If URL already contains recovery type/hash, Supabase may process it; open reset when session becomes recovery.
+      try {
+        const hash = String(location.hash || "");
+        const params = new URLSearchParams(hash.replace(/^#/, ""));
+        if (params.get("type") === "recovery") open("reset");
+      } catch (e) {}
+      return { user: currentUser, profile };
+    },
     open: open,
     close: close,
     getUser: function () { return currentUser; },

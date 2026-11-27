@@ -4,4 +4,4 @@ Disallow: /pedidos.html
 Disallow: /productos.html
 Disallow: /index.html
 
-Sitemap: https://reymero3d.github.io/Calculadora-3D-/sitemap.xml
+Sitemap: https://tienda.reymero3d.com/sitemap.xml
