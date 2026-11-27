@@ -1618,7 +1618,7 @@
       }
     },
     {
-      "id": "prod_1795758752717",
+      "id": "sb_ad519d3d-624c-4f3a-8089-f0b15b65f2e5",
       "name": "Caballo Blindado de Minecraft - Articulado",
       "data": {
         "productName": "Caballo Blindado de Minecraft - Articulado",
@@ -1642,7 +1642,8 @@
         "published": true,
         "inStock": true,
         "rawPrice": 6500
-      }
+      },
+      "_sbJustSaved": 1795758753284
     }
   ]
 }
