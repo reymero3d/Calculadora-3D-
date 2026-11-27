@@ -82,8 +82,23 @@
     return extras;
   }
 
-  function makePdf() {
-    if (!window.jspdf || !window.jspdf.jsPDF) throw new Error("jsPDF no disponible");
+  let _jsPdfPromise = null;
+  function ensureJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+    if (_jsPdfPromise) return _jsPdfPromise;
+    _jsPdfPromise = new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "jspdf.umd.min.js";
+      s.async = true;
+      s.onload = () => (window.jspdf && window.jspdf.jsPDF) ? resolve(window.jspdf.jsPDF) : reject(new Error("jsPDF no disponible"));
+      s.onerror = () => reject(new Error("No se pudo cargar jsPDF"));
+      document.head.appendChild(s);
+    });
+    return _jsPdfPromise;
+  }
+
+  async function makePdf() {
+    await ensureJsPDF();
     const d = current.detail;
     const customer = d.customer || {};
     const shipping = d.shipping || {};

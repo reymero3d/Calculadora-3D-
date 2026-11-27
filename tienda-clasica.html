@@ -15,8 +15,10 @@
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"></noscript>
   <style>
     :root {
       --bg:#f4f0e9; --surface:#fffdf9; --surface-2:#efe9df; --border:#ded6c8;
@@ -219,6 +221,7 @@
     </footer>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
     const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
@@ -249,6 +252,20 @@
 
     function escapeHtml(v) {
       return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+    }
+    function optImg(url, w, q) {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (raw.startsWith("data:") || raw.startsWith("blob:")) return raw;
+      if (!/^https?:\/\//i.test(raw)) return raw;
+      const width = Math.max(64, Math.min(1600, Number(w) || 400));
+      const quality = Math.max(40, Math.min(90, Number(q) || 75));
+      return "https://wsrv.nl/?url=" + encodeURIComponent(raw) + "&w=" + width + "&q=" + quality + "&output=webp&il";
+    }
+    function imgFallback(el) {
+      if (!el) return;
+      const fb = el.getAttribute("data-fallback");
+      if (fb && el.src !== fb) { el.onerror = null; el.src = fb; }
     }
 
     let products = [];
@@ -298,12 +315,16 @@
       if (arr.length) return arr.slice(0, 5);
       return p.image_url ? [{ type: 'image', url: p.image_url }] : [];
     }
-    function cardMediaHtml(p) {
+    function cardMediaHtml(p, eager) {
       const items = mediaItemsOf(p);
       if (!items.length) return `<span class="placeholder">Sin foto</span>`;
       const m = items[0];
       if (m.type === 'video') return `<video src="${escapeHtml(m.url)}" muted playsinline preload="metadata" style="width:100%;height:100%;object-fit:cover"></video>`;
-      return `<img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" loading="lazy">`;
+      const raw = escapeHtml(m.url);
+      const optimized = escapeHtml(optImg(m.url, 480, 72));
+      const loading = eager ? 'eager' : 'lazy';
+      const fp = eager ? ' fetchpriority="high"' : ' fetchpriority="low"';
+      return `<img src="${optimized}" data-fallback="${raw}" onerror="imgFallback(this)" alt="${escapeHtml(p.name)}" loading="${loading}"${fp} decoding="async" width="480" height="480" style="width:100%;height:100%;object-fit:cover">`;
     }
 
     function render() {
@@ -329,14 +350,14 @@
         empty.style.display = "block";
       } else {
         empty.style.display = "none";
-        catalog.innerHTML = filtered.map(p => {
+        catalog.innerHTML = filtered.map((p, idx) => {
           const items = mediaItemsOf(p);
           return `
           <a class="prod-card" href="producto.html?id=${encodeURIComponent(p.id)}">
             <div class="img${items.length > 1 ? ' has-multi-media' : ''}">
               ${p.category ? `<span class="cat">${escapeHtml(p.category)}</span>` : ""}
               ${items.length > 1 ? `<span class="media-count">${items.some(m=>m.type==='video') ? (items.filter(m=>m.type==='image').length + ' foto + video') : (items.length + ' fotos')}</span>` : ''}
-              ${cardMediaHtml(p)}
+              ${cardMediaHtml(p, idx < 4)}
             </div>
             <div class="body">
               <h3 class="name">${escapeHtml(p.name)}</h3>

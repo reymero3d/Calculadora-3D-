@@ -15,18 +15,10 @@
   <link rel="icon" type="image/svg+xml" href="logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-  <script src="config.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="offline-store.js?v=3"></script>
-  <script src="cart.js"></script>
-  <script src="cart-ui.js"></script>
-  <script src="customer.js"></script>
-  <script src="checkout.js"></script>
-  <script src="order.js"></script>
-  <script src="share.js"></script>
-  <script src="jspdf.umd.min.js"></script>
-  <script src="receipt.js"></script>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://wsrv.nl" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700;9..144,800&family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"></noscript>
   <style>
     :root { --bg:#f2eee7; --surface:#fbf8f3; --surface-2:#ece7de; --border:#d9d2c5; --text:#26221d; --muted:#6b6359; --muted-2:#a09688; --accent:#b91c1c; --accent-dark:#991b1b; --shadow:0 1px 0 rgba(38,34,29,0.04); --shadow-lg:0 1px 2px rgba(38,34,29,0.06),0 12px 32px rgba(38,34,29,0.08); }
     body.dark { --bg:#171513; --surface:#211e1a; --surface-2:#2c2721; --border:#443c33; --text:#f5f1ea; --muted:#b8a99a; --muted-2:#8a7e70; --accent:#ef4444; --accent-dark:#dc2626; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-lg:0 18px 40px rgba(0,0,0,.5); }
@@ -109,6 +101,16 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="config.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="offline-store.js?v=3"></script>
+  <script src="cart.js"></script>
+  <script src="cart-ui.js"></script>
+  <script src="customer.js"></script>
+  <script src="checkout.js"></script>
+  <script src="order.js"></script>
+  <script src="share.js"></script>
+  <script src="receipt.js"></script>
   <script>
     const SUPABASE_URL = "https://ylpgluuwxegcmubgqvls.supabase.co";
     const SUPABASE_ANON_KEY = "sb_publishable_kJJSRv8NgGjA3AHNHFEtSg_tpCb39bo";
@@ -166,6 +168,20 @@
     function escapeHtml(v) {
       return String(v ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
     }
+    function optImg(url, w, q) {
+      const raw = String(url || "").trim();
+      if (!raw) return "";
+      if (raw.startsWith("data:") || raw.startsWith("blob:")) return raw;
+      if (!/^https?:\/\//i.test(raw)) return raw;
+      const width = Math.max(64, Math.min(1600, Number(w) || 800));
+      const quality = Math.max(40, Math.min(90, Number(q) || 75));
+      return "https://wsrv.nl/?url=" + encodeURIComponent(raw) + "&w=" + width + "&q=" + quality + "&output=webp&il";
+    }
+    function imgFallback(el) {
+      if (!el) return;
+      const fb = el.getAttribute("data-fallback");
+      if (fb && el.src !== fb) { el.onerror = null; el.src = fb; }
+    }
 
     let currentProduct = null;
     let detailQty = 1;
@@ -186,7 +202,11 @@
       const slidesHtml = media.length ? media.map((m, i) => {
         const active = i === 0 ? 'opacity:1;z-index:1;' : 'opacity:0;z-index:0;';
         if (m.type === 'video') return `<div class="detail-slide" data-idx="${i}" data-type="video" style="position:absolute;inset:0;${active}transition:opacity .45s ease;display:flex;align-items:center;justify-content:center;background:#000;"><video src="${escapeHtml(m.url)}" controls playsinline autoplay muted style="width:100%;height:100%;object-fit:contain;background:#000"></video></div>`;
-        return `<div class="detail-slide" data-idx="${i}" style="position:absolute;inset:0;${active}transition:opacity .45s ease;"><img src="${escapeHtml(m.url)}" alt="${escapeHtml(p.name)}" style="width:100%;height:100%;object-fit:cover;"></div>`;
+        const raw = escapeHtml(m.url);
+        const optimized = escapeHtml(optImg(m.url, i === 0 ? 900 : 700, 75));
+        const loading = i === 0 ? "eager" : "lazy";
+        const fp = i === 0 ? ' fetchpriority="high"' : ' fetchpriority="low"';
+        return `<div class="detail-slide" data-idx="${i}" style="position:absolute;inset:0;${active}transition:opacity .45s ease;"><img src="${optimized}" data-fallback="${raw}" onerror="imgFallback(this)" alt="${escapeHtml(p.name)}" loading="${loading}"${fp} decoding="async" width="900" height="900" style="width:100%;height:100%;object-fit:cover;"></div>`;
       }).join('') : `<span class="placeholder">Sin foto</span>`;
       const dotsHtml = media.length > 1 ? `<div id="detailDots" style="position:absolute;left:0;right:0;bottom:.5rem;display:flex;gap:.2rem;justify-content:center;z-index:3;">${media.map((_,i)=>`<button type="button" class="detail-dot" data-idx="${i}" aria-label="Ver imagen ${i+1}" aria-current="${i===0?'true':'false'}" style="width:44px;height:44px;border-radius:50%;border:0;padding:0;cursor:pointer;background:transparent;display:inline-flex;align-items:center;justify-content:center;"><span style="width:10px;height:10px;border-radius:50%;background:${i===0?'#fff':'rgba(255,255,255,.45)'};box-shadow:0 0 0 1px rgba(0,0,0,.2);display:block;"></span></button>`).join('')}</div>` : '';
       const mediaHtml = media.length ? `<div id="detailCarousel" role="region" aria-label="Galería del producto" aria-roledescription="carrusel" style="position:relative;width:100%;height:100%;min-height:360px;">${slidesHtml}${dotsHtml}</div>` : `<span class="placeholder">Sin foto</span>`;
