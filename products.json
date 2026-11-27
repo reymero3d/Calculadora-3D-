@@ -1639,15 +1639,15 @@
       }
     },
     {
-      "id": "prod_1795790174052",
+      "id": "sb_08e141b3-50ce-4d4b-90cc-999eae371979",
       "name": "#0172 Pichu HQ - 15cm Multiparts",
       "data": {
         "productName": "#0172 Pichu HQ - 15cm Multiparts",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 9,
-        "minutes": 22,
-        "grams": 259,
+        "hours": 2,
+        "minutes": 58,
+        "grams": 49,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
@@ -1666,8 +1666,9 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 22000
-      }
+        "rawPrice": 4500
+      },
+      "_sbJustSaved": 1795790174673
     }
   ]
 }
