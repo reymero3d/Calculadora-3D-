@@ -1597,15 +1597,15 @@
       }
     },
     {
-      "id": "prod_1795745708631",
+      "id": "sb_08f46e58-0244-4e42-8419-2f760783574c",
       "name": "#0007 Squirtle HQ - 20cm Multipartes",
       "data": {
         "productName": "#0007 Squirtle HQ - 20cm Multipartes",
         "category": "Pokemon",
         "colors": 1,
-        "hours": 16,
-        "minutes": 33,
-        "grams": 476,
+        "hours": 5,
+        "minutes": 13,
+        "grams": 97,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
@@ -1628,8 +1628,9 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 40000
-      }
+        "rawPrice": 8500
+      },
+      "_sbJustSaved": 1795745709239
     }
   ]
 }
