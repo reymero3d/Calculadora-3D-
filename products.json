@@ -22,6 +22,27 @@
       }
     },
     {
+      "id": "sb_08f46e58-0244-4e42-8419-2f760783574c",
+      "name": "#0007 Squirtle HQ - 20cm Multipartes",
+      "data": {
+        "productName": "#0007 Squirtle HQ - 20cm Multipartes",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 5,
+        "minutes": 13,
+        "grams": 97,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US37f94613bafa8/745907808/instance/8791a0477115626c.jpg",
+        "rawPrice": 8500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_f984d910-4629-425f-84e4-34d03d7cdfda",
       "name": "Accesorios Minecraft Ghast Feliz - Articulado (copia)",
       "data": {
@@ -1597,40 +1618,31 @@
       }
     },
     {
-      "id": "sb_08f46e58-0244-4e42-8419-2f760783574c",
-      "name": "#0007 Squirtle HQ - 20cm Multipartes",
+      "id": "prod_1795758752717",
+      "name": "Caballo Blindado de Minecraft - Articulado",
       "data": {
-        "productName": "#0007 Squirtle HQ - 20cm Multipartes",
-        "category": "Pokemon",
+        "productName": "Caballo Blindado de Minecraft - Articulado",
+        "category": "Minecraft",
         "colors": 1,
-        "hours": 5,
-        "minutes": 13,
-        "grams": 97,
+        "hours": 3,
+        "minutes": 22,
+        "grams": 79,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/US37f94613bafa8/745907808/instance/8791a0477115626c.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US7ff38b7472f90f/1000316339/instance/7e8a037be869cff2.jpg",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US37f94613bafa8/745907808/instance/8791a0477115626c.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US37f94613bafa8/753492689/instance/47c08ff0bab818a7.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/US37f94613bafa8/749445997/instance/7180b2401736e907.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US7ff38b7472f90f/1000316339/instance/7e8a037be869cff2.jpg"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 8500
-      },
-      "_sbJustSaved": 1795745709239
+        "rawPrice": 6500
+      }
     }
   ]
 }
