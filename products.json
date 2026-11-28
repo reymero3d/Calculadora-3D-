@@ -1660,15 +1660,15 @@
       }
     },
     {
-      "id": "prod_1795826017632",
+      "id": "sb_86ebe6a6-f670-423f-85a0-d53e0b710ad4",
       "name": "Lindo Dragón Blanco V2 llavero multicolor",
       "data": {
         "productName": "Lindo Dragón Blanco V2 llavero multicolor",
         "category": "Llaveros",
         "colors": 1,
-        "hours": 3,
-        "minutes": 53,
-        "grams": 74,
+        "hours": 9,
+        "minutes": 20,
+        "grams": 154,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
@@ -1683,8 +1683,9 @@
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 6500
-      }
+        "rawPrice": 13500
+      },
+      "_sbJustSaved": 1795826018550
     }
   ]
 }
