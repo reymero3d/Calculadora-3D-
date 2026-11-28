@@ -43,6 +43,27 @@
       }
     },
     {
+      "id": "sb_08e141b3-50ce-4d4b-90cc-999eae371979",
+      "name": "#0172 Pichu HQ - 15cm Multiparts",
+      "data": {
+        "productName": "#0172 Pichu HQ - 15cm Multiparts",
+        "category": "Pokemon",
+        "colors": 1,
+        "hours": 2,
+        "minutes": 58,
+        "grams": 49,
+        "insumos": 0,
+        "quantity": 1,
+        "profitMultiplier": 3,
+        "roundTo": 500,
+        "currency": "ARS",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/USe996fd5b4f70a4/1074616870/instance/9f5ee9589ccb4848.jpg",
+        "rawPrice": 4500,
+        "published": true,
+        "inStock": true
+      }
+    },
+    {
       "id": "sb_f984d910-4629-425f-84e4-34d03d7cdfda",
       "name": "Accesorios Minecraft Ghast Feliz - Articulado (copia)",
       "data": {
@@ -1639,36 +1660,31 @@
       }
     },
     {
-      "id": "sb_08e141b3-50ce-4d4b-90cc-999eae371979",
-      "name": "#0172 Pichu HQ - 15cm Multiparts",
+      "id": "prod_1795826017632",
+      "name": "Lindo Dragón Blanco V2 llavero multicolor",
       "data": {
-        "productName": "#0172 Pichu HQ - 15cm Multiparts",
-        "category": "Pokemon",
+        "productName": "Lindo Dragón Blanco V2 llavero multicolor",
+        "category": "Llaveros",
         "colors": 1,
-        "hours": 2,
-        "minutes": 58,
-        "grams": 49,
+        "hours": 3,
+        "minutes": 53,
+        "grams": 74,
         "insumos": 0,
         "quantity": 1,
         "profitMultiplier": 3,
         "roundTo": 500,
         "currency": "ARS",
-        "productImage": "https://makerworld.bblmw.com/makerworld/model/USe996fd5b4f70a4/1074616870/instance/9f5ee9589ccb4848.jpg",
+        "productImage": "https://makerworld.bblmw.com/makerworld/model/US674967f55fa1f5/1184004166/instance/41b63ee778297b08.png",
         "productMedia": [
           {
             "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USe996fd5b4f70a4/1074616870/instance/9f5ee9589ccb4848.jpg"
-          },
-          {
-            "type": "image",
-            "url": "https://makerworld.bblmw.com/makerworld/model/USe996fd5b4f70a4/1074628720/instance/99dde5a00a6b7448.jpg"
+            "url": "https://makerworld.bblmw.com/makerworld/model/US674967f55fa1f5/1184004166/instance/41b63ee778297b08.png"
           }
         ],
         "published": true,
         "inStock": true,
-        "rawPrice": 4500
-      },
-      "_sbJustSaved": 1795790174673
+        "rawPrice": 6500
+      }
     }
   ]
 }
